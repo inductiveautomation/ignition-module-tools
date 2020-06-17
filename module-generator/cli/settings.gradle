@@ -1,0 +1,11 @@
+/*
+ * The settings file is used to specify which projects to include in your build.
+ */
+
+rootProject.name = 'cli'
+
+includeBuild("../core") {
+    dependencySubstitution {
+        substitute(module("io.ia.sdk.tools.module.gen:core")).with(project(":"))
+    }
+}

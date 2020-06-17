@@ -1,0 +1,15 @@
+plugins {
+    id "base"
+    id "idea"
+}
+
+wrapper {
+    gradleVersion "6.5"
+    distributionType  org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
+}
+
+build.dependsOn(gradle.includedBuild('cli').task(':build'), gradle.includedBuild('core').task(':build'))
+clean.dependsOn(gradle.includedBuild('cli').task(':clean'), gradle.includedBuild('core').task(':clean'))
+assemble.dependsOn(gradle.includedBuild('cli').task(':assemble'), gradle.includedBuild('core').task(':assemble'))
+check.dependsOn(gradle.includedBuild('cli').task(':check'), gradle.includedBuild('core').task(':check'))
+

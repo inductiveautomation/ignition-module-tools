@@ -1,0 +1,28 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build/
+
+# Intellij / IDE files
+.idea/
+out/
+
+gradle-module-plugin/.idea/
+gradle-module-plugin/.gradle/
+gradle-module-plugin/out/
+gradle-module-plugin/build/
+
+module-generator/.idea/
+module-generator/.gradle/
+module-generator/out/
+
+module-generator/core/.idea/
+module-generator/core/.gradle/
+module-generator/core/out/
+module-generator/core/build/
+
+module-generator/cli/.idea/
+module-generator/cli/.gradle/
+module-generator/cli/out/
+module-generator/cli/build/
