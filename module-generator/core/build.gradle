@@ -85,10 +85,10 @@ spotless {
 publishing {
     publications {
         ignitionModuleGenerator(MavenPublication) {
-            from project.components.java
-
-            groupId project.group
-            artifactId project.name
+            from components.java
+            version = project.version
+            groupId = project.group
+            artifactId = "$project.name"
         }
     }
 
