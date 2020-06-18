@@ -4,10 +4,6 @@ The Ignition platform is an open/pluggable JVM based system that uses Ignition M
 
 The Ignition Module Plugin for Gradle lets module developers use the [Gradle](https://www.gradle.org) build tool to create and sign functional modules (_.modl_ ) through a convenient DSL-based configuration model.
 
-## Overview
-
-
-The plugin is intended to support both simple projects with only a single source directory, as well as multi-scope/multi-project builds. Following Gradle best practices, configuration is simple and understandable when following our conventions, but complex customizations are also doable when required.
 
 ## Usage
 
@@ -20,7 +16,9 @@ The easiest way to get started with this plugin is to create a new module projec
 
 2. Configure your module through the `ignitionModule` configuration DSL.  See DSL properties section below for details. 
 
-3. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Otherwise, your dependencies should be specified in accordance with the best practices described in Gradle's `java-library` plugin documentation, which is available [here](https://docs.gradle.org/current/userguide/java_library_plugin.html).  Dependencies marked with either `api` or `implementation` in any subproject of your module will be collected and included in the final modl file.  Test-only dependencies should not be marked with these configurations.
+3. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Otherwise, your dependencies should be specified in accordance with the best practices described in Gradle's `java-library` plugin documentation, which is available [here](https://docs.gradle.org/current/userguide/java_library_plugin.html).  
+
+Dependencies marked with either `modlApi` or `modlImplementation` in any subproject of your module will be collected and included in the final modl file.  Note that currently there is no distinction between those configurations with respect to the Ignition Platform itself - however, all other implications apply as documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should not be marked with these `modl` configurations.
 
 ### `ignitionModule` DSL Properties
 
