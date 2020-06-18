@@ -6,13 +6,11 @@ This repository holds a number of tools that are used to create and/or support t
 
 ### Ignition Module Generator
 
-Contains two projects: 
+Contains two subprojects: 
 
-1. A library for creating Ignition module skeletons.  Written in Kotlin, usable in Kotlin, Java and other JVM languages 
-as a jar-based dependency available to Maven and Gradle build systems as a published artifact.
+1. [Ignition Module Generator Core](https://github.com/inductiveautomation/ignition-module-tools/tree/master/module-generator/cli#ignition-module-generator-cli) library for creating Ignition module skeletons.  Written in Kotlin, usable in Kotlin, Java and other JVM languages via jar-based dependency available as Maven artifacts.
 
-2. A command line application which uses the generator library to provide a _command line interface_ (CLI) that can be 
-used to create modules from your operating system's terminal/console.
+2. [Module Generator CLI](https://github.com/inductiveautomation/ignition-module-tools/tree/master/module-generator/core#ignition-module-generator) command line application which uses the generator library to provide a _command line interface_ (CLI) that can be used to create modules from your operating system's terminal/console.
 
 
 ### Gradle Module Plugin
@@ -52,4 +50,4 @@ To see a list of all available tasks, run `./gradlew tasks` (`gradlew.bat tasks`
 
 ## Questions?  Feedback?  Want to Contribute?
 
-Open an Issue. 
+Open an Issue!
