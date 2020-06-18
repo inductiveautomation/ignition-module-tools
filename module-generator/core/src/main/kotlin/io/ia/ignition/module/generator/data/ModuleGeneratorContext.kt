@@ -41,7 +41,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             prefix = "    ",
             postfix = ""
         ) { "\":${it.folderName}\"" }
-        replacements[TemplateMarker.HOOK_CLASS_CONFIG.key] = ":"
+        replacements[TemplateMarker.HOOK_CLASS_CONFIG.key] = buildHookEntry()
         replacements[TemplateMarker.SETTINGS_HEADER.key] = if (!config.debugPluginConfig) "" else {
             // TODO - support kotlin settings file format
             """
@@ -63,14 +63,31 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         }
     }
 
+    private fun buildHookEntry(): String {
+        val hookEntry = scopes.map {
+            when (it) {
+                DESIGNER -> "\"${config.packageName}.designer.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
+                CLIENT -> "\"${config.packageName}.client.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
+                GATEWAY -> "\"${config.packageName}.gateway.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
+                else -> null
+            }
+        }.joinToString(prefix = "    ", separator = ",\n        ")
+
+        return hookEntry
+    }
+
+    private fun associator(): String {
+        return when (config.buildDsl) {
+            GradleDsl.KOTLIN -> "to"
+            GradleDsl.GROOVY -> ":"
+        }
+    }
+
     /**
      * Emits a String that is a valid project scope configuration, consistent with the buildscript dsl type.
      */
     private fun buildProjectScopeConfiguration(): String {
-        val associator = when (config.buildDsl) {
-            GradleDsl.KOTLIN -> "to"
-            GradleDsl.GROOVY -> ":"
-        }
+        val associator = associator()
 
         // create the string to populate the `scopes` in the ignitionModule configuration DSL, each of which being
         // a literal value for a Map<org.gradle.api.Project, String> element:

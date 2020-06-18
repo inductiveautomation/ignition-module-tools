@@ -134,4 +134,115 @@ class ModuleGeneratorTest {
 
         assertTrue(settingsText.contains(projDirName.toString()))
     }
+
+    @Test
+    fun `G project has appropriate module configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "G"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfig.ConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = "    hooks = [\n" +
+            "        \"bot.skynet.terminator.gateway.TTwoHundredGatewayHook\" : \"G\"\n" +
+            "    ]"
+        val rootBuildFile = projDir.resolve("build.gradle")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        assertTrue(content.contains(expected))
+    }
+
+    @Test
+    fun `CG project has appropriate module configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "GC"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfig.ConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = "    hooks = [\n" +
+            "        \"bot.skynet.terminator.gateway.TTwoHundredGatewayHook\" : \"G\",\n" +
+            "        \"bot.skynet.terminator.client.TTwoHundredClientHook\" : \"C\"\n" +
+            "    ]"
+        val rootBuildFile = projDir.resolve("build.gradle")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        assertTrue(content.contains(expected))
+    }
+
+    @Test
+    fun `CGD project has appropriate module configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "GCD"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfig.ConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = "    hooks = [\n" +
+            "        \"bot.skynet.terminator.gateway.TTwoHundredGatewayHook\" : \"G\",\n" +
+            "        \"bot.skynet.terminator.client.TTwoHundredClientHook\" : \"C\",\n" +
+            "        \"bot.skynet.terminator.designer.TTwoHundredDesignerHook\" : \"D\"\n" +
+            "    ]"
+        val rootBuildFile = projDir.resolve("build.gradle")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        assertTrue(content.contains(expected))
+    }
 }
