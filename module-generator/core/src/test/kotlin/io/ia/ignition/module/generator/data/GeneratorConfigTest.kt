@@ -1,6 +1,6 @@
 package io.ia.ignition.module.generator.data
 
-import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import kotlin.test.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -21,14 +21,14 @@ class GeneratorConfigTest {
 
         val parentDir = tempFolder.newFolder()
 
-        val config1 = GeneratorConfig.ConfigBuilder()
+        val config1 = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .packageName(packageName)
             .parentDir(parentDir.toPath())
             .scopes(scopes)
             .build()
 
-        val config2 = GeneratorConfig.ConfigBuilder()
+        val config2 = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .packageName(packageName)
             .parentDir(parentDir.toPath())

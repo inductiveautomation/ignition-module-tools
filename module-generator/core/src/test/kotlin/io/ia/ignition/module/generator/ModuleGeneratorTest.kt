@@ -1,6 +1,6 @@
 package io.ia.ignition.module.generator
 
-import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.ignition.module.generator.api.TemplateMarker
 import java.lang.Exception
 import java.nio.file.Files
@@ -34,7 +34,7 @@ class ModuleGeneratorTest {
             TestConfig("A Goodness", "come.va", "C", dir("v6")),
             TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7"))
         ).forEach {
-            val config = GeneratorConfig.ConfigBuilder()
+            val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
                 .packageName(it.packageName)
                 .parentDir(it.dir)
@@ -69,7 +69,7 @@ class ModuleGeneratorTest {
         val badPackageName = "le.examp....@"
         val badModuleName = "My Test Module"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(badModuleName)
             .packageName(badPackageName)
             .parentDir(parentDir)
@@ -106,7 +106,7 @@ class ModuleGeneratorTest {
         val pkg = "bot.skynet.terminator"
         val name = "T Two Hundred"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .packageName(pkg)
             .parentDir(parentDir)
@@ -143,7 +143,7 @@ class ModuleGeneratorTest {
         val pkg = "bot.skynet.terminator"
         val name = "T Two Hundred"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .packageName(pkg)
             .parentDir(parentDir)
@@ -179,7 +179,7 @@ class ModuleGeneratorTest {
         val pkg = "bot.skynet.terminator"
         val name = "T Two Hundred"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .packageName(pkg)
             .parentDir(parentDir)
@@ -216,7 +216,7 @@ class ModuleGeneratorTest {
         val pkg = "bot.skynet.terminator"
         val name = "T Two Hundred"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .packageName(pkg)
             .parentDir(parentDir)

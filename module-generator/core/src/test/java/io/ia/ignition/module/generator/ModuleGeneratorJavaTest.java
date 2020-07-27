@@ -3,6 +3,7 @@ package io.ia.ignition.module.generator;
 import java.nio.file.Path;
 
 import io.ia.ignition.module.generator.api.GeneratorConfig;
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -21,7 +22,7 @@ public class ModuleGeneratorJavaTest {
         final String moduleName = "Custom Thing";
         final String packageName = "le.examp";
 
-        GeneratorConfig config = new GeneratorConfig.ConfigBuilder()
+        GeneratorConfig config = new GeneratorConfigBuilder()
             .scopes(scope)
             .parentDir(parentDir)
             .packageName(packageName)

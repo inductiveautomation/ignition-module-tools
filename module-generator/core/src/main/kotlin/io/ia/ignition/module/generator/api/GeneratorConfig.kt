@@ -2,7 +2,6 @@ package io.ia.ignition.module.generator.api
 
 import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
-import java.io.File
 import java.nio.file.Path
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -96,50 +95,6 @@ class GeneratorConfig constructor(
         const val PROP_FILE_DEFAULT_VALUE = "project.file(\"\${System.getProperty(\"user.home\")}/signing.properties\")"
         const val GRADLE_VERSION = "6.5"
         const val ROOT_PLUGIN_CONFIG = "id('io.ia.sdk.modl')"
-    }
-
-    class ConfigBuilder {
-        /* NOTE - UPDATE .equals(), hashcode(), and toString() IF ANY CHANGE IS MADE TO THE MEMBERS OF THIS CLASS */
-        private lateinit var moduleName: String
-        private lateinit var packageName: String
-        private lateinit var parentDir: Path
-        private lateinit var scopes: String
-        private var customReplacments: Map<String, String> = emptyMap()
-        private var buildDsl: GradleDsl = GROOVY
-        private var projectLanguage: SupportedLanguage = JAVA
-        private var settingsDsl: GradleDsl = GROOVY
-        private var gradleWrapperVersion: String = GRADLE_VERSION
-        private var debugPluginConfig: Boolean = false
-        private var rootPluginConfig: String = ROOT_PLUGIN_CONFIG
-        private var signingCredentialPropertyFile: String = PROP_FILE_DEFAULT_VALUE
-
-        // builder methods
-        fun buildDSL(buildDsl: GradleDsl) = apply { this.buildDsl = buildDsl }
-        fun debugPluginConfig(enable: Boolean) = apply { this.debugPluginConfig = enable }
-        fun gradleWrapperVersion(version: String) = apply { this.gradleWrapperVersion = version }
-        fun moduleName(name: String?) = apply { this.moduleName = name ?: "Example" }
-        fun packageName(packageName: String?) = apply { this.packageName = packageName ?: "le.examp" }
-        fun parentDir(dir: Path?) = apply { this.parentDir = dir ?: File("").toPath() }
-        fun projectLanguage(language: String) = apply {
-            this.projectLanguage = SupportedLanguage.valueOf(language.toLowerCase())
-        }
-        fun rootPluginConfig(config: String) = apply { this.rootPluginConfig = config }
-        fun scopes(scopes: String?) = apply { this.scopes = scopes ?: "" }
-        fun settingsDSL(settingsDsl: GradleDsl) = apply { this.settingsDsl = settingsDsl }
-        fun signingCredentialPropertyFile(signingCredentialPropertyFile: String) = apply {
-            this.signingCredentialPropertyFile = signingCredentialPropertyFile
-        }
-        // map of scope
-        fun customReplacements(customReplacements: Map<String, String>) = apply {
-            this.customReplacments = customReplacements
-        }
-        // creates the config object
-        fun build(): GeneratorConfig {
-            log.debug("Assembling generatorConfig")
-            return GeneratorConfig(moduleName, packageName, scopes, parentDir, settingsDsl, buildDsl, projectLanguage,
-                    gradleWrapperVersion, debugPluginConfig, rootPluginConfig, signingCredentialPropertyFile,
-                    this.customReplacments)
-        }
     }
 
     override fun toString(): String {

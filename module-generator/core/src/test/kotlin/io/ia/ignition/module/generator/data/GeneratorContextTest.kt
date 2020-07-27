@@ -1,6 +1,6 @@
 package io.ia.ignition.module.generator.data
 
-import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.ignition.module.generator.api.GeneratorContext
 import io.ia.ignition.module.generator.api.GradleDsl
 import java.nio.file.Paths
@@ -11,7 +11,7 @@ class GeneratorContextTest {
 
     @Test
     fun `context created successfully from correct settings object`() {
-        val settings = GeneratorConfig.ConfigBuilder()
+        val settings = GeneratorConfigBuilder()
                 .settingsDSL(GradleDsl.GROOVY)
                 .moduleName("Skynet Launcher")
                 .packageName("bot.terminator.launcher")

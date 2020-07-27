@@ -1,6 +1,7 @@
 package io.ia.sdk.gradle.modl
 
 import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.util.nameToDirName
 import java.io.File
 import java.nio.file.Files
@@ -60,7 +61,7 @@ open class BaseTest {
             pkg.replace(".", "_")
         ).joinToString("")
 
-        return GeneratorConfig.ConfigBuilder()
+        return GeneratorConfigBuilder()
                 .moduleName(name)
                 .scopes(scope)
                 .packageName(pkg)

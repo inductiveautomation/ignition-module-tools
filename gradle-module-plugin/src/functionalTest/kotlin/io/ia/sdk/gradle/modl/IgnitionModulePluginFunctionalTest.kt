@@ -3,6 +3,7 @@ package io.ia.sdk.gradle.modl
 
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.util.nameToDirName
 import io.ia.sdk.gradle.modl.util.signedModuleName
 import java.io.File
@@ -121,7 +122,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val scopes = "G"
         val packageName = "le.examp"
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
@@ -151,7 +152,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val scopes = "GC"
         val packageName = "bot.skynet"
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
@@ -179,7 +180,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
 
         rootDir.toFile().mkdirs()
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
@@ -204,13 +205,13 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val scopes = "GCD"
         val packageName = "bot.skynet.wow"
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
             .parentDir(rootDir)
             .debugPluginConfig(true)
-            .rootPluginConfig("   id('io.ia.sdk.modl') version('0.0.1-SNAPSHOT')")
+            .rootPluginConfig("   id('io.ia.sdk.modl') version('0.0.1-PREVIEW.1')")
             .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
             .build()
 

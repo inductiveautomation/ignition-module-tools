@@ -2,7 +2,7 @@ package io.ia.sdk.gradle.modl.task
 
 import com.inductiveautomation.ignitionsdk.ZipMap
 import io.ia.ignition.module.generator.ModuleGenerator
-import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.util.signedModuleName
 import java.io.File
@@ -27,7 +27,7 @@ class SignModuleTest : BaseTest() {
 
         prepareSigningTestResources(signingResourcesDestination)
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes("GCD")
             .packageName("check.my.signage")
@@ -63,7 +63,7 @@ class SignModuleTest : BaseTest() {
     fun `module signing failed due to missing property file`() {
         val name = "I Was Signed"
         val propFile = PROP_FILE_PATH_FORMAT.replace(PATH_KEY, """/some/bunk/path/signing.properties""")
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("GCD")
             .packageName("check.my.signage")

@@ -2,7 +2,7 @@ package io.ia.sdk.gradle.modl.task
 
 import com.google.gson.Gson
 import io.ia.ignition.module.generator.ModuleGenerator
-import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import kotlin.test.assertNotNull
@@ -24,7 +24,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
         val testPropsPath = "project.file('${prepSigningResourcesForModuleName(projectDir, name)}')"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("C")
             .packageName("check.my.signage")
@@ -70,7 +70,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
 
         val testPropsPath = "project.file('${prepSigningResourcesForModuleName(projectDir, name)}')"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("C")
             .packageName("check.my.signage")

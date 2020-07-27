@@ -4,7 +4,7 @@
 package io.ia.sdk.tools.module.cli
 
 import io.ia.ignition.module.generator.ModuleGenerator
-import io.ia.ignition.module.generator.api.GeneratorConfig.ConfigBuilder
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -113,14 +113,14 @@ class ModuleGeneratorCli : Callable<Int> {
             File(directory!!).toPath()
         }
 
-        val configBuilder = ConfigBuilder().moduleName(moduleName)
+        val configBuilder = GeneratorConfigBuilder().moduleName(moduleName)
                 .parentDir(parent)
                 .scopes(scope!!.toCharArray().distinct().joinToString(""))
                 .packageName(packageRoot)
 
         if (localDev) {
             configBuilder.debugPluginConfig(true)
-            configBuilder.rootPluginConfig("   id('io.ia.sdk.gradle.modl') version('0.0.1-SNAPSHOT')")
+            configBuilder.rootPluginConfig("   id('io.ia.sdk.gradle.modl') version('0.0.1-PREVIEW.1')")
         }
 
         val config = configBuilder.build()
