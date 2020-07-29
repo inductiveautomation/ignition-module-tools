@@ -13,43 +13,15 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.72' apply false
 }
 
-version = "0.0.1-SNAPSHOT"
-
-// IncludedBuild cli = gradle.includedBuild('cli')
-//
-//
-// check {
-//     dependsOn cli.task(":check")
-// }
-//
-// assemble {
-//     dependsOn cli.task(":assemble")
-// }
-//
-// build {
-//     dependsOn cli.task(':build')
-// }
-//
-// clean {
-//     dependsOn cli.task(":clean")
-// }
-//
-// task test() {
-//     dependsOn cli.task(":test")
-// }
-//
-// check {
-//     dependsOn cli.task(":check")
-// }
+version = "0.0.1-SNAPSHOT.2"
 
 wrapper {
-    gradleVersion "6.5"
+    gradleVersion "6.5.1"
     distributionType org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
-    // dependsOn cli.task(":wrapper")
 }
 
 task runCli(type: Exec) {
-    dependsOn build
+    dependsOn ":generator-cli:nativeImage"
     workingDir "$projectDir/module-generator/cli/build/graal"
 
     commandLine "./ignition-module-gen"

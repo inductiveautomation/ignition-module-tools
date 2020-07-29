@@ -30,6 +30,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
             .packageName("check.my.signage")
             .parentDir(projectDir)
             .signingCredentialPropertyFile(testPropsPath)
+            .useRootForSingleScopeProject(false)
             .customReplacements(customizers)
             .build()
 
@@ -77,6 +78,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
             .parentDir(projectDir)
             .signingCredentialPropertyFile(testPropsPath)
             .customReplacements(customizers)
+            .useRootForSingleScopeProject(false)
             .build()
 
         val project = ModuleGenerator.generate(config)

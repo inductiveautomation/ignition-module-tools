@@ -12,7 +12,9 @@ import io.ia.ignition.module.generator.error.IllegalConfigurationException
 import io.ia.ignition.module.generator.util.buildSubProjectSettings
 import io.ia.ignition.module.generator.util.copyFromResource
 import io.ia.ignition.module.generator.util.createAndFillFromResource
+import io.ia.ignition.module.generator.util.createSourceDirs
 import io.ia.ignition.module.generator.util.createSubProject
+import io.ia.ignition.module.generator.util.writeHookFile
 import java.lang.IllegalStateException
 import java.nio.file.Path
 import org.slf4j.LoggerFactory
@@ -49,12 +51,14 @@ object ModuleGenerator {
      */
     @Throws(IllegalStateException::class)
     fun validate(config: GeneratorConfig) {
+        logger.debug("Validating configuration values...")
+
         val errors: List<ValidationResult> = listOf(
                 validateModuleName(config.moduleName),
                 validatePackagePath(config.packageName),
                 validateParentDirPath(config.parentDir),
                 validateScope(config.scopes)
-        ).partition { !it.validated }.first
+        ).filter { !it.validated }
 
         if (errors.isNotEmpty()) {
             throw IllegalStateException("Validation failed $errors")
@@ -71,11 +75,18 @@ object ModuleGenerator {
         val context = ModuleGeneratorContext(config)
         val scopes = ProjectScope.scopesFromShorthand(config.scopes)
 
-        scopes.forEach { createSubProject(context, buildSubProjectSettings(context, it)) }
-
-        // if more than one scope is requested, create a common scope as well
-        if (scopes.size > 1) {
-            createSubProject(context, buildSubProjectSettings(context, ProjectScope.COMMON))
+        if (context.isSingleDirProject()) {
+            logger.info("Creating single directory module project...")
+            val scope = scopes[0]
+            val spConfig = buildSubProjectSettings(context, scope)
+            val projectLanguage = config.projectLanguage
+            val hookDir = createSourceDirs(spConfig.subprojectDir, spConfig.packagePath, projectLanguage)
+            writeHookFile(hookDir, context, scope)
+        } else {
+            scopes.forEach { createSubProject(context, buildSubProjectSettings(context, it)) }
+            if (scopes.size > 1) {
+                createSubProject(context, buildSubProjectSettings(context, ProjectScope.COMMON))
+            }
         }
 
         writeSettingsFile(context)
@@ -122,12 +133,14 @@ object ModuleGenerator {
     /**
      * Writes the 'root' build script, which is the script containing the `ignitionModule` config extension object,
      * and applies the module plugin
+     * @return root buildscript [Path]
      */
-    private fun writeRootBuildScript(context: ModuleGeneratorContext) {
+    private fun writeRootBuildScript(context: ModuleGeneratorContext): Path {
         val rootDir = context.getRootDirectory()
-        val rootBuildScript = rootDir.resolve(context.getBuildFileName())
-        val templateResource = "templates/buildscript/root.${context.getBuildFileName()}"
+        val rootBuildScript = rootDir.resolve(context.getBuildScriptFilename())
+        val templateResource = "templates/buildscript/root.${context.getBuildScriptFilename()}"
         rootBuildScript.createAndFillFromResource(templateResource, context.getTemplateReplacements())
+        return rootBuildScript
     }
 
     /**

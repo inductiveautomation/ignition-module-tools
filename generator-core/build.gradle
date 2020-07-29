@@ -13,8 +13,8 @@ ext {
     slf4j_version = "1.7.30"
 }
 
-version = "0.0.1-SNAPSHOT"
 group = "io.ia.sdk.tools.module.gen"
+version = rootProject.version
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -92,7 +92,7 @@ publishing {
         }
     }
 
-    String PUBLISHING_KEY = "ignitionModuleGen.maven.repo.${version.endsWith('-SNAPSHOT') ? 'snapshot': 'release' }"
+    String PUBLISHING_KEY = "ignitionModuleGen.maven.repo.${version.contains('-SNAPSHOT') ? 'snapshot': 'release' }"
 
     repositories {
         maven {
@@ -120,9 +120,9 @@ String loadProperty(String propertyKey) {
     final String propertyFileName = "publishing.properties"
     final File propertyFile = new File(System.getProperty("user.home"), propertyFileName)
 
-    String value = System.getProperty(propertyKey, null)
+    String value = System.getProperty(propertyKey, "")
 
-    if (value == null) {
+    if (value == null || value.isEmpty()) {
         logger.info("Did not find property '$value' as System property, searching in gradle properties...")
 
         if (project.properties.containsKey(propertyKey)) {

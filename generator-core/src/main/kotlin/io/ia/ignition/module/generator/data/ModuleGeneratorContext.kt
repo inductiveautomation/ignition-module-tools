@@ -1,5 +1,6 @@
 package io.ia.ignition.module.generator.data
 
+import io.ia.ignition.module.generator.api.Defaults
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorContext
 import io.ia.ignition.module.generator.api.GradleDsl
@@ -9,6 +10,7 @@ import io.ia.ignition.module.generator.api.ProjectScope.COMMON
 import io.ia.ignition.module.generator.api.ProjectScope.DESIGNER
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
 import io.ia.ignition.module.generator.api.TemplateMarker
+import io.ia.ignition.module.generator.util.logger
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -36,11 +38,17 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         replacements[TemplateMarker.PACKAGE_ROOT.key] = config.packageName
         replacements[TemplateMarker.PROJECT_SCOPES.key] = buildProjectScopeConfiguration()
         replacements[TemplateMarker.ROOT_PROJECT_NAME.key] = rootFolderName
-        replacements[TemplateMarker.SUBPROJECT_INCLUDES.key] = "    \":\",\n" + effectiveScopes.joinToString(
+        replacements[TemplateMarker.SUBPROJECT_INCLUDES.key] =
+            // if a single scope, single folder project, we don't have subprojects to include
+            if (config.scopes.length == 1 && config.useRootProjectWhenSingleScope) {
+                "\":\""
+            } else {
+                "\":\",\n" + effectiveScopes.joinToString(
             separator = ",\n    ",
             prefix = "    ",
             postfix = ""
         ) { "\":${it.folderName}\"" }
+        }
         replacements[TemplateMarker.HOOK_CLASS_CONFIG.key] = buildHookEntry()
         replacements[TemplateMarker.SETTINGS_HEADER.key] = if (!config.debugPluginConfig) "" else {
             // TODO - support kotlin settings file format
@@ -53,8 +61,19 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 |}
             """.trimMargin("|")
         }
-        replacements[TemplateMarker.ROOT_PLUGIN_CONFIGURATION.key] = config.rootPluginConfig
+        replacements[TemplateMarker.ROOT_PLUGIN_CONFIGURATION.key] = if (config.rootPluginConfig.isNotEmpty()) {
+            config.rootPluginConfig
+        } else if (isSingleDirProject()) {
+            logger.info("Detected single project dir!")
+            // todo support kotlin source types
+            Defaults.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
+        } else {
+            Defaults.ROOT_PLUGIN_CONFIG
+        }
         replacements[TemplateMarker.SIGNING_PROPERTY_FILE.key] = config.signingCredentialPropertyFile
+        replacements[TemplateMarker.CLIENT_DEPENDENCIES.key] = Defaults.CLIENT_SCOPE_DEPENDENCIES
+        replacements[TemplateMarker.DESIGNER_DEPENDENCIES.key] = Defaults.DESIGNER_SCOPE_DEPENDENCIES
+        replacements[TemplateMarker.GATEWAY_DEPENDENCIES.key] = Defaults.GATEWAY_SCOPE_DEPENDENCIES
 
         // this is a quick hack to support arbitrary replacements for resource files.  Works for now as all formal
         // template replacements are enclosed in < > characters, making collisions unlikely.
@@ -65,14 +84,19 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
 
     private fun buildHookEntry(): String {
         val hookEntry = scopes.map {
+            logger.trace("Creating module hook configuration entry for '$it' scope")
             when (it) {
                 DESIGNER -> "\"${config.packageName}.designer.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
                 CLIENT -> "\"${config.packageName}.client.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
                 GATEWAY -> "\"${config.packageName}.gateway.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
-                else -> null
+                else -> {
+                    logger.warn("Unknown scope '$it', hook configuration entry skipped.")
+                    null
+                }
             }
         }.joinToString(prefix = "    ", separator = ",\n        ")
 
+        logger.debug("Created hook entry configuration of:\n$hookEntry")
         return hookEntry
     }
 
@@ -88,6 +112,13 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
      */
     private fun buildProjectScopeConfiguration(): String {
         val associator = associator()
+
+        // single dir project will only have a single scope, so just return the initial
+        if (isSingleDirProject()) {
+            val scopeName = scopes[0].name
+
+            return "\":\"" + associator + " \"${scopeName[0]}\""
+        }
 
         // create the string to populate the `scopes` in the ignitionModule configuration DSL, each of which being
         // a literal value for a Map<org.gradle.api.Project, String> element:
@@ -116,14 +147,19 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
 
     private val rootDirectory: Path = Paths.get(config.parentDir.toString(), rootFolderName).toAbsolutePath()
 
-    private val buildFileName: String =
-        if (config.buildDsl == GradleDsl.GROOVY) "build.gradle" else "build.gradle.kt"
+    private val buildScriptFilename: String =
+        if (config.buildDsl == GradleDsl.GROOVY) "build.gradle" else "build.gradle.kts"
 
     private val settingsFileName: String =
-        if (config.settingsDsl == GradleDsl.GROOVY) "settings.gradle" else "settings.gradle.kt"
+        if (config.settingsDsl == GradleDsl.GROOVY) "settings.gradle" else "settings.gradle.kts"
 
     override fun getRootDirectory(): Path {
         return rootDirectory
+    }
+
+    // if the root project dir is also the only project dir and should allow sourcecode files
+    fun isSingleDirProject(): Boolean {
+        return scopes.size == 1 && config.useRootProjectWhenSingleScope
     }
 
     override fun getHookClassName(scope: ProjectScope): String {
@@ -139,8 +175,8 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         return classPrefix
     }
 
-    override fun getBuildFileName(): String {
-        return buildFileName
+    override fun getBuildScriptFilename(): String {
+        return buildScriptFilename
     }
 
     override fun getSettingFileName(): String {

@@ -38,7 +38,7 @@ interface GeneratorContext {
     /**
      * The name of the build file, generally determined by the build script type set in the [GeneratorConfig]
      */
-    fun getBuildFileName(): String
+    fun getBuildScriptFilename(): String
 
     /**
      * The name of the build file, generally determined by the settings script type set in the [GeneratorConfig]

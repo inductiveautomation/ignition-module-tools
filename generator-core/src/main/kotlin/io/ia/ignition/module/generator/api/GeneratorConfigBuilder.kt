@@ -1,11 +1,19 @@
 package io.ia.ignition.module.generator.api
 
+import io.ia.ignition.module.generator.api.Defaults.GRADLE_VERSION
+import io.ia.ignition.module.generator.api.Defaults.PROP_FILE_DEFAULT_VALUE
 import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
 import java.io.File
 import java.nio.file.Path
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class GeneratorConfigBuilder {
+    companion object {
+        val log: Logger = LoggerFactory.getLogger("GeneratorConfigBuilder")
+    }
+
     /* NOTE - UPDATE .equals(), hashcode(), and toString() IF ANY CHANGE IS MADE TO THE MEMBERS OF THIS CLASS */
     private lateinit var moduleName: String
     private lateinit var packageName: String
@@ -15,11 +23,12 @@ class GeneratorConfigBuilder {
     private var buildDsl: GradleDsl = GROOVY
     private var projectLanguage: SupportedLanguage = JAVA
     private var settingsDsl: GradleDsl = GROOVY
-    private var gradleWrapperVersion: String = GeneratorConfig.GRADLE_VERSION
+    private var gradleWrapperVersion: String = GRADLE_VERSION
     // todo: default to false for stable release
     private var debugPluginConfig: Boolean = true
-    private var rootPluginConfig: String = GeneratorConfig.ROOT_PLUGIN_CONFIG
-    private var signingCredentialPropertyFile: String = GeneratorConfig.PROP_FILE_DEFAULT_VALUE
+    private var rootPluginConfig: String = ""
+    private var signingCredentialPropertyFile: String = PROP_FILE_DEFAULT_VALUE
+    private var useRootForSingleProjectScope: Boolean = false
 
     // builder methods
     fun buildDSL(buildDsl: GradleDsl) = apply { this.buildDsl = buildDsl }
@@ -41,11 +50,14 @@ class GeneratorConfigBuilder {
     fun customReplacements(customReplacements: Map<String, String>) = apply {
         this.customReplacments = customReplacements
     }
+    fun useRootForSingleScopeProject(value: Boolean) = apply {
+        this.useRootForSingleProjectScope = value
+    }
     // creates the config object
     fun build(): GeneratorConfig {
-        GeneratorConfig.log.debug("Assembling generatorConfig")
+        log.debug("Construction GeneratorConfig...")
         return GeneratorConfig(moduleName, packageName, scopes, parentDir, settingsDsl, buildDsl, projectLanguage,
             gradleWrapperVersion, debugPluginConfig, rootPluginConfig, signingCredentialPropertyFile,
-            this.customReplacments)
+            this.customReplacments, useRootForSingleProjectScope)
     }
 }

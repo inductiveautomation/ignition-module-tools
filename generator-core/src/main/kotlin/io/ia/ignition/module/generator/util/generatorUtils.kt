@@ -25,7 +25,14 @@ data class SubProjectSettings(
 
 fun buildSubProjectSettings(context: GeneratorContext, scope: ProjectScope): SubProjectSettings {
     val moduleRootDir = context.getRootDirectory()
-    val subProjectDir = moduleRootDir.resolve(scope.folderName).toAbsolutePath()
+    val config = context.config
+    val subProjectDir = if (config.scopes.length == 1 && config.useRootProjectWhenSingleScope) {
+        // the 'root' project is the 'subproject dir' in a single project setup
+        moduleRootDir.toAbsolutePath()
+    } else {
+        moduleRootDir.resolve(scope.folderName).toAbsolutePath()
+    }
+
     val packagePath = context.config.packageName.toPackagePath(scope)
 
     return SubProjectSettings(moduleRootDir, subProjectDir, packagePath, context.config.buildDsl,
@@ -46,8 +53,8 @@ fun createSubProject(context: GeneratorContext, config: SubProjectSettings): Pat
     writeHookFile(hookDir, context, config.scope)
 
     // write the buildscript for this subproject
-    val buildScriptTemplateResource = "templates/buildscript/${config.scope.folderName}.${context.getBuildFileName()}"
-    val buildScript = config.subprojectDir.resolve(context.getBuildFileName())
+    val buildScriptTemplateResource = "templates/buildscript/${config.scope.folderName}.${context.getBuildScriptFilename()}"
+    val buildScript = config.subprojectDir.resolve(context.getBuildScriptFilename())
 
     buildScript.createAndFillFromResource(buildScriptTemplateResource, context.getTemplateReplacements())
 

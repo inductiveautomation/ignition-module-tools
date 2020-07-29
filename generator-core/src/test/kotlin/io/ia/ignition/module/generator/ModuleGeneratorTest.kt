@@ -148,6 +148,7 @@ class ModuleGeneratorTest {
             .packageName(pkg)
             .parentDir(parentDir)
             .scopes(scopes)
+            .useRootForSingleScopeProject(false)
             .build()
 
         var t: Throwable? = null
@@ -244,5 +245,47 @@ class ModuleGeneratorTest {
         val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
         assertTrue(Files.exists(rootBuildFile))
         assertTrue(content.contains(expected))
+    }
+
+    @Test
+    fun `G scoped single directory project builds without error`() {
+        val parentDir = tempFolder.newFolder("gScopedSingleDirProjBuildsWithoutError").toPath()
+
+        if (Files.exists(parentDir)) {
+            parentDir.toFile().deleteRecursively()
+        }
+
+        Files.createDirectories(parentDir)
+
+        val scopes = "G"
+        val pkg = "is.simple"
+        val name = "Only One Scope"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .useRootForSingleScopeProject(true)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val rootBuildFile = projDir.resolve("build.gradle")
+        assertTrue(Files.exists(rootBuildFile))
+
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(content.contains("java-library"), "java library applied as it should")
+        assertTrue(projDir.resolve("src/main/java").toFile().exists(), "java source dir exists")
     }
 }

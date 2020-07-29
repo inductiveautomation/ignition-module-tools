@@ -127,6 +127,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             .scopes(scopes)
             .packageName(packageName)
             .parentDir(rootDir)
+            .useRootForSingleScopeProject(false)
             .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
             .build()
 
