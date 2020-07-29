@@ -10,7 +10,7 @@ The Ignition Module Plugin for Gradle lets module developers use the [Gradle](ht
 The easiest way to get started with this plugin is to create a new module project using the Ignition Module Generator in this repository, or by cloning an existing gradle project from the [Inductive Automation Example Modules](http://www.github.com/inductiveautomation/ignition-sdk-examples)
 
 
-1. Apply the plugin to your `build.gradle`, or in the case of a multi-project build, to the root or parent project
+1. Apply the plugin to your `build.gradle`, or in the case of a multi-project build, to the root or parent project
 .   *Note* that you should only apply the plugin to a single parent project in a multi-scope structure (e.g., one
  where you have separate source directories for `gateway` and `designer` code, for instance).
 
