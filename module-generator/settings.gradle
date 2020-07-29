@@ -1,4 +1,0 @@
-rootProject.name = 'module-generator'
-
-includeBuild("./core")
-includeBuild("./cli")

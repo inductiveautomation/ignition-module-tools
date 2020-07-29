@@ -1,6 +1,5 @@
 package io.ia.ignition.module.generator.api
 
-import io.ia.ignition.module.generator.api.GeneratorConfig.Companion
 import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
 import java.io.File

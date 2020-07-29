@@ -1,12 +1,12 @@
 
 plugins {
-    // Apply the Kotlin JVM plugin to add support for Kotlin.
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id "com.diffplug.gradle.spotless" version "4.3.0"
+    // Apply the Kotlin JVM plugin to add support for Kotlin.
+    id 'org.jetbrains.kotlin.jvm'
+    id "com.diffplug.spotless"
 }
 
 ext {
@@ -149,10 +149,4 @@ String loadProperty(String propertyKey) {
     logger.debug("Resolved property: ${propertyKey}=${value}")
 
     return value
-}
-
-
-wrapper {
-    gradleVersion "6.5"
-    distributionType Wrapper.DistributionType.ALL
 }
