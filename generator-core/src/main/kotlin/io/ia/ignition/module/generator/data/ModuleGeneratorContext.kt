@@ -9,6 +9,8 @@ import io.ia.ignition.module.generator.api.ProjectScope.CLIENT
 import io.ia.ignition.module.generator.api.ProjectScope.COMMON
 import io.ia.ignition.module.generator.api.ProjectScope.DESIGNER
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
+import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
+import io.ia.ignition.module.generator.api.SupportedLanguage.KOTLIN
 import io.ia.ignition.module.generator.api.TemplateMarker
 import io.ia.ignition.module.generator.util.logger
 import java.nio.file.Path
@@ -44,14 +46,13 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 "\":\""
             } else {
                 "\":\",\n" + effectiveScopes.joinToString(
-            separator = ",\n    ",
-            prefix = "    ",
-            postfix = ""
-        ) { "\":${it.folderName}\"" }
-        }
+                    separator = ",\n    ",
+                    prefix = "    ",
+                    postfix = ""
+                ) { "\":${it.folderName}\"" }
+            }
         replacements[TemplateMarker.HOOK_CLASS_CONFIG.key] = buildHookEntry()
         replacements[TemplateMarker.SETTINGS_HEADER.key] = if (!config.debugPluginConfig) "" else {
-            // TODO - support kotlin settings file format
             """
                 |pluginManagement {
                 |    repositories {
@@ -61,14 +62,21 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 |}
             """.trimMargin("|")
         }
-        replacements[TemplateMarker.ROOT_PLUGIN_CONFIGURATION.key] = if (config.rootPluginConfig.isNotEmpty()) {
-            config.rootPluginConfig
-        } else if (isSingleDirProject()) {
-            logger.info("Detected single project dir!")
-            // todo support kotlin source types
-            Defaults.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
-        } else {
-            Defaults.ROOT_PLUGIN_CONFIG
+        replacements[TemplateMarker.ROOT_PLUGIN_CONFIGURATION.key] = when {
+            config.rootPluginConfig.isNotEmpty() -> {
+                config.rootPluginConfig
+            }
+            isSingleDirProject() -> {
+                logger.info("Detected single dir project, applying jvm plugins to root buildscript...")
+                when (config.projectLanguage) {
+                    JAVA -> Defaults.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
+                    KOTLIN -> Defaults.ROOT_PLUGIN_CONFIG + "\n    `java-library`\n    " +
+                        "id(\"org.jetbrains.kotlin.jvm\") version \"1.4.0\""
+                }
+            }
+            else -> {
+                Defaults.ROOT_PLUGIN_CONFIG
+            }
         }
         replacements[TemplateMarker.SIGNING_PROPERTY_FILE.key] = config.signingCredentialPropertyFile
         replacements[TemplateMarker.CLIENT_DEPENDENCIES.key] = Defaults.CLIENT_SCOPE_DEPENDENCIES

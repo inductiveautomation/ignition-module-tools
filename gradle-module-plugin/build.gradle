@@ -19,12 +19,11 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = rootProject.version
 
 dependencies {
     // Align versions of all Kotlin components
     implementation platform('org.jetbrains.kotlin:kotlin-bom')
-    // Use the Kotlin JDK 8 standard library.
+    // Use the Kotlin JDK standard library.
     implementation('org.jetbrains.kotlin:kotlin-stdlib')
     implementation('com.google.code.gson:gson:2.8.6')
     implementation("org.redundent:kotlin-xml-builder:1.6.0")

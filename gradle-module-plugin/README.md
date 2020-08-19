@@ -1,13 +1,13 @@
 # Ignition Module Plugin for Gradle
 
-The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality.  As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and metainformation.  
+The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality.  As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and meta-information.  
 
 The Ignition Module Plugin for Gradle lets module developers use the [Gradle](https://www.gradle.org) build tool to create and sign functional modules (_.modl_ ) through a convenient DSL-based configuration model.
 
 
 ## Usage
 
-The easiest way to get started with this plugin is to create a new module project using the Ignition Module Generator in this repository, or by cloning an existing gradle project from the [Inductive Automation Example Modules](http://www.github.com/inductiveautomation/ignition-sdk-examples)
+The easiest way to get started with this plugin is to create a new module project using the Ignition Module Generator in this repository.
 
 
 1. Apply the plugin to your `build.gradle`, or in the case of a multi-project build, to the root or parent project

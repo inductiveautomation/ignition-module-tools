@@ -17,4 +17,11 @@ enum class GradleDsl {
             KOTLIN -> "templates/settings.gradle.kts"
         }
     }
+
+    fun mapAssociator(): String {
+        return when (this) {
+            GROOVY -> ":"
+            KOTLIN -> "to"
+        }
+    }
 }

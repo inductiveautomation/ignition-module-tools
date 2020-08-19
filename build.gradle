@@ -3,20 +3,48 @@ buildscript {
         // axion release plugin is not available in gradle plugin portal, add maven central to resolve
         mavenCentral()
     }
+
+    // required due to spotless and axion-release having conflicting versions.
+    // see https://github.com/diffplug/spotless/issues/587
+    // and https://github.com/allegro/axion-release-plugin/issues/343
+    configurations.classpath {
+        resolutionStrategy {
+            force 'org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r'
+        }
+    }
 }
 
 plugins {
     id "base"
     id "idea"
-    id 'pl.allegro.tech.build.axion-release' version '1.12.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.0' apply false
     id "com.diffplug.spotless" version "5.0.0" apply false
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72' apply false
+    id 'pl.allegro.tech.build.axion-release' version '1.12.0'
 }
 
-version = "0.0.1-SNAPSHOT.2"
+
+scmVersion {
+    nextVersion {
+        suffix = 'SNAPSHOT'
+        separator = ':'
+    }
+
+    tag {
+        // so version tags look like 'release:1.2.3', and allow for
+        versionSeparator = ':'
+    }
+
+    localOnly = true
+}
+
+allprojects {
+    project.version = scmVersion.version
+}
+
+
 
 wrapper {
-    gradleVersion "6.5.1"
+    gradleVersion "6.6"
     distributionType org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 }
 
