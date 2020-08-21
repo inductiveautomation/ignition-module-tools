@@ -1,9 +1,8 @@
 package io.ia.sdk.gradle.modl.task
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
+import io.ia.sdk.gradle.modl.model.manifestFromJson
 import java.io.File
 import java.io.FileNotFoundException
 import org.gradle.api.DefaultTask
@@ -23,11 +22,6 @@ open class WriteModuleXml : DefaultTask() {
 
     companion object {
         const val ID = "writeModuleXml"
-        private val GSON: Gson = GsonBuilder()
-                .disableHtmlEscaping()
-                .serializeNulls()
-                .setPrettyPrinting()
-                .create()
     }
 
     init {
@@ -182,8 +176,9 @@ open class WriteModuleXml : DefaultTask() {
     }
 
     private fun manifests(): List<ArtifactManifest> {
+
         return artifactManifests.get().map { manifest ->
-            GSON.fromJson(manifest.asFile.readText(Charsets.UTF_8), ArtifactManifest::class.java)
+            manifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
         }
     }
 

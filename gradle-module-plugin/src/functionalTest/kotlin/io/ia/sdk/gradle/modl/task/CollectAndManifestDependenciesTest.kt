@@ -1,10 +1,10 @@
 package io.ia.sdk.gradle.modl.task
 
-import com.google.gson.Gson
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
+import io.ia.sdk.gradle.modl.model.manifestFromJson
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.Test
@@ -46,10 +46,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val manifestPath = clientArtifacts.resolve("manifest.json")
         assertTrue(manifestPath.toFile().exists(), "manifest should exist")
 
-        val manifest: ArtifactManifest = Gson().fromJson(
-            manifestPath.toFile().reader(Charsets.UTF_8),
-            ArtifactManifest::class.java
-        )
+        val manifest: ArtifactManifest = manifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
 
         assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
         assertNotNull(manifest.artifacts.find { it.fileName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")
@@ -92,11 +89,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val manifestPath = clientArtifacts.resolve("manifest.json")
         assertTrue(manifestPath.toFile().exists(), "manifest exists")
 
-        val manifest: ArtifactManifest =
-            Gson().fromJson(
-                manifestPath.toFile().reader(Charsets.UTF_8),
-                ArtifactManifest::class.java
-            )
+        val manifest: ArtifactManifest = manifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
 
         assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
         assertNotNull(manifest.artifacts.find { it.fileName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")

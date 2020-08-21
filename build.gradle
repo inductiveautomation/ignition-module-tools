@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
 
-    // required due to spotless and axion-release having conflicting versions.
+    // required due to spotless and axion-release having conflicting versions of jgit on the path
     // see https://github.com/diffplug/spotless/issues/587
     // and https://github.com/allegro/axion-release-plugin/issues/343
     configurations.classpath {

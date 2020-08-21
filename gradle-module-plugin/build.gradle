@@ -3,6 +3,8 @@ plugins {
     id "java-gradle-plugin"
     id "com.gradle.plugin-publish" version "0.12.0"
     id "org.jetbrains.kotlin.jvm"
+    // kapt annotation processor plugin, for picocli/graal annotations
+    id 'org.jetbrains.kotlin.kapt'
     id "maven-publish"
     id "com.diffplug.spotless"
 }
@@ -25,8 +27,10 @@ dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom')
     // Use the Kotlin JDK standard library.
     implementation('org.jetbrains.kotlin:kotlin-stdlib')
-    implementation('com.google.code.gson:gson:2.8.6')
     implementation("org.redundent:kotlin-xml-builder:1.6.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.9.3")
+
     api('com.inductiveautomation.ignitionsdk:module-signer:0.0.1.ia')
 
     // Use the Kotlin test library.
