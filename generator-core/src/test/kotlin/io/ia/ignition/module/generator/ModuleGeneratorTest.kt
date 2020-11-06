@@ -5,7 +5,6 @@ import io.ia.ignition.module.generator.api.TemplateMarker
 import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -250,8 +249,7 @@ class ModuleGeneratorTest {
 
     @Test
     fun `G scoped single directory project builds without error`() {
-        val parentDir = Paths.get("/Users/pjones/dev/ignition-module-tools/generator-core/build/tst")
-//        val parentDir = tempFolder.newFolder("gScopedSingleDirProjBuildsWithoutError").toPath()
+        val parentDir = tempFolder.newFolder("gScopedSingleDirProjBuildsWithoutError").toPath()
 
         if (Files.exists(parentDir)) {
             parentDir.toFile().deleteRecursively()

@@ -39,8 +39,13 @@ class IgnitionModlPlugin : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
+        project.logger.info("Applying module plugin to ${project.path}")
+
         if (project.plugins.hasPlugin(this.javaClass)) {
-            throw Exception("Project ${project.path} already has Ignition Module Plugin applied, should not reapply!")
+            throw Exception(
+                "Project ${project.path} already has Ignition Module Plugin applied.  Plugin should only" +
+                    " be applied to the 'parent' project, one plugin application per module created."
+            )
         }
 
         this.appliedPluginProject = project
@@ -99,10 +104,16 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // assemble on root should depend on subproject assembles, but don't try to depend on self and create a
         // circular dependency
-        if (this.appliedPluginProject.path != artifactContributor.path) {
-            this.appliedPluginProject.tasks.findByName("assemble")?.dependsOn(
-                artifactContributor.tasks.findByName("assemble")
+        if (this.appliedPluginProject != artifactContributor) {
+            artifactContributor.logger.debug(
+                "Setting ${this.appliedPluginProject.path}:assemble.dependsOn('${artifactContributor.path}:assemble')"
             )
+
+            this.appliedPluginProject.tasks.findByName("assemble")?.dependsOn(
+                "${artifactContributor.path}:assemble"
+            )
+        } else {
+            artifactContributor.logger.debug("Skipping dependency from ${artifactContributor.path}:assemble on self...")
         }
     }
 
@@ -147,8 +158,8 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // task that zips up the folder of module content
         val zip = root.tasks.register(
-                ZipModule.ID,
-                ZipModule::class.java
+            ZipModule.ID,
+            ZipModule::class.java
         ) { zipTask: ZipModule ->
             zipTask.content.set(assembleModuleStructure.flatMap { it.moduleContentDir })
             zipTask.moduleName.set(settings.name)
@@ -158,7 +169,8 @@ class IgnitionModlPlugin : Plugin<Project> {
                 } else {
                     "$it.$UNSIGNED_EXTENSION"
                 }
-                root.layout.buildDirectory.file(fileName) }
+                root.layout.buildDirectory.file(fileName)
+            }
             )
 
             // need xml file written before we zip anything
@@ -172,20 +184,27 @@ class IgnitionModlPlugin : Plugin<Project> {
         }
 
         root.allprojects.forEach { p ->
-            // when a project has a task of the given name, apply appropriate task dependencies
-            p.tasks.whenTaskAdded { t ->
-                when (t.name) {
-                    CollectModlDependencies.ID -> {
-                        val gatherArtifacts: CollectModlDependencies = t as CollectModlDependencies
+            p.logger.info("Evaluating `rootProject.allprojects` including ${p.path}")
+            if (!p.hasOptedOutOfModule()) {
+                // when a project has a task of the given name, apply appropriate task dependencies
+                p.tasks.whenTaskAdded { t ->
+                    when (t.name) {
+                        CollectModlDependencies.ID -> {
+                            p.logger.info(
+                                "Binding module aggregation tasks for '${root.path}:" +
+                                    "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
+                            )
+                            val gatherArtifacts: CollectModlDependencies = t as CollectModlDependencies
 
-                        // bind artifact collection task output to xml writing task input
-                        writeModuleXml.configure {
-                            it.artifactManifests.add(gatherArtifacts.manifestFile)
-                        }
+                            // bind artifact collection task output to xml writing task input
+                            writeModuleXml.configure {
+                                it.artifactManifests.add(gatherArtifacts.manifestFile)
+                            }
 
-                        // bind artifact collection dir to the module content collection task input
-                        assembleModuleStructure.configure {
-                            it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
+                            // bind artifact collection dir to the module content collection task input
+                            assembleModuleStructure.configure {
+                                it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
+                            }
                         }
                     }
                 }
@@ -210,7 +229,8 @@ class IgnitionModlPlugin : Plugin<Project> {
      */
     private fun createConfigurations(p: Project): List<Configuration> {
         val apiConf: Configuration? = p.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
-        val implementationConf: Configuration? = p.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+        val implementationConf: Configuration? =
+            p.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
         val modlImplementation = p.configurations.create(MODULE_IMPLEMENTATION_CONFIGURATION) {
             it.isCanBeResolved = true
@@ -251,7 +271,6 @@ class IgnitionModlPlugin : Plugin<Project> {
         val tasks = listOf(collectModlDependencies)
         assemble?.dependsOn(tasks)
 
-        rootModuleProject.tasks.findByName("assemble")?.dependsOn(assemble)
         rootModuleProject.tasks.findByName(AssembleModuleAssets.ID)?.dependsOn(collectModlDependencies)
 
         return tasks

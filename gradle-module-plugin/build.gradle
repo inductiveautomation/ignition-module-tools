@@ -27,6 +27,7 @@ dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom')
     // Use the Kotlin JDK standard library.
     implementation('org.jetbrains.kotlin:kotlin-stdlib')
+    implementation('org.jetbrains.kotlin:kotlin-reflect')
     implementation("org.redundent:kotlin-xml-builder:1.6.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
     kapt("com.squareup.moshi:moshi-kotlin-codegen:1.9.3")
@@ -131,9 +132,6 @@ test.dependsOn(tasks.functionalTest)
 
 spotless {
     kotlin {
-        // optionally takes a version
-        ktlint()
-        // Optional user arguments can be set as such:
-        //  ktlint().userData(['indent_size': '4', 'continuation_indent_size' : '8'])
+        ktlint("0.39.0").userData(['max_line_length': "120"])
     }
 }
