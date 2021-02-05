@@ -74,14 +74,14 @@ ignitionModule {
      * ignition.signing.keystorePassword=somepassword
      * ignition.signing.certFile=/path/to/certfile.pem
      * ignition.signing.certPassword=somepassword
-     * ignition.signing.alias=selfsigned
+     * ignition.signing.certAlias=selfsigned
      * ```
      *
      * To use runtime values, or to override values in the property file, call the sign task with input flags, or mix
      * and match as desired. Flag names are the same as the final element in the property file keys.  E.g. -
      * `ignition.signing.keystoreFile` becomes the runtime task flag of `keystoreFile`.
      *```
-     * ./gradlew signModule --keystoreFile=/path/to/keystore --keystorePassword=somepassword --alias=myAlias
+     * ./gradlew signModule --keystoreFile=/path/to/keystore --keystorePassword=somepassword --certAlias=myAlias
      *```
      *
      */

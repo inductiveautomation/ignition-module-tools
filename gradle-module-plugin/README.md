@@ -89,7 +89,7 @@ ignitionModule {
      * ignition.signing.keystorePassword=somepassword
      * ignition.signing.certFile=/path/to/certfile.pem
      * ignition.signing.certPassword=somepassword
-     * ignition.signing.alias=selfsigned
+     * ignition.signing.certAlias=selfsigned
      * ```
      * The actual value must resolve to a File type, either via `new File()`, or using
      * gradle's file methods as shown below.  More info on gradle file handling and

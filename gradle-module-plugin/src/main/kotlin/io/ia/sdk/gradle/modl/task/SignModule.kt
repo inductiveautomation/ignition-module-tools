@@ -168,11 +168,11 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
         unsignedModule: File,
         outFile: File
     ) {
-        logger.debug("Signing module with keystoreFile:${keyStoreFile.absolutePath}, " +
-            "keystorePassword:${keystorePassword.replace(Regex("."), "*")}, " +
-            "cert:${cert.absolutePath}, " +
-            "certPw: ${certPassword.replace(Regex("."), "*")}, " +
-            "alias: $certAlias")
+        logger.debug("Signing module with keystoreFile: ${keyStoreFile.absolutePath}, " +
+            "keystorePassword: ${"*".repeat(keystorePassword.length)}, " +
+            "cert: ${cert.absolutePath}, " +
+            "certPw: ${"*".repeat(certPassword.length)}, " +
+            "certAlias: $certAlias")
 
         val keyStore: KeyStore = if (keyStoreFile.extension == "pfx") {
             logger.debug("using pkcs12 keystore type")
