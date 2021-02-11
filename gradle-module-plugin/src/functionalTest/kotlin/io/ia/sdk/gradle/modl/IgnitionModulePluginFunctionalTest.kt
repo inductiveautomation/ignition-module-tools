@@ -6,13 +6,13 @@ import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.util.nameToDirName
 import io.ia.sdk.gradle.modl.util.signedModuleName
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 
 /**
  * Functional tests for the 'io.ia.gradle.module.greeting' plugin.
@@ -26,7 +26,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val projectName = "Fake Thing"
         projectDir.mkdirs()
         projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
+        projectDir.resolve("build.gradle").writeText(
+            """
             |plugins {
             |   id('io.ia.sdk.modl')
             |}
@@ -39,7 +40,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|"))
+        """.trimMargin("|")
+        )
 
         val result: BuildResult = runTask(projectDir, "tasks")
 
@@ -53,7 +55,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val projectName = "Fake Thing"
         projectDir.mkdirs()
         projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
+        projectDir.resolve("build.gradle").writeText(
+            """
             |plugins {
             |    id('java')
             |    id('io.ia.sdk.modl')
@@ -67,7 +70,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|"))
+        """.trimMargin("|")
+        )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
         // Run the build
@@ -84,7 +88,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val projectName = "Fake Thing"
         projectDir.mkdirs()
         projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
+        projectDir.resolve("build.gradle").writeText(
+            """
             |plugins {
             |    id('java-library')
             |    id('io.ia.sdk.modl')
@@ -99,7 +104,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|"))
+        """.trimMargin("|")
+        )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
         // Run the build

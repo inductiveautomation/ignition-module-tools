@@ -5,12 +5,12 @@ import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.util.signedModuleName
+import org.gradle.testkit.runner.BuildResult
+import org.junit.Test
 import java.io.File
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import org.gradle.testkit.runner.BuildResult
-import org.junit.Test
 
 class SignModuleTest : BaseTest() {
     companion object {
@@ -36,9 +36,11 @@ class SignModuleTest : BaseTest() {
                 PROP_FILE_PATH_FORMAT.replace(PATH_KEY, testSigningPropertyFilePath.toString())
             )
             .debugPluginConfig(true)
-            .rootPluginConfig("""
+            .rootPluginConfig(
+                """
                     id("io.ia.sdk.modl") version("0.0.1-beta1")
-                """.trimIndent())
+                """.trimIndent()
+            )
             .build()
 
         val projectDir = ModuleGenerator.generate(config)

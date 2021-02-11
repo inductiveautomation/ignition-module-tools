@@ -46,8 +46,10 @@ enum class IgnitionScope(val code: String) {
             val capped = code.toCharArray().sorted().joinToString("")
 
             if (!capped.matches(VALID_SCOPES)) {
-                throw ModuleConfigException("'$code' is not a valid Ignition scope value, should be a string of " +
-                        "one or more of G, C, or D (without repeats).")
+                throw ModuleConfigException(
+                    "'$code' is not a valid Ignition scope value, should be a string of " +
+                        "one or more of G, C, or D (without repeats)."
+                )
             }
 
             return when (capped) {

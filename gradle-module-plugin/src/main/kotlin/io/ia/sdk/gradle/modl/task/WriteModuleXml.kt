@@ -3,8 +3,6 @@ package io.ia.sdk.gradle.modl.task
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.manifestFromJson
-import java.io.File
-import java.io.FileNotFoundException
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.MapProperty
@@ -17,6 +15,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.redundent.kotlin.xml.PrintOptions
 import org.redundent.kotlin.xml.xml
+import java.io.File
+import java.io.FileNotFoundException
 
 open class WriteModuleXml : DefaultTask() {
 
@@ -61,7 +61,7 @@ open class WriteModuleXml : DefaultTask() {
 
     @Input
     val requireFromPlatform: MapProperty<String, String> =
-            project.objects.mapProperty(String::class.java, String::class.java)
+        project.objects.mapProperty(String::class.java, String::class.java)
 
     @Input
     val requiredFrameworkVersion: Property<String> = project.objects.property(String::class.java)
@@ -78,7 +78,7 @@ open class WriteModuleXml : DefaultTask() {
      */
     @Input
     val moduleDependencies: MapProperty<String, String> =
-            project.objects.mapProperty(String::class.java, String::class.java)
+        project.objects.mapProperty(String::class.java, String::class.java)
 
     @OutputFile
     fun getModuleXmlFile(): File {

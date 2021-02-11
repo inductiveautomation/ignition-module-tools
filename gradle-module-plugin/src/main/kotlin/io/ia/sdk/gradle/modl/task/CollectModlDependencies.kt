@@ -6,7 +6,6 @@ import io.ia.sdk.gradle.modl.model.Artifact
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.IgnitionScope
 import io.ia.sdk.gradle.modl.model.manifestToJson
-import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
@@ -20,6 +19,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import javax.inject.Inject
 
 /**
  * Task which collects the artifacts produced by a single project, and moves them to the appropriate scoped folder

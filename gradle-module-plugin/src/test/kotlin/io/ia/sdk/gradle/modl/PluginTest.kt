@@ -1,8 +1,8 @@
 package io.ia.sdk.gradle.modl
 
-import kotlin.test.assertNotNull
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 class IgnitionModlPluginTest {
     @Test

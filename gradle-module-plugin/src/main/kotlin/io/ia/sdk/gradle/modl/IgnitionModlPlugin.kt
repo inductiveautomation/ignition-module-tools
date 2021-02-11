@@ -163,14 +163,15 @@ class IgnitionModlPlugin : Plugin<Project> {
         ) { zipTask: ZipModule ->
             zipTask.content.set(assembleModuleStructure.flatMap { it.moduleContentDir })
             zipTask.moduleName.set(settings.name)
-            zipTask.unsignedModule.set(settings.fileName.flatMap {
-                val fileName = if (it.endsWith(".modl")) {
-                    it.replace(".modl", ".$UNSIGNED_EXTENSION")
-                } else {
-                    "$it.$UNSIGNED_EXTENSION"
+            zipTask.unsignedModule.set(
+                settings.fileName.flatMap {
+                    val fileName = if (it.endsWith(".modl")) {
+                        it.replace(".modl", ".$UNSIGNED_EXTENSION")
+                    } else {
+                        "$it.$UNSIGNED_EXTENSION"
+                    }
+                    root.layout.buildDirectory.file(fileName)
                 }
-                root.layout.buildDirectory.file(fileName)
-            }
             )
 
             // need xml file written before we zip anything

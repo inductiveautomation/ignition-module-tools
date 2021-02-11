@@ -20,35 +20,18 @@ buildscript {
 
 plugins {
     id "base"
-    id "idea"
     id 'org.jetbrains.kotlin.jvm' version '1.4.10' apply false
-    id "com.diffplug.spotless" version "5.0.0" apply false
-    id 'pl.allegro.tech.build.axion-release' version '1.12.0'
-}
-
-
-scmVersion {
-    nextVersion {
-        suffix = 'SNAPSHOT'
-        separator = ':'
-    }
-
-    tag {
-        // so version tags look like 'release:1.2.3', and allow for
-        versionSeparator = ':'
-    }
-
-    localOnly = true
+    id "com.diffplug.spotless" version "5.7.0" apply false
 }
 
 allprojects {
-    project.version = scmVersion.version
+    project.version = "0.1.0-SNAPSHOT-3"
 }
 
 
 
 wrapper {
-    gradleVersion "6.7"
+    gradleVersion "6.8.1"
     distributionType org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 }
 

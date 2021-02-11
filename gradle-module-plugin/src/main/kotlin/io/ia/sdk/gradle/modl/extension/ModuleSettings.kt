@@ -158,8 +158,10 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
             layout.projectDirectory.file("${System.getProperty("user.home")}/signing.properties")
         )
         fileName.convention(
-            name.map { it.split(" ").joinToString(separator = "-", postfix = ".") {
-                it.capitalize() } + ZipModule.UNSIGNED_EXTENSION
+            name.map {
+                it.split(" ").joinToString(separator = "-", postfix = ".") {
+                    it.capitalize()
+                } + ZipModule.UNSIGNED_EXTENSION
             }
         )
     }

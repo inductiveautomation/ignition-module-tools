@@ -1,13 +1,5 @@
 package io.ia.sdk.gradle.modl.task
 
-import java.io.BufferedReader
-import java.io.DataInputStream
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.HttpURLConnection.HTTP_CREATED
-import java.net.HttpURLConnection.HTTP_OK
-import java.net.URL
-import java.util.Base64
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -17,6 +9,14 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
+import java.io.BufferedReader
+import java.io.DataInputStream
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.HttpURLConnection.HTTP_CREATED
+import java.net.HttpURLConnection.HTTP_OK
+import java.net.URL
+import java.util.Base64
 
 // TODO finish implementation and tests, then register task with the plugin
 /**
@@ -50,8 +50,10 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
     @TaskAction
     fun deployToGateway() {
         if (!signedModule.isPresent) {
-            logger.error("Signed module property was not found.  Run `assemble` first, or specify module path with " +
-                "--module=/path/to/myfile.modl")
+            logger.error(
+                "Signed module property was not found.  Run `assemble` first, or specify module path with " +
+                    "--module=/path/to/myfile.modl"
+            )
             throw Exception("Module file not present!")
         }
 

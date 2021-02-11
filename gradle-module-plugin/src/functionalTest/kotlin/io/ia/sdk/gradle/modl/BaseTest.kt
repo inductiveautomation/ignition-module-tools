@@ -3,13 +3,13 @@ package io.ia.sdk.gradle.modl
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.util.nameToDirName
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 
 open class BaseTest {
     companion object {
@@ -62,11 +62,11 @@ open class BaseTest {
         ).joinToString("")
 
         return GeneratorConfigBuilder()
-                .moduleName(name)
-                .scopes(scope)
-                .packageName(pkg)
-                .parentDir(tempFolder.newFolder(testDir).toPath())
-                .build()
+            .moduleName(name)
+            .scopes(scope)
+            .packageName(pkg)
+            .parentDir(tempFolder.newFolder(testDir).toPath())
+            .build()
     }
 
     open fun runTask(projectDir: File, taskName: String): BuildResult {

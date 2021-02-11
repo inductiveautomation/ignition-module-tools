@@ -5,9 +5,9 @@ import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.manifestFromJson
+import org.junit.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import org.junit.Test
 
 class CollectAndManifestDependenciesTest : BaseTest() {
     companion object {

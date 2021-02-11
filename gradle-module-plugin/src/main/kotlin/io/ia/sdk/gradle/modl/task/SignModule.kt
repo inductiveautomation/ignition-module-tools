@@ -2,13 +2,6 @@ package io.ia.sdk.gradle.modl.task
 
 import com.inductiveautomation.ignitionsdk.ModuleSigner
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
-import java.io.File
-import java.io.OutputStream
-import java.io.PrintStream
-import java.lang.Exception
-import java.security.KeyStore
-import java.security.interfaces.RSAPrivateKey
-import java.util.Properties
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -23,6 +16,13 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
+import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
+import java.lang.Exception
+import java.security.KeyStore
+import java.security.interfaces.RSAPrivateKey
+import java.util.Properties
 
 /**
  * Signs the module file, using credentials provided by the task running.
@@ -56,7 +56,7 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
     val unsigned: RegularFileProperty = objects.fileProperty()
 
     // the signed modl file
-    @OutputFile
+    @get:OutputFile
     val signed: Provider<RegularFile> = unsigned.map {
         val unsignedFileName = it.asFile.name
         val signedName = unsignedFileName.replace(".unsigned", "")
@@ -92,12 +92,12 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
     @Optional
     val certFile: Provider<File> = certFilePath.map { project.file(it) }
 
-    @Option(option = PROPERTY_FILE_PROP,
-        description = "Property file with signing properties; optional alternative to providing commandline flags."
-    )
-
     @Optional
     @InputFile
+    @Option(
+        option = PROPERTY_FILE_PROP,
+        description = "Property file with signing properties; optional alternative to providing commandline flags."
+    )
     val propertyFilePath: RegularFileProperty = objects.fileProperty()
 
     @Internal
@@ -168,11 +168,13 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
         unsignedModule: File,
         outFile: File
     ) {
-        logger.debug("Signing module with keystoreFile:${keyStoreFile.absolutePath}, " +
-            "keystorePassword:${keystorePassword.replace(Regex("."), "*")}, " +
-            "cert:${cert.absolutePath}, " +
-            "certPw: ${certPassword.replace(Regex("."), "*")}, " +
-            "alias: $certAlias")
+        logger.debug(
+            "Signing module with keystoreFile:${keyStoreFile.absolutePath}, " +
+                "keystorePassword:${keystorePassword.replace(Regex("."), "*")}, " +
+                "cert:${cert.absolutePath}, " +
+                "certPw: ${certPassword.replace(Regex("."), "*")}, " +
+                "alias: $certAlias"
+        )
 
         val keyStore: KeyStore = if (keyStoreFile.extension == "pfx") {
             logger.debug("using pkcs12 keystore type")
@@ -187,6 +189,6 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
         val privateKey: RSAPrivateKey = keyStore.getKey(certAlias, certPassword.toCharArray()) as RSAPrivateKey
 
         ModuleSigner(privateKey, cert.inputStream())
-                .signModule(PrintStream(OutputStream.nullOutputStream()), unsignedModule, outFile)
+            .signModule(PrintStream(OutputStream.nullOutputStream()), unsignedModule, outFile)
     }
 }

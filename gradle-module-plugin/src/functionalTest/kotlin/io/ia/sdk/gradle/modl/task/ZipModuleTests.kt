@@ -3,8 +3,8 @@ package io.ia.sdk.gradle.modl.task
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.util.unsignedModuleName
-import kotlin.test.assertTrue
 import org.junit.Test
+import kotlin.test.assertTrue
 
 class ZipModuleTests : BaseTest() {
 
