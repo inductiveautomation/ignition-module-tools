@@ -67,11 +67,6 @@ enum class TemplateMarker(val key: String) {
     ROOT_PLUGIN_CONFIGURATION("<ROOT_PLUGIN_CONFIGURATION>"),
 
     /**
-     * Value assigned to the propertyFile value in the igntionModule configuration block
-     */
-    SIGNING_PROPERTY_FILE("<SIGNING_PROPERTY_FILEPATH>"),
-
-    /**
      * Value used in the `dependencies { }` block of client scoped subproject
      */
     CLIENT_DEPENDENCIES("//<CLIENT_DEPENDENCIES>"),

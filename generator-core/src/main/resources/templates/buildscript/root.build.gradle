@@ -4,7 +4,7 @@ plugins {
 }
 
 ext {
-    sdk_version = "8.0.10"
+    sdk_version = "8.1.2"
 }
 
 version = "0.0.1-SNAPSHOT"
@@ -63,28 +63,4 @@ ignitionModule {
     <HOOK_CLASS_CONFIG>
     ]
 
-    /**
-     * Path to the property file that contains key/value pairs which define the locations of and credentials for
-     * module signing.  Optional if passing values as runtime flags, project props, or using the gradle.properties file
-     * to store the required key:value pairs.
-     *
-     * In a property file, the following keys are required, shown with example values:
-     * ```
-     * ignition.signing.keystoreFile=/path/to/keystorefile.jks
-     * ignition.signing.keystorePassword=somepassword
-     * ignition.signing.certFile=/path/to/certfile.pem
-     * ignition.signing.certPassword=somepassword
-     * ignition.signing.alias=selfsigned
-     * ```
-     *
-     * To use runtime values, or to override values in the property file, call the sign task with input flags, or mix
-     * and match as desired. Flag names are the same as the final element in the property file keys.  E.g. -
-     * `ignition.signing.keystoreFile` becomes the runtime task flag of `keystoreFile`.
-     *```
-     * ./gradlew signModule --keystoreFile=/path/to/keystore --keystorePassword=somepassword --alias=myAlias
-     *```
-     *
-     */
-     // Default convention value is applied automatically using value shown below.  Uncomment to set/override.
-     propertyFile = <SIGNING_PROPERTY_FILEPATH>
 }

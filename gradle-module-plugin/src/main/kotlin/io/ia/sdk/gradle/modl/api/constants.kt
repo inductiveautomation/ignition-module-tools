@@ -40,4 +40,54 @@ object Constants {
      */
     @JvmStatic
     val APPLY_IA_REPOSITORY_FLAG = "applyIaMavenRepository"
+
+    /**
+     * Signing properties located in gradle.properties files will be namespaced under this prefix in order to avoid
+     * collisions.
+     */
+    @JvmStatic
+    val PROPERTY_NAMESPACE = "ignition.signing"
+
+    /**
+     * CLI flag/Property Suffix (see readme) for the certificate alias used when signing the built module.
+     */
+    const val ALIAS_FLAG: String = "certAlias"
+
+    /**
+     * CLI flag/Property suffix (see readme) for the certifcate (file) that is used for signing the built module.
+     */
+    const val CERT_FILE_FLAG: String = "certFile"
+
+    /**
+     * Password for the certificate used to sign the built module.
+     */
+    const val CERT_PW_FLAG: String = "certPassword"
+
+    /**
+     * The keystore file to be used for signing the module
+     */
+    const val KEYSTORE_FILE_FLAG: String = "keystoreFile"
+
+    /**
+     * Keystore password to use in signing the module
+     */
+    const val KEYSTORE_PW_FLAG: String = "keystorePassword"
+
+    /**
+     * Map of CLI option flag `gradle <taskname> --taskProperty=value` to namespaced gradle property equivalent.
+     *
+     * Examples:
+     *
+     *
+     * | Task Flag    |  Project Property  | Property File (in gradle.properties, or as -P property)|
+     * |------------------------------------------------------------|
+     *|gradle signModule --certAlias=someAlias | gradle signModule -Pignition.signning.certAlias=someAlias | ignition.signing.certAlias=someAlias|
+     */
+    val SIGNING_PROPERTIES: Map<String, String> = mapOf(
+        ALIAS_FLAG to "$PROPERTY_NAMESPACE.$ALIAS_FLAG",
+        CERT_FILE_FLAG to "$PROPERTY_NAMESPACE.$CERT_FILE_FLAG",
+        CERT_PW_FLAG to "$PROPERTY_NAMESPACE.$CERT_PW_FLAG",
+        KEYSTORE_FILE_FLAG to "$PROPERTY_NAMESPACE.$KEYSTORE_FILE_FLAG",
+        KEYSTORE_PW_FLAG to "$PROPERTY_NAMESPACE.$KEYSTORE_PW_FLAG"
+    )
 }

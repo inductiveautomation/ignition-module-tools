@@ -181,7 +181,6 @@ class IgnitionModlPlugin : Plugin<Project> {
         // task that signs the module, using [http://github.com/inductiveautomation/module-signer] to do so
         val sign = root.tasks.register(SignModule.ID, SignModule::class.java) { signTask ->
             signTask.unsigned.set(zip.flatMap { it.unsignedModule })
-            signTask.propertyFilePath.set(settings.propertyFile)
         }
 
         root.allprojects.forEach { p ->

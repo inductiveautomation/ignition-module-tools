@@ -1,7 +1,6 @@
 package io.ia.ignition.module.generator.api
 
 import io.ia.ignition.module.generator.api.Defaults.GRADLE_VERSION
-import io.ia.ignition.module.generator.api.Defaults.PROP_FILE_DEFAULT_VALUE
 import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
 import java.io.File
@@ -27,7 +26,6 @@ class GeneratorConfigBuilder {
     // todo: default to false for stable release
     private var debugPluginConfig: Boolean = true
     private var rootPluginConfig: String = ""
-    private var signingCredentialPropertyFile: String = PROP_FILE_DEFAULT_VALUE
     private var useRootForSingleProjectScope: Boolean = false
 
     // builder methods
@@ -43,10 +41,7 @@ class GeneratorConfigBuilder {
     fun rootPluginConfig(config: String) = apply { this.rootPluginConfig = config }
     fun scopes(scopes: String?) = apply { this.scopes = scopes ?: "" }
     fun settingsDSL(settingsDsl: GradleDsl) = apply { this.settingsDsl = settingsDsl }
-    fun signingCredentialPropertyFile(signingCredentialPropertyFile: String) = apply {
-        this.signingCredentialPropertyFile = signingCredentialPropertyFile
-    }
-    // map of scope
+
     fun customReplacements(customReplacements: Map<String, String>) = apply {
         this.customReplacments = customReplacements
     }
@@ -57,7 +52,7 @@ class GeneratorConfigBuilder {
     fun build(): GeneratorConfig {
         log.debug("Construction GeneratorConfig...")
         return GeneratorConfig(moduleName, packageName, scopes, parentDir, settingsDsl, buildDsl, projectLanguage,
-            gradleWrapperVersion, debugPluginConfig, rootPluginConfig, signingCredentialPropertyFile,
+            gradleWrapperVersion, debugPluginConfig, rootPluginConfig,
             this.customReplacments, useRootForSingleProjectScope)
     }
 }

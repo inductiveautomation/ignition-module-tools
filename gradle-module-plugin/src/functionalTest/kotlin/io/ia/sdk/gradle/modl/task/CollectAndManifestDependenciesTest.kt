@@ -22,14 +22,12 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val name = "Client Artifact"
         val dependencyEntry = "modlApi('org.jfree:org.jfree.svg:4.1')"
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
-        val testPropsPath = "project.file('${prepSigningResourcesForModuleName(projectDir, name)}')"
 
         val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("C")
             .packageName("check.my.signage")
             .parentDir(projectDir)
-            .signingCredentialPropertyFile(testPropsPath)
             .useRootForSingleScopeProject(false)
             .customReplacements(customizers)
             .build()
@@ -66,14 +64,11 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val dependencyEntry = "modlImplementation('org.jfree:org.jfree.svg:4.1')"
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
 
-        val testPropsPath = "project.file('${prepSigningResourcesForModuleName(projectDir, name)}')"
-
         val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("C")
             .packageName("check.my.signage")
             .parentDir(projectDir)
-            .signingCredentialPropertyFile(testPropsPath)
             .customReplacements(customizers)
             .useRootForSingleScopeProject(false)
             .build()

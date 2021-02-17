@@ -11,7 +11,20 @@ import io.ia.ignition.module.generator.api.ProjectScope.DESIGNER
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
 import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
 import io.ia.ignition.module.generator.api.SupportedLanguage.KOTLIN
-import io.ia.ignition.module.generator.api.TemplateMarker
+import io.ia.ignition.module.generator.api.TemplateMarker.CLIENT_DEPENDENCIES
+import io.ia.ignition.module.generator.api.TemplateMarker.DESIGNER_DEPENDENCIES
+import io.ia.ignition.module.generator.api.TemplateMarker.GATEWAY_DEPENDENCIES
+import io.ia.ignition.module.generator.api.TemplateMarker.HOOK_CLASS_CONFIG
+import io.ia.ignition.module.generator.api.TemplateMarker.MODULE_CLASSNAME
+import io.ia.ignition.module.generator.api.TemplateMarker.MODULE_FILENAME
+import io.ia.ignition.module.generator.api.TemplateMarker.MODULE_ID
+import io.ia.ignition.module.generator.api.TemplateMarker.MODULE_NAME
+import io.ia.ignition.module.generator.api.TemplateMarker.PACKAGE_ROOT
+import io.ia.ignition.module.generator.api.TemplateMarker.PROJECT_SCOPES
+import io.ia.ignition.module.generator.api.TemplateMarker.ROOT_PLUGIN_CONFIGURATION
+import io.ia.ignition.module.generator.api.TemplateMarker.ROOT_PROJECT_NAME
+import io.ia.ignition.module.generator.api.TemplateMarker.SETTINGS_HEADER
+import io.ia.ignition.module.generator.api.TemplateMarker.SUBPROJECT_INCLUDES
 import io.ia.ignition.module.generator.util.logger
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -32,15 +45,15 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
 
     init {
         // initialize the values that will be injected into the template resource files
-        replacements[TemplateMarker.MODULE_NAME.key] = config.moduleName
-        replacements[TemplateMarker.MODULE_FILENAME.key] =
+        replacements[MODULE_NAME.key] = config.moduleName
+        replacements[MODULE_FILENAME.key] =
             "${config.moduleName.replace(" ", "-")}.modl"
-        replacements[TemplateMarker.MODULE_ID.key] = "${config.packageName}.$classPrefix"
-        replacements[TemplateMarker.MODULE_CLASSNAME.key] = classPrefix
-        replacements[TemplateMarker.PACKAGE_ROOT.key] = config.packageName
-        replacements[TemplateMarker.PROJECT_SCOPES.key] = buildProjectScopeConfiguration()
-        replacements[TemplateMarker.ROOT_PROJECT_NAME.key] = rootFolderName
-        replacements[TemplateMarker.SUBPROJECT_INCLUDES.key] =
+        replacements[MODULE_ID.key] = "${config.packageName}.$classPrefix"
+        replacements[MODULE_CLASSNAME.key] = classPrefix
+        replacements[PACKAGE_ROOT.key] = config.packageName
+        replacements[PROJECT_SCOPES.key] = buildProjectScopeConfiguration()
+        replacements[ROOT_PROJECT_NAME.key] = rootFolderName
+        replacements[SUBPROJECT_INCLUDES.key] =
             // if a single scope, single folder project, we don't have subprojects to include
             if (config.scopes.length == 1 && config.useRootProjectWhenSingleScope) {
                 "\":\""
@@ -51,8 +64,8 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                     postfix = ""
                 ) { "\":${it.folderName}\"" }
             }
-        replacements[TemplateMarker.HOOK_CLASS_CONFIG.key] = buildHookEntry()
-        replacements[TemplateMarker.SETTINGS_HEADER.key] = if (!config.debugPluginConfig) "" else {
+        replacements[HOOK_CLASS_CONFIG.key] = buildHookEntry()
+        replacements[SETTINGS_HEADER.key] = if (!config.debugPluginConfig) "" else {
             """
                 |pluginManagement {
                 |    repositories {
@@ -62,7 +75,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 |}
             """.trimMargin("|")
         }
-        replacements[TemplateMarker.ROOT_PLUGIN_CONFIGURATION.key] = when {
+        replacements[ROOT_PLUGIN_CONFIGURATION.key] = when {
             config.rootPluginConfig.isNotEmpty() -> {
                 config.rootPluginConfig
             }
@@ -71,17 +84,16 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 when (config.projectLanguage) {
                     JAVA -> Defaults.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
                     KOTLIN -> Defaults.ROOT_PLUGIN_CONFIG + "\n    `java-library`\n    " +
-                        "id(\"org.jetbrains.kotlin.jvm\") version \"1.4.0\""
+                        "id(\"org.jetbrains.kotlin.jvm\") version \"1.4.20\""
                 }
             }
             else -> {
                 Defaults.ROOT_PLUGIN_CONFIG
             }
         }
-        replacements[TemplateMarker.SIGNING_PROPERTY_FILE.key] = config.signingCredentialPropertyFile
-        replacements[TemplateMarker.CLIENT_DEPENDENCIES.key] = Defaults.CLIENT_SCOPE_DEPENDENCIES
-        replacements[TemplateMarker.DESIGNER_DEPENDENCIES.key] = Defaults.DESIGNER_SCOPE_DEPENDENCIES
-        replacements[TemplateMarker.GATEWAY_DEPENDENCIES.key] = Defaults.GATEWAY_SCOPE_DEPENDENCIES
+        replacements[CLIENT_DEPENDENCIES.key] = Defaults.CLIENT_SCOPE_DEPENDENCIES
+        replacements[DESIGNER_DEPENDENCIES.key] = Defaults.DESIGNER_SCOPE_DEPENDENCIES
+        replacements[GATEWAY_DEPENDENCIES.key] = Defaults.GATEWAY_SCOPE_DEPENDENCIES
 
         // this is a quick hack to support arbitrary replacements for resource files.  Works for now as all formal
         // template replacements are enclosed in < > characters, making collisions unlikely.

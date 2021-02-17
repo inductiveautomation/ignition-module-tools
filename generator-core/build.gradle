@@ -117,13 +117,13 @@ publishing {
  */
 String loadProperty(String propertyKey) {
     // by default, will look for this file in the user's home directory
-    final String propertyFileName = "publishing.properties"
+    final String propertyFileName = "gradle.properties"
     final File propertyFile = new File(System.getProperty("user.home"), propertyFileName)
 
     String value = System.getProperty(propertyKey, "")
 
     if (value == null || value.isEmpty()) {
-        logger.info("Did not find property '$value' as System property, searching in gradle properties...")
+        logger.debug("Did not find property '$propertyKey' as System property, searching in gradle properties...")
 
         if (project.properties.containsKey(propertyKey)) {
             value = project.properties.get(propertyKey)

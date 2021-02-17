@@ -1,7 +1,6 @@
 package io.ia.ignition.module.generator.api
 
 import io.ia.ignition.module.generator.api.Defaults.GRADLE_VERSION
-import io.ia.ignition.module.generator.api.Defaults.PROP_FILE_DEFAULT_VALUE
 import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
 import java.nio.file.Path
@@ -67,12 +66,6 @@ data class GeneratorConfig constructor(
      * Setting this value to a non-empty string will override the default plugin configuration, replacing it entirely.
      */
     val rootPluginConfig: String = "",
-
-    /**
-     * String value that will compile to and resolve a property file.
-     * For example: "\"project.file('myprops.properties')\""
-     **/
-    val signingCredentialPropertyFile: String = PROP_FILE_DEFAULT_VALUE,
 
     /**
      * Map of strings that will be replaced if found in any of the resources file templates used to create a module

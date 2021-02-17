@@ -2,48 +2,41 @@ package io.ia.sdk.gradle.modl.task
 
 import com.inductiveautomation.ignitionsdk.ModuleSigner
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
+import io.ia.sdk.gradle.modl.api.Constants
+import io.ia.sdk.gradle.modl.api.Constants.ALIAS_FLAG
+import io.ia.sdk.gradle.modl.api.Constants.CERT_FILE_FLAG
+import io.ia.sdk.gradle.modl.api.Constants.CERT_PW_FLAG
+import io.ia.sdk.gradle.modl.api.Constants.KEYSTORE_FILE_FLAG
+import io.ia.sdk.gradle.modl.api.Constants.KEYSTORE_PW_FLAG
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintStream
-import java.lang.Exception
 import java.security.KeyStore
 import java.security.interfaces.RSAPrivateKey
-import java.util.Properties
+import javax.inject.Inject
 
 /**
  * Signs the module file, using credentials provided by the task running.
  */
-open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) : DefaultTask() {
+@Suppress("UnstableApiUsage")
+open class SignModule @Inject constructor(_providers: ProviderFactory, _objects: ObjectFactory) : DefaultTask() {
     companion object {
         const val ID = "signModule"
-
-        /**
-         *   Property 'keys'.  Used as flags for commandline task options, or in the property file, prefixed with
-         *   [PROPERTY_FILE_PROP] in the form `ignition.signing.keystoreFile=/path/to/file/my.keystore`.
-         */
-        const val KEY_FILE_PROP: String = "keystoreFile"
-        const val KEYSTORE_PW_PROP: String = "keystorePassword"
-        const val CERT_FILE_PROP: String = "certFile"
-        const val CERT_PW_PROP: String = "certPassword"
-        const val ALIAS_PROP: String = "certAlias"
-        const val PROPERTY_FILE_PROP: String = "propertyFile"
-
-        // Prepended to all property names when used in a standard property file (to avoid collisions).
-        const val PROPERTY_PREFIX: String = "ignition.signing"
     }
 
     init {
@@ -52,8 +45,8 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
     }
 
     // the unsigned .modl file
-    @InputFile
-    val unsigned: RegularFileProperty = objects.fileProperty()
+    @get:InputFile
+    val unsigned: RegularFileProperty = _objects.fileProperty()
 
     // the signed modl file
     @get:OutputFile
@@ -63,57 +56,108 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
         project.layout.buildDirectory.file(signedName).get()
     }
 
-    // Commandline Input Options
-    // path to the keystore file
-    @Option(option = KEY_FILE_PROP, description = "Path to the keyfile used for signing modules")
-    @Input
-    @Optional
-    val keyFilePath: Property<String> = objects.property(String::class.java)
+    @get:Input
+    @get:Optional
+    val keystorePath: Property<String> = _objects.property(String::class.java).convention(
+        _providers.provider {
+            propOrLogError(KEYSTORE_FILE_FLAG, "keystore file location")
+        }
+    )
+
+    @Option(
+        option = KEYSTORE_FILE_FLAG,
+        description =
+            "Path to the keystore used for signing.  Resolves in the same manner as gradle's project.file('<path>')"
+    )
+    fun setKeystorePath(path: String) {
+        keystorePath.set(path)
+    }
+
+    @get:InputFile
+    val keystore: Provider<File> = keystorePath.map {
+        project.file(it)
+    }
+
+    @get:Input
+    val keystorePw: Property<String> = _objects.property(String::class.java).convention(
+        _providers.provider {
+            propOrLogError(KEYSTORE_PW_FLAG, "keystore password")
+        }
+    )
+
+    @Option(option = KEYSTORE_PW_FLAG, description = "The password for the keystore used in signing.")
+    fun setKeystorePw(pw: String) {
+        keystorePw.set(pw)
+    }
 
     // path to the certificate file
-    @Option(option = CERT_FILE_PROP, description = "Path to the certificate file used for signing modules")
-    @Input
-    @Optional
-    val certFilePath: Property<String> = objects.property(String::class.java)
+    @get:Input
+    val certFilePath: Property<String> = _objects.property(String::class.java).convention(
+        _providers.provider {
+            propOrLogError(CERT_FILE_FLAG, "certificate file location")
+        }
+    )
+
+    @Option(option = CERT_FILE_FLAG, description = "Path to the certificate file used for signing modules")
+    fun setCertFilePath(path: String) {
+        certFilePath.set(path)
+    }
+
+    /**
+     *  The certificate file, as derived from the certFilePath, if populated.  Otherwise will first look for properties
+     *  in a specified property file, and if that fails, will try to resolve project properties, as would occur
+     *  if supplying a `-P` arg at the commandline, or if using gradle.properties files in default locations.
+     */
+    @get:InputFile
+    val certFile: Provider<File> = certFilePath.map {
+        project.file(it)
+    }
 
     // the certificate alias to use for the signing
-    @Option(option = ALIAS_PROP, description = "Alias for the CA cert in the provided keystore")
-    @Input
-    @Optional
-    val alias: Property<String> = objects.property(String::class.java)
-
-    // the keystore File, as derived from the keyFilePath
-    @Nested
-    @Optional
-    val keyFile: Provider<File> = keyFilePath.map { path -> project.file(path) }
-
-    // the certificate file, as derived from the certFilePath
-    @Nested
-    @Optional
-    val certFile: Provider<File> = certFilePath.map { project.file(it) }
-
-    @Optional
-    @InputFile
-    @Option(
-        option = PROPERTY_FILE_PROP,
-        description = "Property file with signing properties; optional alternative to providing commandline flags."
+    @get:Input
+    val alias: Property<String> = _objects.property(String::class.java).convention(
+        _providers.provider {
+            propOrLogError(ALIAS_FLAG, "certificate alias")
+        }
     )
-    val propertyFilePath: RegularFileProperty = objects.fileProperty()
 
-    @Internal
-    val loadedFileProps: Provider<Properties> = propertyFilePath.map { signPropFile ->
-        val props = Properties()
-        props.load(signPropFile.asFile.inputStream())
-        props
+    @Option(option = ALIAS_FLAG, description = "Alias for the CA cert in the provided keystore")
+    fun setAlias(a: String) {
+        alias.set(a)
+    }
+
+    @get:Input
+    val certPw: Property<String> = _objects.property(String::class.java).convention(
+        _providers.provider {
+            propOrLogError(CERT_PW_FLAG, "certificate password")
+        }
+    )
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    protected fun propOrLogError(flag: String, itemName: String): String {
+        val propKey = Constants.SIGNING_PROPERTIES[flag]
+        val propValue = project.properties[propKey] as String?
+        if (propValue == null) {
+            logger.error(
+                "Required $itemName not found.  Specify via flag '--$flag=<value>', or in gradle.properties" +
+                    " file as '$propKey=<value>'"
+            )
+        }
+        return propValue.toString()
+    }
+
+    @Option(option = CERT_PW_FLAG, description = "The password for the certificate used in signing.")
+    fun setCertPw(pw: String) {
+        certPw.set(pw)
     }
 
     @Internal
     fun getKeyStore(): KeyStore {
-        project.logger.debug("Getting keystore from key file...")
-        if (keyFile.isPresent) {
-            val keys = keyFile.get()
-            if (keys.exists()) {
-                return if (keys.extension == "pfx") {
+        project.logger.quiet("Getting keystore from key file...")
+        if (keystore.isPresent) {
+            val keystoreFile = keystore.get()
+            if (keystoreFile.exists()) {
+                return if (keystoreFile.extension == "pfx") {
                     project.logger.debug("Found keyfile extension of '.pfx', using KeyStore instance type 'pkcs12'")
                     KeyStore.getInstance("pkcs12")
                 } else {
@@ -121,10 +165,10 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
                     KeyStore.getInstance("jks")
                 }
             } else {
-                throw Exception("Signing key file ${keys.absolutePath} did not exist!")
+                throw Exception("Signing key file ${keystoreFile.absolutePath} did not exist!")
             }
         }
-        throw Exception("Failed to resolve '${keyFilePath.get()}', provided as `$KEY_FILE_PROP` property")
+        throw Exception("Failed to resolve keystore!")
     }
 
     @TaskAction
@@ -138,28 +182,26 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
             logger.debug("Found unsigned module at ${unsignedModule.absolutePath}...")
         }
 
-        if (loadedFileProps.isPresent) {
-            logger.info("Using signing property file for cert and credential details...")
-            val signProps = loadedFileProps.get()
-            val keyStoreFile = project.file(signProps["$PROPERTY_PREFIX.$KEY_FILE_PROP"].toString())
-            val cert = project.file(signProps["$PROPERTY_PREFIX.$KEY_FILE_PROP"].toString())
-            val certAlias = signProps["$PROPERTY_PREFIX.$ALIAS_PROP"].toString()
-            val keystorePw = signProps["$PROPERTY_PREFIX.$KEYSTORE_PW_PROP"].toString()
-            val certPw = signProps["$PROPERTY_PREFIX.$CERT_PW_PROP"].toString()
+        logger.debug("Signed module will be named ${signed.get().asFile.absolutePath}")
 
-            logger.debug("Signed module will be named ${signed.get().asFile.absolutePath}")
-
-            signModule(keyStoreFile, keystorePw, cert, certPw, certAlias, unsignedModule, signed.get().asFile)
-            logger.info("Module built and signed at ${signed.get().asFile.absolutePath}")
-        } else {
-            project.logger.error("Could not sign module, property file with signing credentials was not present!")
-        }
+        signModule(
+            keystore.get(),
+            keystorePw.get(),
+            certFile.get(),
+            certPw.get(),
+            alias.get(),
+            unsignedModule,
+            signed.get().asFile
+        )
+        logger.info("Module built and signed at ${signed.get().asFile.absolutePath}")
     }
 
     /**
      * Signs the module file
      */
-    fun signModule(
+    @Suppress("MemberVisibilityCanBePrivate")
+    @Throws(IOException::class)
+    protected fun signModule(
         keyStoreFile: File,
         keystorePassword: String,
         cert: File,
@@ -169,21 +211,14 @@ open class SignModule @javax.inject.Inject constructor(objects: ObjectFactory) :
         outFile: File
     ) {
         logger.debug(
-            "Signing module with keystoreFile:${keyStoreFile.absolutePath}, " +
-                "keystorePassword:${keystorePassword.replace(Regex("."), "*")}, " +
-                "cert:${cert.absolutePath}, " +
-                "certPw: ${certPassword.replace(Regex("."), "*")}, " +
-                "alias: $certAlias"
+            "Signing module with keystoreFile: ${keyStoreFile.absolutePath}, " +
+                "keystorePassword: ${"*".repeat(keystorePassword.length)}, " +
+                "cert: ${cert.absolutePath}, " +
+                "certPw: ${"*".repeat(certPassword.length)}, " +
+                "certAlias: $certAlias"
         )
 
-        val keyStore: KeyStore = if (keyStoreFile.extension == "pfx") {
-            logger.debug("using pkcs12 keystore type")
-            KeyStore.getInstance("pkcs12")
-        } else {
-            logger.debug("using jks keystore type")
-            KeyStore.getInstance("jks")
-        }
-
+        val keyStore: KeyStore = getKeyStore()
         keyStore.load(keyStoreFile.inputStream(), keystorePassword.toCharArray())
 
         val privateKey: RSAPrivateKey = keyStore.getKey(certAlias, certPassword.toCharArray()) as RSAPrivateKey

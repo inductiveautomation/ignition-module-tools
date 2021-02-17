@@ -1,11 +1,9 @@
 package io.ia.ignition.module.generator.api
 
 object Defaults {
-    // default values used for optional arguments
-    const val PROP_FILE_DEFAULT_VALUE = "project.file(\"\${System.getProperty(\"user.home\")}/signing.properties\")"
 
     // default gradle version
-    const val GRADLE_VERSION = "6.5.1"
+    const val GRADLE_VERSION = "6.8.2"
 
     // default plugin configuration for the root build.gradle
     const val ROOT_PLUGIN_CONFIG = "id(\"io.ia.sdk.modl\")"

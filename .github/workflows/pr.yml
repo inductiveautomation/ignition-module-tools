@@ -15,9 +15,9 @@ jobs:
     - name: Set up JDK 11
       uses: actions/setup-java@v1
       with:
-        java-version: '11.0.7'
+        java-version: '11.0.9'
         architecture: x64
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build with Gradle
+    - name: Gradle Build Task
       run: ./gradlew build --stacktrace --info

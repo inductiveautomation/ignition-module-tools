@@ -116,7 +116,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
 
     private fun propFileLocation(testFolder: Path, moduleName: String): String {
         val dirName = nameToDirName(moduleName)
-        val propFile = testFolder.resolve(dirName).resolve("signing.properties")
+        val propFile = testFolder.resolve(dirName).resolve("gradle.properties")
 
         return "project.file(\"${propFile.toFile().absolutePath}\")"
     }
@@ -134,7 +134,6 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             .packageName(packageName)
             .parentDir(rootDir)
             .useRootForSingleScopeProject(false)
-            .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
             .build()
 
         val projectDir = ModuleGenerator.generate(config)
@@ -163,7 +162,6 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
-            .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
             .parentDir(rootDir)
             .build()
 
@@ -191,7 +189,6 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
-            .signingCredentialPropertyFile(propFileLocation(rootDir, nameToDirName(moduleName)))
             .parentDir(rootDir)
             .build()
 
@@ -219,7 +216,6 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             .parentDir(rootDir)
             .debugPluginConfig(true)
             .rootPluginConfig("   id('io.ia.sdk.modl') version('0.0.1-PREVIEW.1')")
-            .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
             .build()
 
         val projectDir = ModuleGenerator.generate(config)
