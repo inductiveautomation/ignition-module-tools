@@ -27,7 +27,7 @@ open class AssembleModuleAssets @javax.inject.Inject constructor(objects: Object
     init {
         this.group = PLUGIN_TASK_GROUP
         this.description =
-                "Assembles module assets into the 'moduleContents' folder in the module project's build directory."
+            "Assembles module assets into the 'moduleContents' folder in the module project's build directory."
     }
 
     /**

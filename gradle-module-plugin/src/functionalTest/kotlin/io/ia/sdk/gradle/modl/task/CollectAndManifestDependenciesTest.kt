@@ -1,13 +1,13 @@
 package io.ia.sdk.gradle.modl.task
 
-import com.google.gson.Gson
 import io.ia.ignition.module.generator.ModuleGenerator
-import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
+import io.ia.sdk.gradle.modl.model.manifestFromJson
+import org.junit.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import org.junit.Test
 
 class CollectAndManifestDependenciesTest : BaseTest() {
     companion object {
@@ -22,14 +22,13 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val name = "Client Artifact"
         val dependencyEntry = "modlApi('org.jfree:org.jfree.svg:4.1')"
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
-        val testPropsPath = "project.file('${prepSigningResourcesForModuleName(projectDir, name)}')"
 
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("C")
             .packageName("check.my.signage")
             .parentDir(projectDir)
-            .signingCredentialPropertyFile(testPropsPath)
+            .useRootForSingleScopeProject(false)
             .customReplacements(customizers)
             .build()
 
@@ -45,10 +44,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val manifestPath = clientArtifacts.resolve("manifest.json")
         assertTrue(manifestPath.toFile().exists(), "manifest should exist")
 
-        val manifest: ArtifactManifest = Gson().fromJson(
-            manifestPath.toFile().reader(Charsets.UTF_8),
-            ArtifactManifest::class.java
-        )
+        val manifest: ArtifactManifest = manifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
 
         assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
         assertNotNull(manifest.artifacts.find { it.fileName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")
@@ -68,15 +64,13 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val dependencyEntry = "modlImplementation('org.jfree:org.jfree.svg:4.1')"
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
 
-        val testPropsPath = "project.file('${prepSigningResourcesForModuleName(projectDir, name)}')"
-
-        val config = GeneratorConfig.ConfigBuilder()
+        val config = GeneratorConfigBuilder()
             .moduleName(name)
             .scopes("C")
             .packageName("check.my.signage")
             .parentDir(projectDir)
-            .signingCredentialPropertyFile(testPropsPath)
             .customReplacements(customizers)
+            .useRootForSingleScopeProject(false)
             .build()
 
         val project = ModuleGenerator.generate(config)
@@ -90,11 +84,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val manifestPath = clientArtifacts.resolve("manifest.json")
         assertTrue(manifestPath.toFile().exists(), "manifest exists")
 
-        val manifest: ArtifactManifest =
-            Gson().fromJson(
-                manifestPath.toFile().reader(Charsets.UTF_8),
-                ArtifactManifest::class.java
-            )
+        val manifest: ArtifactManifest = manifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
 
         assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
         assertNotNull(manifest.artifacts.find { it.fileName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")

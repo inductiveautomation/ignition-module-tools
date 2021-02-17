@@ -13,16 +13,14 @@ gradle-module-plugin/.gradle/
 gradle-module-plugin/out/
 gradle-module-plugin/build/
 
-module-generator/.idea/
-module-generator/.gradle/
-module-generator/out/
+generator-core/.idea/
+generator-core/.gradle/
+generator-core/out/
+generator-core/build/
 
-module-generator/core/.idea/
-module-generator/core/.gradle/
-module-generator/core/out/
-module-generator/core/build/
+generator-cli/.idea/
+generator-cli/.gradle/
+generator-cli/out/
+generator-cli/build/
 
-module-generator/cli/.idea/
-module-generator/cli/.gradle/
-module-generator/cli/out/
-module-generator/cli/build/
+gh_key

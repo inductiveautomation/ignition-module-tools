@@ -1,11 +1,8 @@
 package io.ia.sdk.gradle.modl.task
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
-import java.io.File
-import java.io.FileNotFoundException
+import io.ia.sdk.gradle.modl.model.manifestFromJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.MapProperty
@@ -18,16 +15,13 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.redundent.kotlin.xml.PrintOptions
 import org.redundent.kotlin.xml.xml
+import java.io.File
+import java.io.FileNotFoundException
 
 open class WriteModuleXml : DefaultTask() {
 
     companion object {
         const val ID = "writeModuleXml"
-        private val GSON: Gson = GsonBuilder()
-                .disableHtmlEscaping()
-                .serializeNulls()
-                .setPrettyPrinting()
-                .create()
     }
 
     init {
@@ -67,7 +61,7 @@ open class WriteModuleXml : DefaultTask() {
 
     @Input
     val requireFromPlatform: MapProperty<String, String> =
-            project.objects.mapProperty(String::class.java, String::class.java)
+        project.objects.mapProperty(String::class.java, String::class.java)
 
     @Input
     val requiredFrameworkVersion: Property<String> = project.objects.property(String::class.java)
@@ -84,7 +78,7 @@ open class WriteModuleXml : DefaultTask() {
      */
     @Input
     val moduleDependencies: MapProperty<String, String> =
-            project.objects.mapProperty(String::class.java, String::class.java)
+        project.objects.mapProperty(String::class.java, String::class.java)
 
     @OutputFile
     fun getModuleXmlFile(): File {
@@ -182,8 +176,9 @@ open class WriteModuleXml : DefaultTask() {
     }
 
     private fun manifests(): List<ArtifactManifest> {
+
         return artifactManifests.get().map { manifest ->
-            GSON.fromJson(manifest.asFile.readText(Charsets.UTF_8), ArtifactManifest::class.java)
+            manifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
         }
     }
 

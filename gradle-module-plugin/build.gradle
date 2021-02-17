@@ -2,9 +2,10 @@
 plugins {
     id "java-gradle-plugin"
     id "com.gradle.plugin-publish" version "0.12.0"
-    id "org.jetbrains.kotlin.jvm" version  "1.3.72"
+    id "org.jetbrains.kotlin.jvm"
+    id 'org.jetbrains.kotlin.kapt' // kapt annotation processor plugin, for picocli/graal annotations
     id "maven-publish"
-    id "com.diffplug.gradle.spotless" version "4.3.0"
+    id "com.diffplug.spotless"
 }
 
 ext {
@@ -19,22 +20,24 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.0.1-SNAPSHOT"
 
 dependencies {
     // Align versions of all Kotlin components
     implementation platform('org.jetbrains.kotlin:kotlin-bom')
-    // Use the Kotlin JDK 8 standard library.
+    // Use the Kotlin JDK standard library.
     implementation('org.jetbrains.kotlin:kotlin-stdlib')
-    implementation('com.google.code.gson:gson:2.8.6')
-    implementation("org.redundent:kotlin-xml-builder:1.6.0")
+    implementation('org.jetbrains.kotlin:kotlin-reflect')
+    implementation("org.redundent:kotlin-xml-builder:1.7.2")
+    implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.9.3")
+
     api('com.inductiveautomation.ignitionsdk:module-signer:0.0.1.ia')
 
     // Use the Kotlin test library.
     testImplementation('org.jetbrains.kotlin:kotlin-test')
     // Use the Kotlin JUnit integration.
     testImplementation('org.jetbrains.kotlin:kotlin-test-junit')
-    testImplementation('io.ia.sdk.tools.module.gen:core')
+    testImplementation(project(":generator-core"))
 }
 
 gradlePlugin {
@@ -73,7 +76,9 @@ jar {
                 'Implementation-Version': project.version,
                 'Built-By': System.getProperty('user.name'),
                 'Built-JDK': System.getProperty('java.version'),
-                'Built-Gradle': gradle.gradleVersion
+                'Built-Gradle': gradle.gradleVersion//,
+                // 'Build-Time': Calendar.getInstance().getTime(),
+                // 'commit-sha1':
     }
 }
 
@@ -126,16 +131,8 @@ configurations.functionalTestImplementation.extendsFrom(configurations.testImple
 check.dependsOn(tasks.functionalTest)
 test.dependsOn(tasks.functionalTest)
 
-wrapper {
-    gradleVersion "6.5"
-    distributionType  Wrapper.DistributionType.ALL
-}
-
 spotless {
     kotlin {
-        // optionally takes a version
-        ktlint()
-        // Optional user arguments can be set as such:
-        //  ktlint().userData(['indent_size': '4', 'continuation_indent_size' : '8'])
+        ktlint("0.39.0").userData(['max_line_length': "120"])
     }
 }

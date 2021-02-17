@@ -1,7 +1,6 @@
 package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
-import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -14,6 +13,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import javax.inject.Inject
 
 /**
  * Creates the unsigned .modl file by compressing the contents of the staging folder into a zip file.
@@ -38,7 +38,7 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
     init {
         this.group = PLUGIN_TASK_GROUP
         this.description =
-                "Packs the contents of the module folder into a zip archive with a .unsigned.modl file extension"
+            "Packs the contents of the module folder into a zip archive with a .unsigned.modl file extension"
     }
 
     @TaskAction
@@ -47,7 +47,9 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
         val contentDir = content.get().asFile
 
         project.logger.info("Zipping '${contentDir.absolutePath}' into ' ${unsignedFile.asFile.absolutePath}'")
-        project.ant.invokeMethod("zip",
-                mapOf("basedir" to contentDir, "destfile" to unsignedFile))
+        project.ant.invokeMethod(
+            "zip",
+            mapOf("basedir" to contentDir, "destfile" to unsignedFile)
+        )
     }
 }

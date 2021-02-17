@@ -39,6 +39,15 @@ class IgnitionModlPlugin : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
+        project.logger.info("Applying module plugin to ${project.path}")
+
+        if (project.plugins.hasPlugin(this.javaClass)) {
+            throw Exception(
+                "Project ${project.path} already has Ignition Module Plugin applied.  Plugin should only" +
+                    " be applied to the 'parent' project, one plugin application per module created."
+            )
+        }
+
         this.appliedPluginProject = project
 
         // check for and set base plugin if not present, to establish lifecycle tasks/hooks we'll use
@@ -55,32 +64,56 @@ class IgnitionModlPlugin : Plugin<Project> {
         )
 
         setupRootTasks(project, settings)
-        setupSubprojectTasks(project, settings)
+        project.subprojects.forEach { p: Project ->
+            setupDependencyTasks(p, settings)
+        }
     }
 
     /**
-     * Sets up the necessary tasks and configurations for subprojects, adding task dependencies to the 'root' project as
-     * necessary.
+     * Creates and binds the appropriate tasks for projects (generally the module root project and its subprojects)
+     * which generate artifacts (jars) for inclusion in a module.
+     *
+     * Projects may opt out of module contribution and the associated tasks by adding `excludeFromIgnitionModule` as a
+     * project property.  This property only applies to the single project it is applied to.
+     *
+     * ```
+     * // build.gradle
+     * ext {
+     *     excludeFromIgnitionModule=true
+     * }
+     * ```
      */
-    private fun setupSubprojectTasks(root: Project, settings: ModuleSettings) {
-        root.subprojects.forEach { p: Project ->
-            // allow projects to declare themselves exempt from the module plugin functionality by setting a property
-            // in the build.gradle `ext { disableModulePlugin=true }
-            if (p.hasOptedOutOfModule()) {
-                return
-            }
+    private fun setupDependencyTasks(artifactContributor: Project, settings: ModuleSettings) {
+        // allow projects to declare themselves exempt from the module plugin functionality by setting a property
+        // in the build.gradle `ext { disableModulePlugin=true }
+        if (artifactContributor.hasOptedOutOfModule()) {
+            return
+        }
 
-            // apply the base plugin to establish a baseline lifecycle on all projects
-            p.plugins.apply("base")
+        // apply the base plugin to establish a baseline lifecycle on all projects
+        if (!artifactContributor.plugins.hasPlugin("base")) {
+            artifactContributor.plugins.apply("base")
+        }
 
-            // ignition modules are built using configurations from gradle's 'java-library' plugin to allow proper
-            // transitive dependency management, so we look for that plugin to be applied
-            p.plugins.withType(JavaLibraryPlugin::class.java) {
-                createConfigurations(p)
-                createJavaTasks(p, this.appliedPluginProject, settings)
-            }
+        // ignition modules are built using configurations from gradle's 'java-library' plugin to allow proper
+        // transitive dependency management, so we look for that plugin to be applied
+        artifactContributor.plugins.withType(JavaLibraryPlugin::class.java) {
+            createConfigurations(artifactContributor)
+            createJavaTasks(artifactContributor, this.appliedPluginProject, settings)
+        }
 
-            root.tasks.findByName("assemble")?.dependsOn(p.tasks.findByName("assemble"))
+        // assemble on root should depend on subproject assembles, but don't try to depend on self and create a
+        // circular dependency
+        if (this.appliedPluginProject != artifactContributor) {
+            artifactContributor.logger.debug(
+                "Setting ${this.appliedPluginProject.path}:assemble.dependsOn('${artifactContributor.path}:assemble')"
+            )
+
+            this.appliedPluginProject.tasks.findByName("assemble")?.dependsOn(
+                "${artifactContributor.path}:assemble"
+            )
+        } else {
+            artifactContributor.logger.debug("Skipping dependency from ${artifactContributor.path}:assemble on self...")
         }
     }
 
@@ -125,18 +158,20 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // task that zips up the folder of module content
         val zip = root.tasks.register(
-                ZipModule.ID,
-                ZipModule::class.java
+            ZipModule.ID,
+            ZipModule::class.java
         ) { zipTask: ZipModule ->
             zipTask.content.set(assembleModuleStructure.flatMap { it.moduleContentDir })
             zipTask.moduleName.set(settings.name)
-            zipTask.unsignedModule.set(settings.fileName.flatMap {
-                val fileName = if (it.endsWith(".modl")) {
-                    it.replace(".modl", ".$UNSIGNED_EXTENSION")
-                } else {
-                    "$it.$UNSIGNED_EXTENSION"
+            zipTask.unsignedModule.set(
+                settings.fileName.flatMap {
+                    val fileName = if (it.endsWith(".modl")) {
+                        it.replace(".modl", ".$UNSIGNED_EXTENSION")
+                    } else {
+                        "$it.$UNSIGNED_EXTENSION"
+                    }
+                    root.layout.buildDirectory.file(fileName)
                 }
-                root.layout.buildDirectory.file(fileName) }
             )
 
             // need xml file written before we zip anything
@@ -146,29 +181,38 @@ class IgnitionModlPlugin : Plugin<Project> {
         // task that signs the module, using [http://github.com/inductiveautomation/module-signer] to do so
         val sign = root.tasks.register(SignModule.ID, SignModule::class.java) { signTask ->
             signTask.unsigned.set(zip.flatMap { it.unsignedModule })
-            signTask.propertyFilePath.set(settings.propertyFile)
         }
 
         root.allprojects.forEach { p ->
-            // when a project has a task of the given name, apply appropriate task dependencies
-            p.tasks.whenTaskAdded { t ->
-                when (t.name) {
-                    CollectModlDependencies.ID -> {
-                        val gatherArtifacts: CollectModlDependencies = t as CollectModlDependencies
+            p.logger.info("Evaluating `rootProject.allprojects` including ${p.path}")
+            if (!p.hasOptedOutOfModule()) {
+                // when a project has a task of the given name, apply appropriate task dependencies
+                p.tasks.whenTaskAdded { t ->
+                    when (t.name) {
+                        CollectModlDependencies.ID -> {
+                            p.logger.info(
+                                "Binding module aggregation tasks for '${root.path}:" +
+                                    "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
+                            )
+                            val gatherArtifacts: CollectModlDependencies = t as CollectModlDependencies
 
-                        // bind artifact collection task output to xml writing task input
-                        writeModuleXml.configure {
-                            it.artifactManifests.add(gatherArtifacts.manifestFile)
-                        }
+                            // bind artifact collection task output to xml writing task input
+                            writeModuleXml.configure {
+                                it.artifactManifests.add(gatherArtifacts.manifestFile)
+                            }
 
-                        // bind artifact collection dir to the module content collection task input
-                        assembleModuleStructure.configure {
-                            it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
+                            // bind artifact collection dir to the module content collection task input
+                            assembleModuleStructure.configure {
+                                it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
+                            }
                         }
                     }
                 }
             }
         }
+
+        // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)
+        setupDependencyTasks(root, settings)
 
         rootAssemble?.dependsOn(sign)
     }
@@ -185,7 +229,8 @@ class IgnitionModlPlugin : Plugin<Project> {
      */
     private fun createConfigurations(p: Project): List<Configuration> {
         val apiConf: Configuration? = p.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
-        val implementationConf: Configuration? = p.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+        val implementationConf: Configuration? =
+            p.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
         val modlImplementation = p.configurations.create(MODULE_IMPLEMENTATION_CONFIGURATION) {
             it.isCanBeResolved = true
@@ -219,14 +264,13 @@ class IgnitionModlPlugin : Plugin<Project> {
         ) {
             it.dependsOn(p.tasks.findByName("jar"))
             assemble?.dependsOn(it)
-            it.projectScopes.set(settings.projectScopes.get())
-            it.moduleVersion.set(settings.moduleVersion.get())
+            it.projectScopes.set(settings.projectScopes)
+            it.moduleVersion.set(settings.moduleVersion)
         }
 
         val tasks = listOf(collectModlDependencies)
         assemble?.dependsOn(tasks)
 
-        rootModuleProject.tasks.findByName("assemble")?.dependsOn(assemble)
         rootModuleProject.tasks.findByName(AssembleModuleAssets.ID)?.dependsOn(collectModlDependencies)
 
         return tasks

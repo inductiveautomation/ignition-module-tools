@@ -1,22 +1,34 @@
 # Ignition Module Plugin for Gradle
 
-The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality.  As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and metainformation.  
+The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality.  As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and meta-information.  
 
 The Ignition Module Plugin for Gradle lets module developers use the [Gradle](https://www.gradle.org) build tool to create and sign functional modules (_.modl_ ) through a convenient DSL-based configuration model.
 
 
+
 ## Usage
 
-The easiest way to get started with this plugin is to create a new module project using the Ignition Module Generator in this repository, or by cloning an existing gradle project from the [Inductive Automation Example Modules](http://www.github.com/inductiveautomation/ignition-sdk-examples)
+The easiest way to get started with this plugin is to create a new module project using the Ignition Module Generator in this repository.
 
-
-1. Apply the plugin to your `build.gradle`, or in the case of a multi-project build, to the root or parent project
+1. Apply the plugin to your `build.gradle`, or in the case of a multi-project build, to the root or parent project
 .   *Note* that you should only apply the plugin to a single parent project in a multi-scope structure (e.g., one
  where you have separate source directories for `gateway` and `designer` code, for instance).
 
 2. Configure your module through the `ignitionModule` configuration DSL.  See DSL properties section below for details. 
 
-3. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Otherwise, your dependencies should be specified in accordance with the best practices described in Gradle's `java-library` plugin documentation, which is available [here](https://docs.gradle.org/current/userguide/java_library_plugin.html).  
+3. Configure your signing settings, either in a gradle.properties file, or as commandline flags.  The required properties are defined in constants.kt, and used in the SignModule task.  You may mix and match flags and properties (and flags will override properties), as long as all required values are configured.  The only requirement is that option flags _must_ follow the gradle command to which they apply, which is the 'signModule' task in this case.   The flags/properties are as follows, with usage examples:
+   >Note: builds prior to v0.1.0-SNAPSHOT-6 used a separate property file called signing.properties.  Builds after that use gradle.properties files instead.   
+   
+   | Flag  | Usage  | gradle.properties entry | 
+   |-------|--------|-------------------------|
+   | certAlias  | gradlew signModule --certAlias=someAlias  | ignition.signing.certAlias=someAlias  |
+   | certFile  | gradlew signModule --certFile=/path/to/cert  | ignition.signing.certFile=/path/to/cert  |
+   | certPassword  | gradlew signModule --certPassword=mysecret  | ignition.signing.certFile=mysecret  |
+   | keystoreFile  | gradlew signModule --keystoreFile=/path/to/keystore  | ignition.signing.keystoreFile=/path/to/keystore  |
+   | keystorePassword  | gradlew signModule --keystorePassword=mysecret  | ignition.signing.keystoreFile=mysecret  |
+
+
+4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Otherwise, your dependencies should be specified in accordance with the best practices described in Gradle's `java-library` plugin documentation, which is available [here](https://docs.gradle.org/current/userguide/java_library_plugin.html).  
 
 Dependencies marked with either `modlApi` or `modlImplementation` in any subproject of your module will be collected and included in the final modl file.  Note that currently there is no distinction between those configurations with respect to the Ignition Platform itself - however, all other implications apply as documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should not be marked with these `modl` configurations.
 
@@ -77,30 +89,14 @@ ignitionModule {
     hooks = [
         "net.starlink.driver.gateway.GatewayHook": "G"
     ]
-
-    /**
-     * Gradle File property, resolving to the property file that contains key/value pairs which define the locations of and credentials for
-     * module signing.  Optional if passing values as runtime flags, project props, or using the gradle.properties file
-     * to store the required key:value pairs.
-     *
-     * In a property file, the following keys are required, shown with example values:
-     * ```
-     * ignition.signing.keystoreFile=/path/to/keystorefile.jks
-     * ignition.signing.keystorePassword=somepassword
-     * ignition.signing.certFile=/path/to/certfile.pem
-     * ignition.signing.certPassword=somepassword
-     * ignition.signing.certAlias=selfsigned
-     * ```
-     * The actual value must resolve to a File type, either via `new File()`, or using
-     * gradle's file methods as shown below.  More info on gradle file handling and
-     * file types available in the [Gradle Docs](https://docs.gradle.org/current/userguide/working_with_files.html#sec:locating_files)
-     *
-     */
-     propertyFile = project.file("/path/to/my/signing.properties")
 }
 
 ```
 
  # Tasks
  
- To see the tasks available, run the `tasks` gradle command.
+ To see the tasks available, run the `tasks` gradle command, or `tasks --all` to see all possible tasks..  
+
+# Pre-Release API Changes
+
+* v0.1.0-SNPASHOT-6 - changed how credentials and files are specified for signing and publication.  The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.

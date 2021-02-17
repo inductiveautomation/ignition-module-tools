@@ -3,15 +3,16 @@ package io.ia.sdk.gradle.modl
 
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.util.nameToDirName
 import io.ia.sdk.gradle.modl.util.signedModuleName
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 
 /**
  * Functional tests for the 'io.ia.gradle.module.greeting' plugin.
@@ -25,7 +26,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val projectName = "Fake Thing"
         projectDir.mkdirs()
         projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
+        projectDir.resolve("build.gradle").writeText(
+            """
             |plugins {
             |   id('io.ia.sdk.modl')
             |}
@@ -38,7 +40,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|"))
+        """.trimMargin("|")
+        )
 
         val result: BuildResult = runTask(projectDir, "tasks")
 
@@ -52,7 +55,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val projectName = "Fake Thing"
         projectDir.mkdirs()
         projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
+        projectDir.resolve("build.gradle").writeText(
+            """
             |plugins {
             |    id('java')
             |    id('io.ia.sdk.modl')
@@ -66,7 +70,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|"))
+        """.trimMargin("|")
+        )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
         // Run the build
@@ -83,7 +88,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val projectName = "Fake Thing"
         projectDir.mkdirs()
         projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
+        projectDir.resolve("build.gradle").writeText(
+            """
             |plugins {
             |    id('java-library')
             |    id('io.ia.sdk.modl')
@@ -98,7 +104,8 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|"))
+        """.trimMargin("|")
+        )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
         // Run the build
@@ -109,7 +116,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
 
     private fun propFileLocation(testFolder: Path, moduleName: String): String {
         val dirName = nameToDirName(moduleName)
-        val propFile = testFolder.resolve(dirName).resolve("signing.properties")
+        val propFile = testFolder.resolve(dirName).resolve("gradle.properties")
 
         return "project.file(\"${propFile.toFile().absolutePath}\")"
     }
@@ -121,12 +128,12 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val scopes = "G"
         val packageName = "le.examp"
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
             .parentDir(rootDir)
-            .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
+            .useRootForSingleScopeProject(false)
             .build()
 
         val projectDir = ModuleGenerator.generate(config)
@@ -151,11 +158,10 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val scopes = "GC"
         val packageName = "bot.skynet"
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
-            .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
             .parentDir(rootDir)
             .build()
 
@@ -179,11 +185,10 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
 
         rootDir.toFile().mkdirs()
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
-            .signingCredentialPropertyFile(propFileLocation(rootDir, nameToDirName(moduleName)))
             .parentDir(rootDir)
             .build()
 
@@ -204,14 +209,13 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
         val scopes = "GCD"
         val packageName = "bot.skynet.wow"
 
-        val config: GeneratorConfig = GeneratorConfig.ConfigBuilder()
+        val config: GeneratorConfig = GeneratorConfigBuilder()
             .moduleName(moduleName)
             .scopes(scopes)
             .packageName(packageName)
             .parentDir(rootDir)
             .debugPluginConfig(true)
-            .rootPluginConfig("   id('io.ia.sdk.modl') version('0.0.1-SNAPSHOT')")
-            .signingCredentialPropertyFile(propFileLocation(rootDir, moduleName))
+            .rootPluginConfig("   id('io.ia.sdk.modl') version('0.0.1-PREVIEW.1')")
             .build()
 
         val projectDir = ModuleGenerator.generate(config)

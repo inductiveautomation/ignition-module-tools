@@ -1,13 +1,11 @@
 package io.ia.sdk.gradle.modl.task
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.api.Constants.ARTIFACT_DIR
 import io.ia.sdk.gradle.modl.model.Artifact
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.IgnitionScope
-import javax.inject.Inject
+import io.ia.sdk.gradle.modl.model.manifestToJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
@@ -21,6 +19,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import javax.inject.Inject
 
 /**
  * Task which collects the artifacts produced by a single project, and moves them to the appropriate scoped folder
@@ -32,11 +31,6 @@ import org.gradle.api.tasks.TaskAction
 open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         const val ID = "collectModlDependencies"
-        private val GSON: Gson = GsonBuilder()
-                .disableHtmlEscaping()
-                .serializeNulls()
-                .setPrettyPrinting()
-                .create()
     }
 
     init {
@@ -86,14 +80,14 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
 
     @get:OutputFile
     val manifestFile: Provider<RegularFile> =
-            project.layout.buildDirectory.file("$ARTIFACT_DIR/manifest.json")
+        project.layout.buildDirectory.file("$ARTIFACT_DIR/manifest.json")
 
     @get:Input
     val versionedJarName: String by lazy {
         "${project.name}-${moduleVersion.get()}.jar"
     }
 
-    fun buildManifest(): ArtifactManifest {
+    private fun buildManifest(): ArtifactManifest {
         val apiDeps = getModlApiDeps()
         val implDeps = getModlImplementationDeps()
         val deps = apiDeps.dependencies + implDeps.dependencies
@@ -105,7 +99,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
         return ArtifactManifest(project.path, project.name, ignitionScope.code, artifacts)
     }
 
-    fun copyArtifacts() {
+    private fun copyArtifacts() {
         project.logger.info("Copying ${project.path} artifacts to ${artifactOutputDir.get()}")
         project.copy { copySpec ->
             copySpec.from(project.tasks.getByName("jar").outputs.files.toList())
@@ -118,7 +112,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
 
     @TaskAction
     fun execute() {
-        val manifestContent = GSON.toJson(buildManifest())
+        val manifestContent = manifestToJson(buildManifest())
         val manifestFile = manifestFile.get().asFile
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
         copyArtifacts()
