@@ -17,8 +17,8 @@ ext {
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    jcenter()
+    mavenLocal()
+    mavenCentral()
 }
 
 group = "io.ia.sdk.tools.module.gen"
