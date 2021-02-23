@@ -13,10 +13,12 @@ ext {
 }
 
 repositories {
-    jcenter()
+    mavenLocal()
     maven {
         url 'https://nexus.inductiveautomation.com/repository/public'
     }
+    mavenCentral()
+
 }
 
 group = "io.ia.sdk"
