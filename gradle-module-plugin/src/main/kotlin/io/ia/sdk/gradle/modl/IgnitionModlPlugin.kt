@@ -55,13 +55,17 @@ class IgnitionModlPlugin : Plugin<Project> {
             project.plugins.apply("base")
         }
 
-        addInductiveAutoRepos(project)
-
         // create the extension object used to configure the plugin in the user's buildscripts
         val settings = project.extensions.create(
             EXTENSION_NAME,
             ModuleSettings::class.java
         )
+
+        project.afterEvaluate {
+            if (settings.applyInductiveArtifactRepo.get()) {
+                addInductiveAutoRepos(project)
+            }
+        }
 
         setupRootTasks(project, settings)
         project.subprojects.forEach { p: Project ->
