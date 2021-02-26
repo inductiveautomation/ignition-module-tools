@@ -63,4 +63,5 @@ ignitionModule {
     <HOOK_CLASS_CONFIG>
     ]
 
+    applyInductiveArtifactRepo = true
 }

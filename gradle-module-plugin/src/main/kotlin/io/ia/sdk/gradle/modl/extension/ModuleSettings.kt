@@ -130,6 +130,11 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      */
     val requiredFrameworkVersion: Property<String> = objects.property(String::class.java)
 
+    /**
+     * If the plugin should apply the inductive maven artifact repository as a source for
+     */
+    val applyInductiveArtifactRepo: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
+
     init {
         license.convention("")
         freeModule.convention(java.lang.Boolean.FALSE)
