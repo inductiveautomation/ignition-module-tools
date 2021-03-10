@@ -73,9 +73,24 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
         keystorePath.set(path)
     }
 
+    /**
+     * If set to true, resolving relative path signing asset files will first check for relative to the module
+     * root (where the module plugin is declared), and if not found, will also try to resolve relative to the
+     * root project.  This is useful if you have multiple modules you build in the same gradle super project.
+     *
+     * If the module root IS the gradle root project, then this has no change on behavior.
+     */
+    @get:Input
+    val allowMultiprojectFileResolution: Property<Boolean> = _objects.property(Boolean::class.java).convention(true)
+
     @get:InputFile
-    val keystore: Provider<File> = keystorePath.map {
-        project.file(it)
+    val keystore: Provider<File> = keystorePath.zip(allowMultiprojectFileResolution) { path, allow ->
+        var target = project.file(path)
+        if (!target.exists() && allow && project != project.rootProject) {
+            logger.info("Failed to resolve cert file at $target, attempting root project resolution.")
+            target = project.rootProject.file(path)
+        }
+        target
     }
 
     @get:Input
@@ -109,8 +124,16 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
      *  if supplying a `-P` arg at the commandline, or if using gradle.properties files in default locations.
      */
     @get:InputFile
-    val certFile: Provider<File> = certFilePath.map {
-        project.file(it)
+    val certFile: Provider<File> = certFilePath.zip(allowMultiprojectFileResolution) { cert, allow ->
+        var target = project.file(cert)
+
+        if (!target.exists() && allow && project.rootProject != project) {
+            logger.info("Failed to resolve cert file at $target, attempting root project resolution.")
+
+            target = project.rootProject.file(cert)
+        }
+
+        target
     }
 
     // the certificate alias to use for the signing
