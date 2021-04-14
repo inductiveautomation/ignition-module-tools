@@ -3,6 +3,7 @@ package io.ia.sdk.gradle.modl.task
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
@@ -36,6 +37,11 @@ open class AssembleModuleAssets @javax.inject.Inject constructor(objects: Object
     @OutputDirectory
     val moduleContentDir: DirectoryProperty = objects.directoryProperty()
 
+    @get:Input
+    val duplicateStrategy: Property<DuplicatesStrategy> = objects.property(DuplicatesStrategy::class.java).convention(
+        DuplicatesStrategy.WARN
+    )
+
     /**
      * Source directories for assets provided by subprojects
      */
@@ -56,12 +62,14 @@ open class AssembleModuleAssets @javax.inject.Inject constructor(objects: Object
             copySpec.from(sources)
             copySpec.into(moduleContentDir)
             copySpec.exclude("manifest.json")
+            copySpec.duplicatesStrategy = duplicateStrategy.get()
         }
 
         if (license.isPresent && license.get().isNotEmpty()) {
             project.copy {
                 it.from(license.get())
                 it.into(moduleContentDir)
+                it.duplicatesStrategy = duplicateStrategy.get()
             }
         }
     }
