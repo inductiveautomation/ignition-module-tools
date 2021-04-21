@@ -17,11 +17,15 @@ jobs:
       with:
         java-version: '11.0.11'
         architecture: x64
+    - name: Set generator as working directory
+      run: cd generator
     - name: Grant execute permission for generator gradlew
-      run: chmod +x generator/gradlew
+      run: chmod +x gradlew
     - name: Gradle Generator Build Task
-      run: ./generator/gradlew build --stacktrace --info
+      run: ./gradlew build --stacktrace --info
+    - name: Set module plugin as working dir
+      run: cd ../gradle-module-plugin/
     - name: Grant execute permission for module plugin gradlew
-      run: chmod +x gradle-module-plugin/gradlew
+      run: chmod +x gradlew
     - name: Gradle Module Plugin Build Task
-      run: ./gradle-module-plugin/gradlew build --stacktrace --info
+      run: gradlew build --stacktrace --info
