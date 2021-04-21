@@ -17,9 +17,11 @@ jobs:
       with:
         java-version: '11.0.11'
         architecture: x64
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: Grant execute permission for generator gradlew
+      run: chmod +x generator/gradlew
     - name: Gradle Generator Build Task
-      run: ./gradlew build --stacktrace --info
+      run: ./generator/gradlew build --stacktrace --info
+    - name: Grant execute permission for module plugin gradlew
+      run: chmod +x gradle-module-plugin/gradlew
     - name: Gradle Module Plugin Build Task
       run: ./gradle-module-plugin/gradlew build --stacktrace --info
