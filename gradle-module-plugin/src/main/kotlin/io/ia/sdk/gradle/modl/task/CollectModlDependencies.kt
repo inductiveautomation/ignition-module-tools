@@ -5,7 +5,7 @@ import io.ia.sdk.gradle.modl.api.Constants.ARTIFACT_DIR
 import io.ia.sdk.gradle.modl.model.Artifact
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.IgnitionScope
-import io.ia.sdk.gradle.modl.model.manifestToJson
+import io.ia.sdk.gradle.modl.model.toJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
@@ -31,6 +31,7 @@ import javax.inject.Inject
 open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         const val ID = "collectModlDependencies"
+        const val JSON_FILENAME = "artifacts.json"
     }
 
     init {
@@ -80,7 +81,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
 
     @get:OutputFile
     val manifestFile: Provider<RegularFile> =
-        project.layout.buildDirectory.file("$ARTIFACT_DIR/manifest.json")
+        project.layout.buildDirectory.file("$ARTIFACT_DIR/$JSON_FILENAME")
 
     @get:Input
     val versionedJarName: String by lazy {
@@ -112,7 +113,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
 
     @TaskAction
     fun execute() {
-        val manifestContent = manifestToJson(buildManifest())
+        val manifestContent = buildManifest().toJson()
         val manifestFile = manifestFile.get().asFile
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
         copyArtifacts()

@@ -14,19 +14,19 @@ buildscript {
     }
 
     ext {
-        kotlin_version = "1.4.20"
+        kotlin_version = "1.4.31"
         gradle_wrapper_version = "7.0"
     }
 }
 
 plugins {
     id "base"
-    id 'org.jetbrains.kotlin.jvm' version '1.4.20' apply false
-    id "com.diffplug.spotless" version "5.10.2" apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.4.31' apply false
+    id "com.diffplug.spotless" version "5.12.2" apply false
 }
 
 allprojects {
-    project.version = "0.1.0-SNAPSHOT-10"
+    project.version = "0.1.0-SNAPSHOT"
 }
 
 

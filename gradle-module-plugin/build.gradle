@@ -2,10 +2,10 @@
 plugins {
     id "java-gradle-plugin"
     id "com.gradle.plugin-publish" version "0.12.0"
-    id "org.jetbrains.kotlin.jvm"
-    id 'org.jetbrains.kotlin.kapt' // kapt annotation processor plugin, for picocli/graal annotations
+    id "org.jetbrains.kotlin.jvm" version "1.4.31"
+    id 'org.jetbrains.kotlin.kapt' version "1.4.31"
+    id "com.diffplug.spotless" version "5.12.2"
     id "maven-publish"
-    id "com.diffplug.spotless"
 }
 
 ext {
@@ -22,6 +22,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
+version = "0.1.0-SNAPSHOT-12"
 
 dependencies {
     // Align versions of all Kotlin components
@@ -32,14 +33,14 @@ dependencies {
     implementation("org.redundent:kotlin-xml-builder:1.7.2")
     implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
     kapt("com.squareup.moshi:moshi-kotlin-codegen:1.9.3")
-
+    implementation("com.google.guava:guava:30.1.1-jre")
     api('com.inductiveautomation.ignitionsdk:module-signer:0.0.1.ia')
 
     // Use the Kotlin test library.
     testImplementation('org.jetbrains.kotlin:kotlin-test')
     // Use the Kotlin JUnit integration.
     testImplementation('org.jetbrains.kotlin:kotlin-test-junit')
-    testImplementation(project(":generator-core"))
+    testImplementation("io.ia.sdk.tools.module.gen:generator-core")
 }
 
 gradlePlugin {
@@ -89,8 +90,8 @@ java {
     withSourcesJar()
 }
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
@@ -137,4 +138,8 @@ spotless {
     kotlin {
         ktlint("0.39.0").userData(['max_line_length': "120"])
     }
+}
+wrapper {
+    gradleVersion "7.0"
+    distributionType org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 }

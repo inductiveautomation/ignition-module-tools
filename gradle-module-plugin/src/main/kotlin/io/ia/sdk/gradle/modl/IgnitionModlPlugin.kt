@@ -6,7 +6,9 @@ import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_CONFIGURATION
 import io.ia.sdk.gradle.modl.extension.EXTENSION_NAME
 import io.ia.sdk.gradle.modl.extension.ModuleSettings
 import io.ia.sdk.gradle.modl.task.AssembleModuleAssets
+import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
+import io.ia.sdk.gradle.modl.task.ModuleBuildReport
 import io.ia.sdk.gradle.modl.task.SignModule
 import io.ia.sdk.gradle.modl.task.WriteModuleXml
 import io.ia.sdk.gradle.modl.task.ZipModule
@@ -128,6 +130,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         root.logger.info("Initializing tasks on root module project...")
 
         val rootAssemble = root.tasks.findByName("assemble")
+        val rootBuild = root.tasks.findByName("build")
 
         // task that gathers dependencies and assets into a folder that will ultimately become the .modl contents
         val assembleModuleStructure = root.tasks.register(
@@ -187,6 +190,23 @@ class IgnitionModlPlugin : Plugin<Project> {
             signTask.unsigned.set(zip.flatMap { it.unsignedModule })
         }
 
+        val checksum = root.tasks.register(Checksum.ID, Checksum::class.java) { checksum ->
+            checksum.hashAlgorithm.set(settings.checksumAlgorithm)
+            checksum.signedModl.set(sign.flatMap { it.signed })
+            checksum.dependsOn(sign)
+        }
+
+        val buildReport = root.tasks.register(ModuleBuildReport.ID, ModuleBuildReport::class.java) { report ->
+            report.metaInfo.putAll(settings.metaInfo)
+            report.modlFile.set(sign.flatMap { it.signed })
+            report.moduleId.set(settings.id)
+            report.moduleName.set(settings.name)
+            report.moduleVersion.set(settings.moduleVersion)
+            report.checksumJson.set(checksum.flatMap { it.checksumJson })
+            report.moduleDescription.set(settings.moduleDescription)
+            report.dependsOn(sign, checksum)
+        }
+
         root.allprojects.forEach { p ->
             p.logger.info("Evaluating `rootProject.allprojects` including ${p.path}")
             if (!p.hasOptedOutOfModule()) {
@@ -205,6 +225,11 @@ class IgnitionModlPlugin : Plugin<Project> {
                                 it.artifactManifests.add(gatherArtifacts.manifestFile)
                             }
 
+                            // bind artifact manifests to the build report for inclusion
+                            buildReport.configure {
+                                it.childManifests.put(p.path, gatherArtifacts.manifestFile)
+                            }
+
                             // bind artifact collection dir to the module content collection task input
                             assembleModuleStructure.configure {
                                 it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
@@ -219,6 +244,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         setupDependencyTasks(root, settings)
 
         rootAssemble?.dependsOn(sign)
+        rootBuild?.dependsOn(buildReport)
     }
 
     /**

@@ -45,7 +45,7 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
 }
 
-final String JVM_TARGET = "11"
+final String JVM_TARGET = "1.8"
 
 compileKotlin {
     kotlinOptions {
@@ -84,7 +84,7 @@ String resourceConfigFile = "src/main/resources/resource-config.json"
 final String binaryName = "ignition-module-gen"
 
 graal {
-    javaVersion JVM_TARGET
+    javaVersion "8"
     graalVersion "20.1.0"
     mainClass mainApplicationClass
     outputName binaryName

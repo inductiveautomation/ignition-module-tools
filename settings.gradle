@@ -1,8 +1,0 @@
-rootProject.name = 'ignition-module-tools'
-
-include(
-    ":",
-    ":gradle-module-plugin",
-    ":generator-core",
-    ":generator-cli"
-)

@@ -1,5 +1,6 @@
 package io.ia.sdk.gradle.modl.extension
 
+import io.ia.sdk.gradle.modl.task.HashAlgorithm
 import io.ia.sdk.gradle.modl.task.ZipModule
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
@@ -57,6 +58,13 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      */
     val projectScopes: MapProperty<String, String> =
         objects.mapProperty(String::class.java, String::class.java)
+
+    /**
+     * Map that serves no specific purpose in the plugin itself, but may be useful to build authors to support
+     * functionality of pre or post module builds. The information in this map is included in the `buildResult.json`
+     * file that is created when a module is assembled.
+     */
+    val metaInfo: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 
     /**
      * List of module dependencies, which declare one or more modules you are dependent on, as well as the scope in
@@ -134,6 +142,12 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      * If the plugin should apply the inductive maven artifact repository as a source for
      */
     val applyInductiveArtifactRepo: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
+
+    /**
+     * Algorithm used to generate a checksum digest for the signed module file.  Defaults to SHA-256.
+     */
+    val checksumAlgorithm: Property<HashAlgorithm> = objects.property(HashAlgorithm::class.java)
+        .convention(HashAlgorithm.SHA256)
 
     init {
         license.convention("")
