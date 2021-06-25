@@ -24,8 +24,8 @@ repositories {
 java {
     withJavadocJar()
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 tasks.withType(JavaCompile) {
@@ -34,7 +34,7 @@ tasks.withType(JavaCompile) {
 
 compileKotlin {
     kotlinOptions{
-        jvmTarget = '11'
+        jvmTarget = '1.8'
         // will retain parameter names for java reflection
         javaParameters = true
     }
@@ -42,7 +42,7 @@ compileKotlin {
 
 compileTestKotlin {
     kotlinOptions{
-        jvmTarget = '11'
+        jvmTarget = '1.8'
         javaParameters = true
     }
 }

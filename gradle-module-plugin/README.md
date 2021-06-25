@@ -89,6 +89,14 @@ ignitionModule {
     hooks = [
         "net.starlink.driver.gateway.GatewayHook": "G"
     ]
+    
+    /**
+     * Optional map of arbitrary String to String entries.  These will make it into the final _buildResult.json_, but
+     * are otherwise unused and have no impact on the module itself.  These values may be useful for adding data to 
+     * used by consumers of this build's output.  For instance: CI and publication systems, integrity checking, etc. 
+     */
+     metaInfo.put("someKey", "Some arbitrary value useful to later use")
+     metaInfo.put("publicationUrl", "1.2.3.4:8090")
 }
 
 ```
@@ -99,4 +107,5 @@ ignitionModule {
 
 # Pre-Release API Changes
 
-* v0.1.0-SNPASHOT-6 - changed how credentials and files are specified for signing and publication.  The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
+* v0.1.0-SNAPSHOT-6 - changed how credentials and files are specified for signing and publication.  The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
+* v0.1.0-SNAPSHOT-12 - added checksum generation and build report tasks.  Split repo into separate builds using gradle build composition to better isolate changes.  

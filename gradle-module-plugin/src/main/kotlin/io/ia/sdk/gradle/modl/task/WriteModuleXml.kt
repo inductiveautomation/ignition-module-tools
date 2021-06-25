@@ -2,7 +2,7 @@ package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
-import io.ia.sdk.gradle.modl.model.manifestFromJson
+import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.MapProperty
@@ -178,7 +178,7 @@ open class WriteModuleXml : DefaultTask() {
     private fun manifests(): List<ArtifactManifest> {
 
         return artifactManifests.get().map { manifest ->
-            manifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
+            artifactManifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
         }
     }
 

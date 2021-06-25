@@ -4,7 +4,7 @@ import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
-import io.ia.sdk.gradle.modl.model.manifestFromJson
+import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.junit.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -41,10 +41,10 @@ class CollectAndManifestDependenciesTest : BaseTest() {
 
         assertTrue(clientArtifacts.toFile().exists() && clientArtifacts.toFile().isDirectory, "is dir and present")
 
-        val manifestPath = clientArtifacts.resolve("manifest.json")
+        val manifestPath = clientArtifacts.resolve(CollectModlDependencies.JSON_FILENAME)
         assertTrue(manifestPath.toFile().exists(), "manifest should exist")
 
-        val manifest: ArtifactManifest = manifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
+        val manifest: ArtifactManifest = artifactManifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
 
         assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
         assertNotNull(manifest.artifacts.find { it.fileName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")
@@ -81,10 +81,10 @@ class CollectAndManifestDependenciesTest : BaseTest() {
 
         assertTrue(clientArtifacts.toFile().exists() && clientArtifacts.toFile().isDirectory, "is dir and present")
 
-        val manifestPath = clientArtifacts.resolve("manifest.json")
+        val manifestPath = clientArtifacts.resolve(CollectModlDependencies.JSON_FILENAME)
         assertTrue(manifestPath.toFile().exists(), "manifest exists")
 
-        val manifest: ArtifactManifest = manifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
+        val manifest: ArtifactManifest = artifactManifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
 
         assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
         assertNotNull(manifest.artifacts.find { it.fileName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")

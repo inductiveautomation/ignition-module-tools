@@ -1,0 +1,14 @@
+
+pluginManagement {
+    includeBuild("../gradle-module-plugin")
+}
+
+rootProject.name = 'ignition-module-generator'
+
+includeBuild("../gradle-module-plugin")
+
+include(
+    ":",
+    ":generator-core",
+    ":generator-cli"
+)

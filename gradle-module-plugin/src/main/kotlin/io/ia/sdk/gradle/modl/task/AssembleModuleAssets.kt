@@ -34,7 +34,7 @@ open class AssembleModuleAssets @javax.inject.Inject constructor(objects: Object
     /**
      * Folder that assets will be collected into.
      */
-    @OutputDirectory
+    @get:OutputDirectory
     val moduleContentDir: DirectoryProperty = objects.directoryProperty()
 
     @get:Input
@@ -45,11 +45,11 @@ open class AssembleModuleAssets @javax.inject.Inject constructor(objects: Object
     /**
      * Source directories for assets provided by subprojects
      */
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val moduleArtifactDirs: SetProperty<DirectoryProperty> = objects.setProperty(DirectoryProperty::class.java)
 
-    @Input
+    @get:Input
     val license: Property<String> = objects.property(String::class.java)
 
     @TaskAction
@@ -61,7 +61,7 @@ open class AssembleModuleAssets @javax.inject.Inject constructor(objects: Object
         project.copy { copySpec ->
             copySpec.from(sources)
             copySpec.into(moduleContentDir)
-            copySpec.exclude("manifest.json")
+            copySpec.exclude(CollectModlDependencies.JSON_FILENAME)
             copySpec.duplicatesStrategy = duplicateStrategy.get()
         }
 

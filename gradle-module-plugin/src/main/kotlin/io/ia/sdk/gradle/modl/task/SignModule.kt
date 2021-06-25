@@ -176,7 +176,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
     @Internal
     fun getKeyStore(): KeyStore {
-        project.logger.quiet("Getting keystore from key file...")
+        project.logger.debug("Resolving keystore file...")
         if (keystore.isPresent) {
             val keystoreFile = keystore.get()
             if (keystoreFile.exists()) {

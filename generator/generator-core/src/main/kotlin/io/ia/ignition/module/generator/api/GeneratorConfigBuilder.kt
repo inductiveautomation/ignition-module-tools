@@ -18,7 +18,7 @@ class GeneratorConfigBuilder {
     private lateinit var packageName: String
     private lateinit var parentDir: Path
     private lateinit var scopes: String
-    private var customReplacments: Map<String, String> = emptyMap()
+    private var customReplacements: Map<String, String> = emptyMap()
     private var buildDsl: GradleDsl = GROOVY
     private var projectLanguage: SupportedLanguage = JAVA
     private var settingsDsl: GradleDsl = GROOVY
@@ -43,7 +43,7 @@ class GeneratorConfigBuilder {
     fun settingsDSL(settingsDsl: GradleDsl) = apply { this.settingsDsl = settingsDsl }
 
     fun customReplacements(customReplacements: Map<String, String>) = apply {
-        this.customReplacments = customReplacements
+        this.customReplacements = customReplacements
     }
     fun useRootForSingleScopeProject(value: Boolean) = apply {
         this.useRootForSingleProjectScope = value
@@ -53,6 +53,6 @@ class GeneratorConfigBuilder {
         log.debug("Construction GeneratorConfig...")
         return GeneratorConfig(moduleName, packageName, scopes, parentDir, settingsDsl, buildDsl, projectLanguage,
             gradleWrapperVersion, debugPluginConfig, rootPluginConfig,
-            this.customReplacments, useRootForSingleProjectScope)
+            this.customReplacements, useRootForSingleProjectScope)
     }
 }
