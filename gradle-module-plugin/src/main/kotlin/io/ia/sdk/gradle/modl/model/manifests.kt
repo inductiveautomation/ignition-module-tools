@@ -3,9 +3,17 @@ package io.ia.sdk.gradle.modl.model
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import java.io.File
 import java.io.Serializable
 
-data class Artifact(val group: String, val name: String, val version: String, val fileName: String) : Serializable
+data class FileArtifact(val id: String, val jarFile: File)
+
+data class Artifact(val id: String, val jarName: String) : Serializable {
+    constructor(fileArtifact: FileArtifact) : this(
+        fileArtifact.id,
+        fileArtifact.jarFile.name
+    )
+}
 
 data class ArtifactManifest(
     val projectPath: String,
