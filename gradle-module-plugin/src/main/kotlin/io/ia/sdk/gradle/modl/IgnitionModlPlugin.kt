@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.jvm.tasks.Jar
 
 /**
  * Group used by all tasks so they show up in the appropriate category when 'gradle tasks' is executed
@@ -61,7 +62,9 @@ class IgnitionModlPlugin : Plugin<Project> {
         val settings = project.extensions.create(
             EXTENSION_NAME,
             ModuleSettings::class.java
-        )
+        ).apply {
+            this.moduleVersion.convention(project.version.toString())
+        }
 
         project.afterEvaluate {
             if (settings.applyInductiveArtifactRepo.get()) {
@@ -285,6 +288,12 @@ class IgnitionModlPlugin : Plugin<Project> {
     ): List<TaskProvider<out Task>> {
 
         p.logger.info("Setting up Java tasks on ${p.path}")
+
+        p.tasks.named("jar") {
+            if (it is Jar) {
+                it.archiveFileName.set("${p.name}-${settings.moduleVersion.get()}.jar")
+            }
+        }
 
         val assemble = p.tasks.findByName("assemble")
 

@@ -161,14 +161,17 @@ open class WriteModuleXml : DefaultTask() {
                     }
                 }
 
-                manifests().forEach { manifest ->
-                    manifest.artifacts.forEach { artifact ->
-                        "jar" {
-                            attribute("scope", manifest.scope)
-                            -artifact.fileName
-                        }
+                manifests().groupBy { it.scope }
+                    .forEach { (scope, manifests) ->
+                        manifests.flatMap { it.artifacts }
+                            .distinctBy { it.jarName }
+                            .forEach { artifact ->
+                                "jar" {
+                                    attribute("scope", scope)
+                                    -artifact.jarName
+                                }
+                            }
                     }
-                }
             }
         }
 

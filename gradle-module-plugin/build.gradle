@@ -22,7 +22,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.1.0-SNAPSHOT-12"
+version = "0.1.0-SNAPSHOT-13"
 
 dependencies {
     // Align versions of all Kotlin components
