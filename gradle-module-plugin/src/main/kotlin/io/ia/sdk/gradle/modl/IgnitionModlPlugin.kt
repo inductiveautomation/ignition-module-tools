@@ -291,7 +291,7 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         p.tasks.named("jar") {
             if (it is Jar) {
-                it.archiveFileName.set("${p.name}-${settings.moduleVersion.get()}.jar")
+                it.archiveFileName.convention("${p.name}-${settings.moduleVersion.get()}.jar")
             }
         }
 
