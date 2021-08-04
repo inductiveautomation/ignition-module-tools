@@ -86,11 +86,6 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
     val manifestFile: Provider<RegularFile> =
         project.layout.buildDirectory.file("$ARTIFACT_DIR/$JSON_FILENAME")
 
-    @get:Input
-    val versionedJarName: String by lazy {
-        "${project.name}-${moduleVersion.get()}.jar"
-    }
-
     @TaskAction
     fun execute() {
         val fileArtifacts = deriveArtifacts()

@@ -214,30 +214,25 @@ class IgnitionModlPlugin : Plugin<Project> {
             p.logger.info("Evaluating `rootProject.allprojects` including ${p.path}")
             if (!p.hasOptedOutOfModule()) {
                 // when a project has a task of the given name, apply appropriate task dependencies
-                p.tasks.whenTaskAdded { t ->
-                    when (t.name) {
-                        CollectModlDependencies.ID -> {
-                            p.logger.info(
-                                "Binding module aggregation tasks for '${root.path}:" +
-                                    "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
-                            )
-                            val gatherArtifacts: CollectModlDependencies = t as CollectModlDependencies
+                p.tasks.withType(CollectModlDependencies::class.java) { t ->
+                    p.logger.info(
+                        "Binding module aggregation tasks for '${root.path}:" +
+                            "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
+                    )
 
-                            // bind artifact collection task output to xml writing task input
-                            writeModuleXml.configure {
-                                it.artifactManifests.add(gatherArtifacts.manifestFile)
-                            }
+                    // bind artifact collection task output to xml writing task input
+                    writeModuleXml.configure {
+                        it.artifactManifests.add(t.manifestFile)
+                    }
 
-                            // bind artifact manifests to the build report for inclusion
-                            buildReport.configure {
-                                it.childManifests.put(p.path, gatherArtifacts.manifestFile)
-                            }
+                    // bind artifact manifests to the build report for inclusion
+                    buildReport.configure {
+                        it.childManifests.put(p.path, t.manifestFile)
+                    }
 
-                            // bind artifact collection dir to the module content collection task input
-                            assembleModuleStructure.configure {
-                                it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
-                            }
-                        }
+                    // bind artifact collection dir to the module content collection task input
+                    assembleModuleStructure.configure {
+                        it.moduleArtifactDirs.add(t.artifactOutputDir)
                     }
                 }
             }
@@ -245,7 +240,6 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)
         setupDependencyTasks(root, settings)
-
         rootAssemble?.dependsOn(sign)
         rootBuild?.dependsOn(buildReport)
     }

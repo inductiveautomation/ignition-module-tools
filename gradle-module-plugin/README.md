@@ -28,9 +28,18 @@ The easiest way to get started with this plugin is to create a new module projec
    | keystorePassword  | gradlew signModule --keystorePassword=mysecret  | ignition.signing.keystoreFile=mysecret  |
 
 
-4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Otherwise, your dependencies should be specified in accordance with the best practices described in Gradle's `java-library` plugin documentation, which is available [here](https://docs.gradle.org/current/userguide/java_library_plugin.html).  
+4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file.
+   Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).  See the Dependency Configuration section below for more info on configuring and managing dependencies.
 
-Dependencies marked with either `modlApi` or `modlImplementation` in any subproject of your module will be collected and included in the final modl file.  Note that currently there is no distinction between those configurations with respect to the Ignition Platform itself - however, all other implications apply as documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should not be marked with these `modl` configurations.
+
+Choosing which [Configuration](https://docs.gradle.org/current/userguide/declaring_dependencies.html) to apply may have important but subtle impacts on your module, as well as your development environment.  Also keep in mind the effect of _project_ dependency configurations.  
+
+> Maven Users: If you're familiar with Maven's dependency scopes, you might initially find Gradle's handling of dependencies to be unnecessarily convoluted.  This is a product of Gradle's powerful (but more complex) dependency management.  We suggest reading the gradle docs on [Working With Dependencies](https://docs.gradle.org/current/userguide/core_dependency_management.html), followed by reading the [Java Library Plugin](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) documentation.  
+
+
+However, all other implications apply as documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should not be marked with these `modl` configurations.
+
+
 
 ### `ignitionModule` DSL Properties
 
