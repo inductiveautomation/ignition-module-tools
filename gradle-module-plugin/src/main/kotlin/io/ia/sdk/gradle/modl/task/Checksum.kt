@@ -60,7 +60,7 @@ open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: Projec
         this.group = PLUGIN_TASK_GROUP
         this.description = """
             |Executes a hash function (default SHA256) against the signed modl file, and emits a json file to the build
-            | directory containing with the digest.""".trimMargin()
+            | directory containing the digest.""".trimMargin()
     }
 }
 

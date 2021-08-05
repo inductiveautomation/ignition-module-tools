@@ -15,20 +15,19 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Task which should apply to any subproject which provides dependencies to the module in the form of jar files.
- *
- * This task is auto-applied to any module projects/subprojects which have applied the `java` plugin.
+ * Task which applies to the root gradle project (aka, the project applying the plugin) and collects the assets
+ * created by one or more [CollectModlDependencies] tasks.
  */
-open class AssembleModuleAssets @javax.inject.Inject constructor(objects: ObjectFactory) : DefaultTask() {
+open class AssembleModuleStructure @javax.inject.Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     companion object {
-        const val ID = "assembleModuleAssets"
+        const val ID = "assembleModlStructure"
     }
 
     init {
         this.group = PLUGIN_TASK_GROUP
         this.description =
-            "Assembles module assets into the 'moduleContents' folder in the module project's build directory."
+            "Assembles module assets into the 'moduleContent' folder in the module project's build directory."
     }
 
     /**

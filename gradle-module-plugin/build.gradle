@@ -22,7 +22,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.1.0-SNAPSHOT-12"
+version = "0.1.0-SNAPSHOT-15"
 
 dependencies {
     // Align versions of all Kotlin components
@@ -140,6 +140,6 @@ spotless {
     }
 }
 wrapper {
-    gradleVersion "7.0"
+    gradleVersion "7.1.1"
     distributionType org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 }

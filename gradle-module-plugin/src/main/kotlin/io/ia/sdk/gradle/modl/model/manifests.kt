@@ -3,9 +3,17 @@ package io.ia.sdk.gradle.modl.model
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import java.io.File
 import java.io.Serializable
 
-data class Artifact(val group: String, val name: String, val version: String, val fileName: String) : Serializable
+data class FileArtifact(val id: String, val jarFile: File)
+
+data class Artifact(val id: String, val jarName: String) : Serializable {
+    constructor(fileArtifact: FileArtifact) : this(
+        fileArtifact.id,
+        fileArtifact.jarFile.name
+    )
+}
 
 data class ArtifactManifest(
     val projectPath: String,
@@ -17,12 +25,12 @@ data class ArtifactManifest(
 val MOSHI: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
 fun artifactManifestFromJson(json: String): ArtifactManifest {
-    val adapter = MOSHI.adapter(ArtifactManifest::class.java)
+    val adapter = MOSHI.adapter(ArtifactManifest::class.java).indent("    ")
     return adapter.fromJson(json) as ArtifactManifest
 }
 
 fun ArtifactManifest.toJson(): String {
-    val adapter = MOSHI.adapter(ArtifactManifest::class.java)
+    val adapter = MOSHI.adapter(ArtifactManifest::class.java).indent("    ")
     return adapter.toJson(this)
 }
 
@@ -59,7 +67,12 @@ data class AssemblyManifest(
     val metaInfo: Map<String, String>
 )
 
+val adapter = MOSHI.adapter(AssemblyManifest::class.java).indent("    ")
+
 fun AssemblyManifest.toJson(): String {
-    val adapter = MOSHI.adapter(AssemblyManifest::class.java)
     return adapter.toJson(this)
+}
+
+fun assemblyManifestFromJson(json: String): AssemblyManifest {
+    return adapter.fromJson(json) as AssemblyManifest
 }

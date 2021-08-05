@@ -5,7 +5,7 @@ import io.ia.sdk.gradle.modl.api.Constants.MODULE_API_CONFIGURATION
 import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_CONFIGURATION
 import io.ia.sdk.gradle.modl.extension.EXTENSION_NAME
 import io.ia.sdk.gradle.modl.extension.ModuleSettings
-import io.ia.sdk.gradle.modl.task.AssembleModuleAssets
+import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
 import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
 import io.ia.sdk.gradle.modl.task.ModuleBuildReport
@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.jvm.tasks.Jar
 
 /**
  * Group used by all tasks so they show up in the appropriate category when 'gradle tasks' is executed
@@ -61,7 +62,9 @@ class IgnitionModlPlugin : Plugin<Project> {
         val settings = project.extensions.create(
             EXTENSION_NAME,
             ModuleSettings::class.java
-        )
+        ).apply {
+            this.moduleVersion.convention(project.version.toString())
+        }
 
         project.afterEvaluate {
             if (settings.applyInductiveArtifactRepo.get()) {
@@ -134,8 +137,8 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // task that gathers dependencies and assets into a folder that will ultimately become the .modl contents
         val assembleModuleStructure = root.tasks.register(
-            AssembleModuleAssets.ID,
-            AssembleModuleAssets::class.java
+            AssembleModuleStructure.ID,
+            AssembleModuleStructure::class.java
         ) {
             it.moduleContentDir.set(root.layout.buildDirectory.dir("moduleContent"))
             it.license.set(settings.license)
@@ -211,30 +214,25 @@ class IgnitionModlPlugin : Plugin<Project> {
             p.logger.info("Evaluating `rootProject.allprojects` including ${p.path}")
             if (!p.hasOptedOutOfModule()) {
                 // when a project has a task of the given name, apply appropriate task dependencies
-                p.tasks.whenTaskAdded { t ->
-                    when (t.name) {
-                        CollectModlDependencies.ID -> {
-                            p.logger.info(
-                                "Binding module aggregation tasks for '${root.path}:" +
-                                    "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
-                            )
-                            val gatherArtifacts: CollectModlDependencies = t as CollectModlDependencies
+                p.tasks.withType(CollectModlDependencies::class.java) { t ->
+                    p.logger.info(
+                        "Binding module aggregation tasks for '${root.path}:" +
+                            "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
+                    )
 
-                            // bind artifact collection task output to xml writing task input
-                            writeModuleXml.configure {
-                                it.artifactManifests.add(gatherArtifacts.manifestFile)
-                            }
+                    // bind artifact collection task output to xml writing task input
+                    writeModuleXml.configure {
+                        it.artifactManifests.add(t.manifestFile)
+                    }
 
-                            // bind artifact manifests to the build report for inclusion
-                            buildReport.configure {
-                                it.childManifests.put(p.path, gatherArtifacts.manifestFile)
-                            }
+                    // bind artifact manifests to the build report for inclusion
+                    buildReport.configure {
+                        it.childManifests.put(p.path, t.manifestFile)
+                    }
 
-                            // bind artifact collection dir to the module content collection task input
-                            assembleModuleStructure.configure {
-                                it.moduleArtifactDirs.add(gatherArtifacts.artifactOutputDir)
-                            }
-                        }
+                    // bind artifact collection dir to the module content collection task input
+                    assembleModuleStructure.configure {
+                        it.moduleArtifactDirs.add(t.artifactOutputDir)
                     }
                 }
             }
@@ -242,9 +240,7 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)
         setupDependencyTasks(root, settings)
-
-        rootAssemble?.dependsOn(sign)
-        rootBuild?.dependsOn(buildReport)
+        rootAssemble?.dependsOn(buildReport)
     }
 
     /**
@@ -286,6 +282,12 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         p.logger.info("Setting up Java tasks on ${p.path}")
 
+        p.tasks.named("jar") {
+            if (it is Jar) {
+                it.archiveFileName.convention("${p.name}-${settings.moduleVersion.get()}.jar")
+            }
+        }
+
         val assemble = p.tasks.findByName("assemble")
 
         val collectModlDependencies: TaskProvider<CollectModlDependencies> = p.tasks.register(
@@ -301,7 +303,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         val tasks = listOf(collectModlDependencies)
         assemble?.dependsOn(tasks)
 
-        rootModuleProject.tasks.findByName(AssembleModuleAssets.ID)?.dependsOn(collectModlDependencies)
+        rootModuleProject.tasks.findByName(AssembleModuleStructure.ID)?.dependsOn(collectModlDependencies)
 
         return tasks
     }

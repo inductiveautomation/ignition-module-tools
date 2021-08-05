@@ -4,11 +4,14 @@ import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.api.Constants.ARTIFACT_DIR
 import io.ia.sdk.gradle.modl.model.Artifact
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
+import io.ia.sdk.gradle.modl.model.FileArtifact
 import io.ia.sdk.gradle.modl.model.IgnitionScope
 import io.ia.sdk.gradle.modl.model.toJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
@@ -19,6 +22,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.FileNotFoundException
 import javax.inject.Inject
 
 /**
@@ -28,7 +32,7 @@ import javax.inject.Inject
  * This task should be registered to each project associated with the module, if that project applies the java gradle
  * plugin (e.g. - if it produces jar artifacts)
  */
-open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
     companion object {
         const val ID = "collectModlDependencies"
         const val JSON_FILENAME = "artifacts.json"
@@ -43,7 +47,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
     |  module structure""".trimMargin()
     }
 
-    @Input
+    @get:Input
     val projectScopes: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 
     @get:Input
@@ -59,7 +63,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
         }
     }
 
-    @Input
+    @get:Input
     val moduleVersion: Property<String> = objects.property(String::class.java)
 
     @InputFiles
@@ -72,50 +76,62 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
         return project.configurations.getByName("modlImplementation")
     }
 
-    @OutputDirectory
-    val artifactOutputDir: DirectoryProperty = objects.directoryProperty()
-
-    init {
-        artifactOutputDir.set(project.file("${project.buildDir}/$ARTIFACT_DIR"))
-    }
+    @get:OutputDirectory
+    val artifactOutputDir: DirectoryProperty = objects.directoryProperty().convention(
+        layout.buildDirectory.dir(ARTIFACT_DIR)
+    )
 
     @get:OutputFile
     val manifestFile: Provider<RegularFile> =
-        project.layout.buildDirectory.file("$ARTIFACT_DIR/$JSON_FILENAME")
-
-    @get:Input
-    val versionedJarName: String by lazy {
-        "${project.name}-${moduleVersion.get()}.jar"
-    }
-
-    private fun buildManifest(): ArtifactManifest {
-        val apiDeps = getModlApiDeps()
-        val implDeps = getModlImplementationDeps()
-        val deps = apiDeps.dependencies + implDeps.dependencies
-        val mainArtifact = Artifact(project.group.toString(), project.name, moduleVersion.get(), versionedJarName)
-        val artifacts = deps.map {
-            Artifact(it.group.toString(), it.name, it.version.toString(), "${it.name}-${it.version}.jar")
-        } + mainArtifact
-
-        return ArtifactManifest(project.path, project.name, ignitionScope.code, artifacts)
-    }
-
-    private fun copyArtifacts() {
-        project.logger.info("Copying ${project.path} artifacts to ${artifactOutputDir.get()}")
-        project.copy { copySpec ->
-            copySpec.from(project.tasks.getByName("jar").outputs.files.toList())
-            copySpec.from(getModlApiDeps())
-            copySpec.from(getModlImplementationDeps())
-            copySpec.into(artifactOutputDir.get())
-            copySpec.rename("${project.name}\\.jar", versionedJarName)
-        }
-    }
+        layout.buildDirectory.file("$ARTIFACT_DIR/$JSON_FILENAME")
 
     @TaskAction
     fun execute() {
-        val manifestContent = buildManifest().toJson()
+        val fileArtifacts = deriveArtifacts()
+        copyArtifacts(fileArtifacts)
+
+        // named artifacts are used in the xml, and we desire a versioned jar for the main output
+        val namedArtifacts = fileArtifacts.map {
+            Artifact(it)
+        }
+        val manifest = ArtifactManifest(project.path, project.name, ignitionScope.code, namedArtifacts)
+        val manifestContent = manifest.toJson()
         val manifestFile = manifestFile.get().asFile
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
-        copyArtifacts()
+    }
+
+    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> {
+        return config.incoming.artifactView {}
+            .artifacts
+            .artifacts
+            .filterIsInstance<ResolvedArtifactResult>()
+            .map {
+                val file = it.file
+                val id = it.id
+                FileArtifact(id.displayName, file)
+            }
+    }
+
+    /**
+     * Builds a list of FileArtifacts, including the main output of the jar task for this project.  The files
+     * in this list are those being staged for inclusion in the module.
+     */
+    private fun deriveArtifacts(): List<FileArtifact> {
+        val mainJar = project.tasks.getByName("jar").outputs.files.toList().first()
+        if (!mainJar.exists()) throw FileNotFoundException("Could not identify jar task output file $mainJar")
+
+        val mainArtifact = FileArtifact("${project.group}:${project.name}:${moduleVersion.get()}", mainJar)
+        val apiDeps = buildArtifactsFromArtifactView(getModlApiDeps())
+        val implDeps = buildArtifactsFromArtifactView(getModlImplementationDeps())
+
+        return apiDeps + implDeps + mainArtifact
+    }
+
+    private fun copyArtifacts(artifacts: List<FileArtifact>) {
+        project.logger.info("Copying ${project.path} artifacts to ${artifactOutputDir.get()}")
+        project.copy { copySpec ->
+            copySpec.from(artifacts.map { it.jarFile })
+            copySpec.into(artifactOutputDir.get())
+        }
     }
 }

@@ -1,5 +1,6 @@
 package io.ia.sdk.gradle.modl.task
 
+import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.AssemblyManifest
 import io.ia.sdk.gradle.modl.model.ChecksumResult
@@ -25,17 +26,28 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
-open class ModuleBuildReport @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
+open class ModuleBuildReport @Inject constructor(
+    objects: ObjectFactory,
+    layout: ProjectLayout
+) : DefaultTask() {
 
     companion object {
         const val ID = "modlReport"
+        const val DEFAULT_REPORT_NAME = "buildResult.json"
     }
+
+    /**
+     * The name of the json file that contains build information about the module that was assembled.
+     */
+    @get:Input
+    val reportFileName: Property<String> = objects.property(String::class.java).convention(DEFAULT_REPORT_NAME)
+
     /**
      * The report file that will be created by the task.
      */
     @get:OutputFile
     val report: RegularFileProperty = objects.fileProperty().convention(
-        layout.buildDirectory.file("buildResult.json")
+        layout.buildDirectory.file(reportFileName)
     )
 
     /**
@@ -106,6 +118,11 @@ open class ModuleBuildReport @Inject constructor(objects: ObjectFactory, layout:
     @get:Input
     val childManifestJson: Provider<Map<String, ArtifactManifest>> = childManifests.map { children ->
         children.mapValues { artifactManifestFromJson(it.value.asFile.readText()) }
+    }
+
+    init {
+        group = PLUGIN_TASK_GROUP
+        description = "Generates a json file in the root build directory containing module and build metadata."
     }
 
     @TaskAction
