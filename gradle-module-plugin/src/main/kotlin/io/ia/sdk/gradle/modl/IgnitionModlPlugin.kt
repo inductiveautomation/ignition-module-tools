@@ -5,7 +5,7 @@ import io.ia.sdk.gradle.modl.api.Constants.MODULE_API_CONFIGURATION
 import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_CONFIGURATION
 import io.ia.sdk.gradle.modl.extension.EXTENSION_NAME
 import io.ia.sdk.gradle.modl.extension.ModuleSettings
-import io.ia.sdk.gradle.modl.task.AssembleModuleAssets
+import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
 import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
 import io.ia.sdk.gradle.modl.task.ModuleBuildReport
@@ -137,8 +137,8 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // task that gathers dependencies and assets into a folder that will ultimately become the .modl contents
         val assembleModuleStructure = root.tasks.register(
-            AssembleModuleAssets.ID,
-            AssembleModuleAssets::class.java
+            AssembleModuleStructure.ID,
+            AssembleModuleStructure::class.java
         ) {
             it.moduleContentDir.set(root.layout.buildDirectory.dir("moduleContent"))
             it.license.set(settings.license)
@@ -240,8 +240,7 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)
         setupDependencyTasks(root, settings)
-        rootAssemble?.dependsOn(sign)
-        rootBuild?.dependsOn(buildReport)
+        rootAssemble?.dependsOn(buildReport)
     }
 
     /**
@@ -304,7 +303,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         val tasks = listOf(collectModlDependencies)
         assemble?.dependsOn(tasks)
 
-        rootModuleProject.tasks.findByName(AssembleModuleAssets.ID)?.dependsOn(collectModlDependencies)
+        rootModuleProject.tasks.findByName(AssembleModuleStructure.ID)?.dependsOn(collectModlDependencies)
 
         return tasks
     }

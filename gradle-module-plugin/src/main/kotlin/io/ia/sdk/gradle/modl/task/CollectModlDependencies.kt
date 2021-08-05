@@ -11,6 +11,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
@@ -31,7 +32,7 @@ import javax.inject.Inject
  * This task should be registered to each project associated with the module, if that project applies the java gradle
  * plugin (e.g. - if it produces jar artifacts)
  */
-open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
     companion object {
         const val ID = "collectModlDependencies"
         const val JSON_FILENAME = "artifacts.json"
@@ -46,7 +47,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
     |  module structure""".trimMargin()
     }
 
-    @Input
+    @get:Input
     val projectScopes: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 
     @get:Input
@@ -62,7 +63,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
         }
     }
 
-    @Input
+    @get:Input
     val moduleVersion: Property<String> = objects.property(String::class.java)
 
     @InputFiles
@@ -75,16 +76,14 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory) :
         return project.configurations.getByName("modlImplementation")
     }
 
-    @OutputDirectory
-    val artifactOutputDir: DirectoryProperty = objects.directoryProperty()
-
-    init {
-        artifactOutputDir.set(project.file("${project.buildDir}/$ARTIFACT_DIR"))
-    }
+    @get:OutputDirectory
+    val artifactOutputDir: DirectoryProperty = objects.directoryProperty().convention(
+        layout.buildDirectory.dir(ARTIFACT_DIR)
+    )
 
     @get:OutputFile
     val manifestFile: Provider<RegularFile> =
-        project.layout.buildDirectory.file("$ARTIFACT_DIR/$JSON_FILENAME")
+        layout.buildDirectory.file("$ARTIFACT_DIR/$JSON_FILENAME")
 
     @TaskAction
     fun execute() {

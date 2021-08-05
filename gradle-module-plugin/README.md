@@ -112,9 +112,39 @@ ignitionModule {
 
  # Tasks
  
- To see the tasks available, run the `tasks` gradle command, or `tasks --all` to see all possible tasks..  
+ > To see all tasks provided by the plugin, run the `tasks` gradle command, or `tasks --all` to see all possible tasks.
+
+
+The module plugin exposes a number of tasks that may be run on their own, and some which are bound to lifecycle tasks
+provided by Gradle's [Base Plugin](https://docs.gradle.org/current/userguide/base_plugin.html).  Some tasks apply
+only to the root project (the project which is applying the plugin), while others are applied to one or more 
+subprojects.  The following table is a brief reference:
+
+
+| Task  | Scope  | Description | 
+|-------|--------|-------------------------|
+| collectModlDependencies  | root and child projects  | Resolves and collects dependencies from projects with the `java-library` plugin that marked with 'modlApi/modlImplementation' configuration |
+| assembleModlStructure | aggregates assets, dependencies and assembled project jars created by the 'collectModlDependencies' task into the module staging directory |
+| writeModuleXml  | root project  | Writes the module.xml file to the staging directory  |
+| zipModule  | root project | Compresses the staged module contents into an unsigned zip archive with a .modl file extension  |
+| checksumModl  | root project  | Generates a checksum for the signed module, and writes the result to a json file  |
+| moduleAssemblyReport  | root project | Writes a json file containing meta information about the module's assembly  |
+| signModl | root project | signs the unsigned modl using credentials/certs noted above
+
+
+# How it Works
+
+This plugin is applied to a single project (the 'root' of the module) that may or may not have child projects.
+When the plugin is applied, it will attempt to identify if the root or any subprojects apply the `java-library`
+plugin. For each that does, it will add the _modlApi_ and _modlImplementation_ configurations, so that they may be used
+in the project's dependency settings. In addition, it will create the asset collection tasks and bind them to the _
+assemble_ lifecycle tasks, and ultimately establish task dependencies for the 'root-specific' tasks that create the
+module xml, copy files into the appropriate structure, zip the folder into an unsigned modl file, sign it, and report
+the result.
+
 
 # Pre-Release API Changes
 
 * v0.1.0-SNAPSHOT-6 - changed how credentials and files are specified for signing and publication.  The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
 * v0.1.0-SNAPSHOT-12 - added checksum generation and build report tasks.  Split repo into separate builds using gradle build composition to better isolate changes.  
+* v0.1.0-SNAPSHOT-15 - fixed dependency collection, renamed 'AssembleModuleAssets' task class and associated task
