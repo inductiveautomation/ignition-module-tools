@@ -9,5 +9,5 @@ fun signedModuleName(humanModuleName: String): String {
 }
 
 fun nameToDirName(moduleName: String): String {
-    return moduleName.split(" ").joinToString("-") { it.toLowerCase() }
+    return moduleName.split(" ").joinToString("-") { it.lowercase() }
 }

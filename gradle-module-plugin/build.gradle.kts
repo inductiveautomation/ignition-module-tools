@@ -34,7 +34,6 @@ sourceSets {
     }
 }
 
-
 // Add a task to run the functional tests
 val functionalTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["functionalTest"].output
