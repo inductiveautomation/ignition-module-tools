@@ -1,0 +1,23 @@
+[versions]
+kotlin = "1.5.21"
+picoCli = "4.6.1"
+slf4j = "1.7.30"
+
+[libraries]
+# Dependencies referencable in buildscripts.  Note that dashes are replaced by periods in the buildscript reference.
+commonsCli = { module = "commons-cli:commons-cli", version = "1.4" }
+kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinTestJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+picoCli = { module = "info.picocli:picocli", version.ref = "picoCli"}
+picoCliCodegen = { module = "info.picocli:picocli-codegen", version.ref = "picoCli"}
+slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4jSimple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+
+
+[bundles]
+kotlinTest = ["kotlinTest", "kotlinTestJunit"]
+#slf4j
+#junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
+#poi = ["apache-poi-core", "apache-poi-ooxml", "apache-poiooxml-schemas"]
+#xalans = ["xalan", "xalan-serializer"]
+#xml-api = ["xml-apis", "xml-apis-ext"]
