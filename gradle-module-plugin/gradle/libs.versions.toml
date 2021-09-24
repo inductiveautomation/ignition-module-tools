@@ -1,0 +1,17 @@
+[versions]
+kotlin = "1.5.21"
+moshi = "1.9.3"
+
+[libraries]
+# Dependencies referencable in buildscripts.  Note that dashes are replaced by periods in the buildscript reference.
+guava = { module = "com.google.guava:guava", version = "30.1.1-jre" }
+kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinTestJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlinXmlBuilder = { module = "org.redundent:kotlin-xml-builder", version = "1.7.2" }
+moshi = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
+moshiCodegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
+moduleSigner = { module = "com.inductiveautomation.ignitionsdk:module-signer", version = "0.0.1.ia" }
+
+[bundles]
+kotlinTest = ["kotlinTest", "kotlinTestJunit"]
+

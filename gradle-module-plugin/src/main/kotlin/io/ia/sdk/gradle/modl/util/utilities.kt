@@ -9,3 +9,7 @@ fun Project.hasOptedOutOfModule(): Boolean {
 
     return propertyValue == "true"
 }
+
+fun String.capitalize(): String {
+    return this.replaceFirstChar { it.uppercase() }
+}

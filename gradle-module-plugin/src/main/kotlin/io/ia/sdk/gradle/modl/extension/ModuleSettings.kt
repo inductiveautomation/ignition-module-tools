@@ -2,6 +2,7 @@ package io.ia.sdk.gradle.modl.extension
 
 import io.ia.sdk.gradle.modl.task.HashAlgorithm
 import io.ia.sdk.gradle.modl.task.ZipModule
+import io.ia.sdk.gradle.modl.util.capitalize
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -158,8 +159,8 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
         requiredFrameworkVersion.convention("8")
         fileName.convention(
             name.map {
-                it.split(" ").joinToString(separator = "-", postfix = ".") {
-                    it.capitalize()
+                it.split(" ").joinToString(separator = "-", postfix = ".") { s ->
+                    s.capitalize()
                 } + ZipModule.UNSIGNED_EXTENSION
             }
         )

@@ -75,7 +75,7 @@ open class BaseTest {
     }
 
     fun moduleDirName(moduleName: String): String {
-        return moduleName.replace(" ", "-").toLowerCase()
+        return moduleName.replace(" ", "-").lowercase()
     }
 
     // returns the path to the 'signing.properties' file
