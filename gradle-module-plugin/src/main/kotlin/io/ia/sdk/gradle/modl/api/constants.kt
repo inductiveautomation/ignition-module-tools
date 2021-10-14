@@ -18,11 +18,12 @@ object Constants {
     @JvmStatic
     val MODULE_BUILD_WORKDIR = "$LOCAL_PROJECT_WORKDIR/modl"
 
+    /**
+     * The name of the dependency [org.gradle.api.artifacts.Configuration] that is used to 'mark' dependencies for
+     * collection into a final modl file, with module.xml jar elements added as appropriate.
+     */
     @JvmStatic
-    val MODULE_API_CONFIGURATION = "modlApi"
-
-    @JvmStatic
-    val MODULE_IMPLEMENTATION_CONFIGURATION = "modlImplementation"
+    val MODULE_DEPENDENCY_CONFIGURATION = "modlDependency"
 
     /**
      * Flag checked when setting up the plugin's artifact repository sources.  By default, the plugin adds the Inductive

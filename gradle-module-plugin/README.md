@@ -28,15 +28,12 @@ The easiest way to get started with this plugin is to create a new module projec
    | keystorePassword  | gradlew signModule --keystorePassword=mysecret  | ignition.signing.keystoreFile=mysecret  |
 
 
-4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).
+4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Dependencies that are applied with the `modlDependency` _Configuration_ in any subproject of your module will be collected and included in the final modl file. Transitive dependencies of `modlDependency` artifacts will also be included, unless specifically excluded using the traditional gradle dependency exclusions.  We suggest reviewing the contents of your modl file to ensure no 'test only' or 'ignition platform' dependencies are included in your module. Gradle's built-in _dependencies_ task can be used to help identify how/why any undesired dependencies are being included (or desired ones missed) in your projects. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java` [plugin documentation](https://docs.gradle.org/current/userguide/java_plugin.html#java_plugin). The `java-library` plugin may also be used, but the modl plugin does not result in any additional/altered behavior. 
 
-
-Choosing which [Configuration](https://docs.gradle.org/current/userguide/declaring_dependencies.html) to apply may have important but subtle impacts on your module, as well as your development environment.  Also keep in mind the effect of _project_ dependency configurations.  
 
 > Maven Users: If you're familiar with Maven's dependency scopes, you might initially find Gradle's handling of dependencies to be unnecessarily convoluted.  This is a product of Gradle's powerful (but more complex) dependency management.  We suggest reading the gradle docs on [Working With Dependencies](https://docs.gradle.org/current/userguide/core_dependency_management.html), followed by reading the [Java Library Plugin](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) documentation.  
 
 
-However, all other implications apply as documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should not be marked with these `modl` configurations.
 
 
 ### `ignitionModule` DSL Properties
@@ -121,7 +118,7 @@ subprojects.  The following table is a brief reference:
 
 | Task  | Scope  | Description | 
 |-------|--------|-------------------------|
-| collectModlDependencies  | root and child projects  | Resolves and collects dependencies from projects with the `java-library` plugin that marked with 'modlApi/modlImplementation' configuration |
+| collectModlDependencies  | root and child projects  | Resolves and collects dependencies from projects with the `java` plugin (including those which apply it, such as the `java-library` plugin) if declared with the 'modlDependency' configuration |
 | assembleModlStructure | aggregates assets, dependencies and assembled project jars created by the 'collectModlDependencies' task into the module staging directory |
 | writeModuleXml  | root project  | Writes the module.xml file to the staging directory  |
 | zipModule  | root project | Compresses the staged module contents into an unsigned zip archive with a .modl file extension  |
@@ -133,10 +130,11 @@ subprojects.  The following table is a brief reference:
 # How it Works
 
 This plugin is applied to a single project (the 'root' of the module) that may or may not have child projects.
-When the plugin is applied, it will attempt to identify if the root or any subprojects apply the `java-library`
-plugin. For each that does, it will add the _modlApi_ and _modlImplementation_ configurations, so that they may be used
-in the project's dependency settings. In addition, it will create the asset collection tasks and bind them to the _
-assemble_ lifecycle tasks, and ultimately establish task dependencies for the 'root-specific' tasks that create the
+When the plugin is applied, it will attempt to identify if the root or any subprojects apply the `java`
+plugin. For each that does, it will add the _modlDependency_ configurations, so that it may be used
+in the project's dependency settings. These special dependencies (and _their_ transitive dependencies) will be resolved 
+and collected into the final modl file that is generated. It will create the asset collection tasks and bind them to the
+ _assemble_ lifecycle tasks, and ultimately establish task dependencies for the 'root-specific' tasks that create the
 module xml, copy files into the appropriate structure, zip the folder into an unsigned modl file, sign it, and report
 the result.
 
@@ -146,3 +144,5 @@ the result.
 * v0.1.0-SNAPSHOT-6 - changed how credentials and files are specified for signing and publication.  The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
 * v0.1.0-SNAPSHOT-12 - added checksum generation and build report tasks.  Split repo into separate builds using gradle build composition to better isolate changes.  
 * v0.1.0-SNAPSHOT-15 - fixed dependency collection, renamed 'AssembleModuleAssets' task class and associated task
+* v0.1.0-SNAPSHOT-16 - changed modlImplementation configuration to not resolve transitive dependencies
+* v0.1.0-SNAPSHOT-17 - modlImplementation and modlApi configurations have been replaced with a single `modlDependency` configuration to simplify dependency marking and avoid confusing differences between compile-time and modl runtime environments, 

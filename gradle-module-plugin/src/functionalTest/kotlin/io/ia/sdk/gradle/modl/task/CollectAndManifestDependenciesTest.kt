@@ -18,10 +18,10 @@ class CollectAndManifestDependenciesTest : BaseTest() {
     }
 
     @Test
-    fun `client scoped modlApi artifacts collected successfully`() {
+    fun `client scoped modlDependency artifacts collected successfully`() {
         val projectDir = tempFolder.newFolder("clientScopedArtifacts").toPath()
         val name = "Client Artifact"
-        val dependencyEntry = "modlApi('org.jfree:org.jfree.svg:4.1')"
+        val dependencyEntry = "modlDependency('org.jfree:org.jfree.svg:4.1')"
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
 
         val config = GeneratorConfigBuilder()
@@ -58,11 +58,12 @@ class CollectAndManifestDependenciesTest : BaseTest() {
     }
 
     @Test
-    fun `client scoped modlImplementation artifacts collected successfully`() {
+    fun `client scoped modlDependency dependencies result in proper scope entry in manifest`() {
         val projectDir = tempFolder.newFolder("clientScopedArtifacts").toPath()
+
         val name = "Client Artifacts"
 
-        val dependencyEntry = "modlImplementation('org.jfree:org.jfree.svg:4.1')"
+        val dependencyEntry = "modlDependency('org.jfree:org.jfree.svg:4.1')"
         val customizers = mapOf(CLIENT_DEP to dependencyEntry)
 
         val config = GeneratorConfigBuilder()
@@ -98,52 +99,11 @@ class CollectAndManifestDependenciesTest : BaseTest() {
     }
 
     @Test
-    fun `client scoped modlImplementation dependencies result in proper scope entry in manifest`() {
-        val projectDir = tempFolder.newFolder("clientScopedArtifacts").toPath()
-
-        val name = "Client Artifacts"
-
-        val dependencyEntry = "modlImplementation('org.jfree:org.jfree.svg:4.1')"
-        val customizers = mapOf(CLIENT_DEP to dependencyEntry)
-
-        val config = GeneratorConfigBuilder()
-            .moduleName(name)
-            .scopes("C")
-            .packageName("check.my.signage")
-            .parentDir(projectDir)
-            .customReplacements(customizers)
-            .useRootForSingleScopeProject(false)
-            .build()
-
-        val project = ModuleGenerator.generate(config)
-
-        runTask(project.toFile(), "collectModlDependencies")
-        val clientSubproject = project.resolve("client")
-        val clientArtifacts = clientSubproject.resolve("build/artifacts")
-
-        assertTrue(clientArtifacts.toFile().exists() && clientArtifacts.toFile().isDirectory, "is dir and present")
-
-        val manifestPath = clientArtifacts.resolve(CollectModlDependencies.JSON_FILENAME)
-        assertTrue(manifestPath.toFile().exists(), "manifest exists")
-
-        val manifest: ArtifactManifest = artifactManifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
-
-        assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
-        assertNotNull(manifest.artifacts.find { it.jarName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")
-        assertNotNull(manifest.artifacts.find { it.jarName == "client-0.0.1-SNAPSHOT.jar" }, "client artifact exists")
-
-        val dirContents = clientArtifacts.toFile().listFiles()
-        assertTrue(dirContents?.size == 3, "correct number of files in artifacts dir")
-        val jars = dirContents?.filter { it.extension == "jar" }
-        assertTrue(jars?.size == 2, "correct amount of jars in artifacts dir")
-    }
-
-    @Test
-    fun `multi scoped modlApi artifacts collected successfully with transitives`() {
-        val projectDir = tempFolder.newFolder("multiModlApiArtifacts").toPath()
+    fun `multi scoped modlDependency artifacts collected successfully with transitives`() {
+        val projectDir = tempFolder.newFolder("multimodlDependencyArtifacts").toPath()
         val name = "Multiscope Artifact"
-        val jfreeLib = "modlApi('org.jfree:org.jfree.svg:4.1')"
-        val milo = "modlApi('org.eclipse.milo:sdk-server:0.6.1')"
+        val jfreeLib = "modlDependency('org.jfree:org.jfree.svg:4.1')"
+        val milo = "modlDependency('org.eclipse.milo:sdk-server:0.6.1')"
         val customizers = mapOf(
             CLIENT_DEP to jfreeLib,
             GW_DEP to milo
@@ -215,11 +175,13 @@ class CollectAndManifestDependenciesTest : BaseTest() {
     }
 
     @Test
-    fun `multi scoped modlImplementation artifacts collected successfully without transitives found`() {
+    fun `multi scoped modlDependency artifacts collected successfully with excludes correctly excluded`() {
         val projectDir = tempFolder.newFolder("multiModlImplArtifacts").toPath()
         val name = "Multiscope Impl Artifacts"
-        val jfreeLib = "modlApi('org.jfree:org.jfree.svg:4.1')"
-        val milo = "modlImplementation('org.eclipse.milo:sdk-server:0.6.1')"
+        val jfreeLib = "modlDependency('org.jfree:org.jfree.svg:4.1')"
+        val excludedModule = "sdk-core"
+        val excludedJar = "$excludedModule-0.6.1.jar"
+        val milo = "modlDependency('org.eclipse.milo:sdk-server:0.6.1') { exclude(module: \"$excludedModule\") }"
         val customizers = mapOf(
             CLIENT_DEP to jfreeLib,
             GW_DEP to milo
@@ -248,6 +210,26 @@ class CollectAndManifestDependenciesTest : BaseTest() {
 
         val expectedMiloDependencies = listOf(
             "sdk-server-0.6.1.jar",
+            "bcpkix-jdk15on-1.61.jar",
+            "bcprov-jdk15on-1.61.jar",
+            "bsd-core-0.6.1.jar",
+            "bsd-generator-0.6.1.jar",
+            "guava-26.0-jre.jar",
+            "istack-commons-runtime-3.0.11.jar",
+            "jakarta.activation-1.2.2.jar",
+            "jakarta.xml.bind-api-2.3.3.jar",
+            "jaxb-runtime-2.3.3.jar",
+            "netty-buffer-4.1.54.Final.jar",
+            "netty-codec-4.1.54.Final.jar",
+            "netty-codec-http-4.1.54.Final.jar",
+            "netty-common-4.1.54.Final.jar",
+            "netty-handler-4.1.54.Final.jar",
+            "netty-resolver-4.1.54.Final.jar",
+            "netty-transport-4.1.54.Final.jar",
+            "slf4j-api-1.7.25.jar",
+            "stack-core-0.6.1.jar",
+            "stack-server-0.6.1.jar",
+            "txw2-2.3.3.jar",
         )
 
         expectedMiloDependencies.forEach {
@@ -255,27 +237,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         }
 
         val transitives = listOf(
-            "bcpkix-jdk15on-1.61.jar",
-            "bcprov-jdk15on-1.61.jar",
-            "bsd-core-0.6.1.jar",
-            "bsd-generator-0.6.1.jar",
-            "guava-26.0-jre.jar",
-            "istack-commons-runtime-3.0.11.jar",
-            "jakarta.activation-1.2.2.jar",
-            "jakarta.xml.bind-api-2.3.3.jar",
-            "jaxb-runtime-2.3.3.jar",
-            "netty-buffer-4.1.54.Final.jar",
-            "netty-codec-4.1.54.Final.jar",
-            "netty-codec-http-4.1.54.Final.jar",
-            "netty-common-4.1.54.Final.jar",
-            "netty-handler-4.1.54.Final.jar",
-            "netty-resolver-4.1.54.Final.jar",
-            "netty-transport-4.1.54.Final.jar",
-            "sdk-core-0.6.1.jar",
-            "slf4j-api-1.7.25.jar",
-            "stack-core-0.6.1.jar",
-            "stack-server-0.6.1.jar",
-            "txw2-2.3.3.jar",
+            excludedJar,
         )
 
         transitives.forEach {

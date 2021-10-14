@@ -1,8 +1,7 @@
 package io.ia.sdk.gradle.modl
 
 import io.ia.sdk.gradle.modl.api.Constants.APPLY_IA_REPOSITORY_FLAG
-import io.ia.sdk.gradle.modl.api.Constants.MODULE_API_CONFIGURATION
-import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_CONFIGURATION
+import io.ia.sdk.gradle.modl.api.Constants.MODULE_DEPENDENCY_CONFIGURATION
 import io.ia.sdk.gradle.modl.extension.EXTENSION_NAME
 import io.ia.sdk.gradle.modl.extension.ModuleSettings
 import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
@@ -19,7 +18,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
@@ -106,8 +104,8 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         // ignition modules are built using configurations from gradle's 'java-library' plugin to allow proper
         // transitive dependency management, so we look for that plugin to be applied
-        artifactContributor.plugins.withType(JavaLibraryPlugin::class.java) {
-            createConfigurations(artifactContributor)
+        artifactContributor.plugins.withType(JavaPlugin::class.java) {
+            createConfiguration(artifactContributor)
             createDependencyCollectionTasks(artifactContributor, this.appliedPluginProject, settings)
         }
 
@@ -242,33 +240,27 @@ class IgnitionModlPlugin : Plugin<Project> {
     }
 
     /**
-     * The plugin utilizes two custom Configurations in order to designate those dependencies the the project requires
-     * for the module to function correctly when loaded into the Ignition Platform.  These resolvable Configurations
-     * extend from the 'api' and 'implementation' configurations added by the _java-library-plugin_.   though it should
+     * The plugin utilizes two custom Configurations in order to designate those dependencies the project requires
+     * for the module to function correctly when loaded into the Ignition Platform.  The resolvable `modlDependency`
+     * Configuration is a consumable configuration whose artifact, as well as its transitive artifacts are extend from the 'api' and 'implementation' configurations added by the _java-library-plugin_.   though it should
      *
      * Currently, there is no functional difference in these configurations, but they are provided to follow best
      * practices in declaring dependencies.  While there are no current plans for Ignition to support Java modules or
      * restricted class visibility, such functionality could be supported in the future to make use of these different
      * configuration types.
      */
-    private fun createConfigurations(p: Project): List<Configuration> {
-        val apiConf: Configuration? = p.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
+    private fun createConfiguration(p: Project): Configuration {
         val implementationConf: Configuration? =
             p.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
-        val modlImplementation = p.configurations.create(MODULE_IMPLEMENTATION_CONFIGURATION) {
+        val modlDependency = p.configurations.create(MODULE_DEPENDENCY_CONFIGURATION) {
             it.isCanBeResolved = true
-            it.isTransitive = false
+            it.isTransitive = true
+            it.isCanBeConsumed = true
             implementationConf?.extendsFrom(it)
         }
 
-        val modlApi = p.configurations.create(MODULE_API_CONFIGURATION) {
-            it.isCanBeResolved = true
-            it.isTransitive = true
-            apiConf?.extendsFrom(it)
-        }
-
-        return listOf(modlImplementation, modlApi)
+        return modlDependency
     }
 
     /**

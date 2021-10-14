@@ -2,6 +2,7 @@ package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.api.Constants.ARTIFACT_DIR
+import io.ia.sdk.gradle.modl.api.Constants.MODULE_DEPENDENCY_CONFIGURATION
 import io.ia.sdk.gradle.modl.model.Artifact
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.FileArtifact
@@ -41,10 +42,9 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
     init {
         group = PLUGIN_TASK_GROUP
         description = """
-    |Collects modlApi and modlImplementation artifact (jar) dependencies into the ./build/artifacts of the local
-    |  gradle project (including the jar produce by the subproject). I addition, writes a json file containing 
-    |  meta-information about the dependencies.  This file is used by the 'root' project when assembling the final
-    |  module structure""".trimMargin()
+    |Collects modlDependency artifacts (jars)  into the ./build/artifacts of the local gradle project (including the 
+    |  jar produce by the subproject). I addition, writes a json file containing meta-information about the 
+    |  dependencies.  This file is used by the 'root' project when assembling the final module structure""".trimMargin()
     }
 
     @get:Input
@@ -67,13 +67,8 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
     val moduleVersion: Property<String> = objects.property(String::class.java)
 
     @InputFiles
-    fun getModlApiDeps(): Configuration {
-        return project.configurations.getByName("modlApi")
-    }
-
-    @InputFiles
-    fun getModlImplementationDeps(): Configuration {
-        return project.configurations.getByName("modlImplementation")
+    fun getModlDependencies(): Configuration {
+        return project.configurations.getByName(MODULE_DEPENDENCY_CONFIGURATION)
     }
 
     @get:OutputDirectory
@@ -124,10 +119,9 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         if (!mainJar.exists()) throw FileNotFoundException("Could not identify jar task output file $mainJar")
 
         val mainArtifact = FileArtifact("${project.group}:${project.name}:${moduleVersion.get()}", mainJar)
-        val apiDeps = buildArtifactsFromArtifactView(getModlApiDeps())
-        val implDeps = buildArtifactsFromArtifactView(getModlImplementationDeps())
+        val modlDeps = buildArtifactsFromArtifactView(getModlDependencies())
 
-        return apiDeps + implDeps + mainArtifact
+        return modlDeps + mainArtifact
     }
 
     private fun copyArtifacts(artifacts: List<FileArtifact>) {
