@@ -6,6 +6,7 @@ import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.junit.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -246,6 +247,14 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         val gwArtifacts = gwSubproject.resolve("build/artifacts")
 
         val expectedMiloDependencies = listOf(
+            "sdk-server-0.6.1.jar",
+        )
+
+        expectedMiloDependencies.forEach {
+            assertTrue(gwArtifacts.resolve(it).toFile().exists(), "Artifact $it should exist in artifacts dir.")
+        }
+
+        val transitives = listOf(
             "bcpkix-jdk15on-1.61.jar",
             "bcprov-jdk15on-1.61.jar",
             "bsd-core-0.6.1.jar",
@@ -263,15 +272,17 @@ class CollectAndManifestDependenciesTest : BaseTest() {
             "netty-resolver-4.1.54.Final.jar",
             "netty-transport-4.1.54.Final.jar",
             "sdk-core-0.6.1.jar",
-            "sdk-server-0.6.1.jar",
             "slf4j-api-1.7.25.jar",
             "stack-core-0.6.1.jar",
             "stack-server-0.6.1.jar",
             "txw2-2.3.3.jar",
         )
 
-        expectedMiloDependencies.forEach {
-            assertTrue(gwArtifacts.resolve(it).toFile().exists(), "Artifact $it should exist in artifacts dir.")
+        transitives.forEach {
+            assertFalse(
+                gwArtifacts.resolve(it).toFile().exists(),
+                "Transitive artifact $it should not have been collected."
+            )
         }
 
         val manifestPath = clientArtifacts.resolve(CollectModlDependencies.JSON_FILENAME)

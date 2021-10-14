@@ -7,7 +7,9 @@ ext {
     sdk_version = "8.0.10"
 }
 
-version = "0.0.1-SNAPSHOT"
+allprojects {
+    version = "0.0.1-SNAPSHOT"
+}
 
 ignitionModule {
     /*

@@ -28,8 +28,7 @@ The easiest way to get started with this plugin is to create a new module projec
    | keystorePassword  | gradlew signModule --keystorePassword=mysecret  | ignition.signing.keystoreFile=mysecret  |
 
 
-4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file.
-   Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).  See the Dependency Configuration section below for more info on configuring and managing dependencies.
+4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` dependencies as they will be provided by the Ignition platform at runtime.  Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).
 
 
 Choosing which [Configuration](https://docs.gradle.org/current/userguide/declaring_dependencies.html) to apply may have important but subtle impacts on your module, as well as your development environment.  Also keep in mind the effect of _project_ dependency configurations.  
@@ -38,7 +37,6 @@ Choosing which [Configuration](https://docs.gradle.org/current/userguide/declari
 
 
 However, all other implications apply as documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should not be marked with these `modl` configurations.
-
 
 
 ### `ignitionModule` DSL Properties

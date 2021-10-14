@@ -29,8 +29,8 @@ import javax.inject.Inject
  * Task which collects the artifacts produced by a single project, and moves them to the appropriate scoped folder
  * in the build/module/ directory.
  *
- * This task should be registered to each project associated with the module, if that project applies the java gradle
- * plugin (e.g. - if it produces jar artifacts)
+ * This task should be registered to each project associated with the module, if that project applies the java-library
+ * gradle plugin (e.g. - if it produces jar artifacts)
  */
 open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
     companion object {
@@ -109,6 +109,9 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
                 val file = it.file
                 val id = it.id
                 FileArtifact(id.displayName, file)
+            }.apply {
+                logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
+                this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
             }
     }
 
