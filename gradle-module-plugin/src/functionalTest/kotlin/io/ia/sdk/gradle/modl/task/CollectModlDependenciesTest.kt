@@ -6,11 +6,12 @@ import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.junit.Test
+import java.nio.file.Paths
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class CollectAndManifestDependenciesTest : BaseTest() {
+class CollectModlDependenciesTest : BaseTest() {
     companion object {
         const val PATH_KEY = "<FILEPATH>"
         const val PROP_FILE_PATH_FORMAT = "project.file(\"$PATH_KEY\")"
@@ -381,5 +382,36 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         assertTrue(dirContents?.size == 3, "correct number of files in artifacts dir")
         val jars = dirContents?.filter { it.extension == "jar" }
         assertTrue(jars?.size == 2, "correct amount of jars in artifacts dir")
+    }
+
+    @Test
+    fun `single dir G project emits correct jarfile`() {
+        val projectDir = tempFolder.newFolder("rootImplArtifacts").toPath()
+        val name = "Single Dir G Proj"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .scopes("G")
+            .packageName("check.my.signage")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(true)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+
+        runTask(project.toFile(), "collectModlDependencies")
+
+        val artifactsDir = project.resolve("build/artifacts")
+        val manifestPath = artifactsDir.resolve(CollectModlDependencies.JSON_FILENAME)
+        assertTrue(manifestPath.toFile().exists(), "manifest should exist")
+
+        val manifest: ArtifactManifest = artifactManifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
+
+        assertTrue(manifest.artifacts.size == 1, "should be one artifact found in manifest")
+        assertTrue(artifactsDir.toFile().listFiles().size == 2, "should have 2 files in artifact dir")
+        assertTrue(
+            artifactsDir.resolve("single-dir-g-proj-0.0.1-SNAPSHOT.jar").toFile().exists(),
+            "versioned jarfile should exist"
+        )
     }
 }

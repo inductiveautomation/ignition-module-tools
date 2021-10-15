@@ -100,8 +100,8 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
     }
 
-    private fun buildArtifactsFromArtifactView(config: Configuration, resolveAll: Boolean = false): List<FileArtifact> {
-        val arts = config.incoming.artifactView {}
+    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> {
+        return config.incoming.artifactView {}
             .artifacts
             .artifacts
             .filterIsInstance<ResolvedArtifactResult>()
@@ -113,8 +113,6 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
                 logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
                 this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
             }
-
-        return arts
     }
 
     /**
@@ -125,7 +123,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         val mainJar = project.tasks.getByName("jar").outputs.files.toList().first()
         if (!mainJar.exists()) throw FileNotFoundException("Could not identify jar task output file $mainJar")
 
-        val mainArtifact = FileArtifact("${project.group}:${project.name}:${moduleVersion.get()}", mainJar)
+        val mainArtifact = FileArtifact("${project.group}:${project.name}:${project.version}", mainJar)
         val apiDeps = buildArtifactsFromArtifactView(getModlApiDeps())
         val implDeps = buildArtifactsFromArtifactView(getModlImplementationDeps())
 
@@ -134,7 +132,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     private fun copyArtifacts(artifacts: List<FileArtifact>) {
         project.logger.info("Copying ${project.path} artifacts to ${artifactOutputDir.get()}")
-        project.copy { copySpec ->
+        project.sync { copySpec ->
             copySpec.from(artifacts.map { it.jarFile })
             copySpec.into(artifactOutputDir.get())
         }

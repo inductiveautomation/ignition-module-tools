@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.tasks.Jar
 
 /**
  * Group used by all tasks so they show up in the appropriate category when 'gradle tasks' is executed
@@ -63,8 +62,10 @@ class IgnitionModlPlugin : Plugin<Project> {
         val settings = project.extensions.create(
             EXTENSION_NAME,
             ModuleSettings::class.java
-        ).apply {
-            this.moduleVersion.convention(project.version.toString())
+        )
+
+        project.afterEvaluate {
+            settings.moduleVersion.convention(project.version.toString())
         }
 
         project.afterEvaluate {
@@ -260,10 +261,13 @@ class IgnitionModlPlugin : Plugin<Project> {
         val modlImplementation = p.configurations.create(MODULE_IMPLEMENTATION_CONFIGURATION) {
             it.isCanBeResolved = true
             it.isTransitive = false
+            it.isCanBeConsumed = true
             implementationConf?.extendsFrom(it)
         }
 
-        val modlImplementationElements = p.configurations.create(MODULE_IMPLEMENTATION_ELEMENTS) {
+        // The configuration that is used to resolve the runtime dependencies from modlImplementation. Used in the
+        // CollectAndManifestDependencies task in order to fully resolve transitives.
+        p.configurations.create(MODULE_IMPLEMENTATION_ELEMENTS) {
             it.isCanBeResolved = true
             it.isCanBeConsumed = false
             it.isTransitive = true
@@ -273,6 +277,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         val modlApi = p.configurations.create(MODULE_API_CONFIGURATION) {
             it.isCanBeResolved = true
             it.isTransitive = true
+            it.isCanBeConsumed = true
             apiConf?.extendsFrom(it)
         }
 
@@ -289,19 +294,6 @@ class IgnitionModlPlugin : Plugin<Project> {
     ): List<TaskProvider<out Task>> {
 
         p.logger.info("Setting up Java tasks on ${p.path}")
-
-        // version won't actually be readable on the root project until after the plugin has been applied, so we
-        // hold off trying to read it until after evaluation.
-        p.afterEvaluate {
-            p.tasks.named("jar") {
-                if (it is Jar) {
-                    if (p.version.toString() == "unspecified") {
-                        throw Exception("${p.path} had an undefined version. Define a version in its build script.")
-                    }
-                    it.archiveFileName.convention("${p.name}-${p.version}.jar")
-                }
-            }
-        }
 
         val assemble = p.tasks.findByName("assemble")
 
