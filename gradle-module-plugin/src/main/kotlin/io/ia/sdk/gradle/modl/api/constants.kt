@@ -25,6 +25,15 @@ object Constants {
     val MODULE_IMPLEMENTATION_CONFIGURATION = "modlImplementation"
 
     /**
+     * A transitive, resolvable configuration that extends the `modlImplementation` configuration for internal
+     * resolution and collection of `modlImplementation` dependencies, and their transitive dependencies.  This extra
+     * configuration layer allows for correct IDE/tooling visibibility of `implementation` dependencies, while also
+     * allowing for the collection of those dependencies for inclusion in to a module.
+     */
+    @JvmStatic
+    val MODULE_IMPLEMENTATION_ELEMENTS = "modlImplementationElements"
+
+    /**
      * Flag checked when setting up the plugin's artifact repository sources.  By default, the plugin adds the Inductive
      * Automation Maven artifact repositories to the project's configuration, allowing the ability to resolve Ignition
      * Java dependencies.  If this is undesirable, executing the build with this flag's value set to 'false' will skip

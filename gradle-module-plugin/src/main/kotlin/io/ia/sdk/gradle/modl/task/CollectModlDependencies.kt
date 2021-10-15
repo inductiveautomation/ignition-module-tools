@@ -73,7 +73,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     @InputFiles
     fun getModlImplementationDeps(): Configuration {
-        return project.configurations.getByName("modlImplementation")
+        return project.configurations.getByName("modlImplementationElements")
     }
 
     @get:OutputDirectory
@@ -100,8 +100,8 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
     }
 
-    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> {
-        return config.incoming.artifactView {}
+    private fun buildArtifactsFromArtifactView(config: Configuration, resolveAll: Boolean = false): List<FileArtifact> {
+        val arts = config.incoming.artifactView {}
             .artifacts
             .artifacts
             .filterIsInstance<ResolvedArtifactResult>()
@@ -113,6 +113,8 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
                 logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
                 this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
             }
+
+        return arts
     }
 
     /**

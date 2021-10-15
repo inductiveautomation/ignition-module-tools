@@ -3,6 +3,7 @@ package io.ia.sdk.gradle.modl
 import io.ia.sdk.gradle.modl.api.Constants.APPLY_IA_REPOSITORY_FLAG
 import io.ia.sdk.gradle.modl.api.Constants.MODULE_API_CONFIGURATION
 import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_CONFIGURATION
+import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_ELEMENTS
 import io.ia.sdk.gradle.modl.extension.EXTENSION_NAME
 import io.ia.sdk.gradle.modl.extension.ModuleSettings
 import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
@@ -260,6 +261,13 @@ class IgnitionModlPlugin : Plugin<Project> {
             it.isCanBeResolved = true
             it.isTransitive = false
             implementationConf?.extendsFrom(it)
+        }
+
+        val modlImplementationElements = p.configurations.create(MODULE_IMPLEMENTATION_ELEMENTS) {
+            it.isCanBeResolved = true
+            it.isCanBeConsumed = false
+            it.isTransitive = true
+            it.extendsFrom(modlImplementation)
         }
 
         val modlApi = p.configurations.create(MODULE_API_CONFIGURATION) {
