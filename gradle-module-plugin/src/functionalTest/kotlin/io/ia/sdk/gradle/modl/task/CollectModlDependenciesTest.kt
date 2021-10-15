@@ -6,10 +6,11 @@ import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.junit.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class CollectAndManifestDependenciesTest : BaseTest() {
+class CollectModlDependenciesTest : BaseTest() {
     companion object {
         const val PATH_KEY = "<FILEPATH>"
         const val PROP_FILE_PATH_FORMAT = "project.file(\"$PATH_KEY\")"
@@ -214,7 +215,7 @@ class CollectAndManifestDependenciesTest : BaseTest() {
     }
 
     @Test
-    fun `multi scoped modlImplementation artifacts collected successfully without transitives found`() {
+    fun `multi scoped modlImplementation artifacts and transitives correctly collected`() {
         val projectDir = tempFolder.newFolder("multiModlImplArtifacts").toPath()
         val name = "Multiscope Impl Artifacts"
         val jfreeLib = "modlApi('org.jfree:org.jfree.svg:4.1')"
@@ -287,5 +288,129 @@ class CollectAndManifestDependenciesTest : BaseTest() {
         assertTrue(dirContents?.size == 3, "correct number of files in artifacts dir")
         val jars = dirContents?.filter { it.extension == "jar" }
         assertTrue(jars?.size == 2, "correct amount of jars in artifacts dir")
+    }
+
+    @Test
+    fun `multi scoped modlImplementation artifacts correctly omit exclusions`() {
+        val projectDir = tempFolder.newFolder("multiModlImplArtifacts").toPath()
+        val name = "Multiscope Impl Artifacts"
+        val jfreeLib = "modlApi('org.jfree:org.jfree.svg:4.1')"
+        val milo = """
+            modlImplementation('org.eclipse.milo:sdk-server:0.6.1') {
+                exclude(module: "stack-core")
+            }
+            """
+        val customizers = mapOf(
+            CLIENT_DEP to jfreeLib,
+            GW_DEP to milo
+        )
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .scopes("CGD")
+            .packageName("check.my.signage")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(false)
+            .customReplacements(customizers)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+
+        runTask(project.toFile(), "collectModlDependencies")
+
+        val clientSubproject = project.resolve("client")
+        val clientArtifacts = clientSubproject.resolve("build/artifacts")
+
+        assertTrue(clientArtifacts.toFile().exists() && clientArtifacts.toFile().isDirectory, "is dir and present")
+
+        val gwSubproject = project.resolve("gateway")
+        val gwArtifacts = gwSubproject.resolve("build/artifacts")
+
+        val expectedMiloDependencies = listOf(
+            "bsd-core-0.6.1.jar",
+            "bsd-generator-0.6.1.jar",
+            "FastInfoset-1.2.16.jar",
+            "gateway-0.0.1-SNAPSHOT.jar",
+            "netty-buffer-4.1.54.Final.jar",
+            "netty-codec-4.1.54.Final.jar",
+            "netty-codec-http-4.1.54.Final.jar",
+            "netty-common-4.1.54.Final.jar",
+            "netty-handler-4.1.54.Final.jar",
+            "netty-resolver-4.1.54.Final.jar",
+            "netty-transport-4.1.54.Final.jar",
+            "sdk-core-0.6.1.jar",
+            "sdk-server-0.6.1.jar",
+            "stack-server-0.6.1.jar",
+        )
+
+        expectedMiloDependencies.forEach {
+            assertTrue(gwArtifacts.resolve(it).toFile().exists(), "Artifact $it should exist in artifacts dir.")
+        }
+
+        // exclusions include those we specify AND their transitives
+        val excluded = listOf(
+            "bcpkix-jdk15on-1.61.jar",
+            "bcprov-jdk15on-1.61.jar",
+            "guava-26.0-jre.jar",
+            "istack-commons-runtime-3.0.11.jar",
+            "jakarta.activation-1.2.2.jar",
+            "jakarta.xml.bind-api-2.3.3.jar",
+            "jaxb-runtime-2.3.3.jar",
+            "slf4j-api-1.7.25.jar",
+            "stack-core-0.6.1.jar",
+            "txw2-2.3.3.jar",
+        )
+
+        excluded.forEach {
+            assertFalse(
+                gwArtifacts.resolve(it).toFile().exists(),
+                "Transitive artifact $it should not have been collected."
+            )
+        }
+
+        val manifestPath = clientArtifacts.resolve(CollectModlDependencies.JSON_FILENAME)
+        assertTrue(manifestPath.toFile().exists(), "manifest should exist")
+
+        val manifest: ArtifactManifest = artifactManifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
+
+        assertTrue(manifest.artifacts.size == 2, "two artifacts found as expected in manifest")
+        assertNotNull(manifest.artifacts.find { it.jarName == "org.jfree.svg-4.1.jar" }, "jfree artifact exists")
+        assertNotNull(manifest.artifacts.find { it.jarName == "client-0.0.1-SNAPSHOT.jar" }, "client artifact exists")
+
+        val dirContents = clientArtifacts.toFile().listFiles()
+        assertTrue(dirContents?.size == 3, "correct number of files in artifacts dir")
+        val jars = dirContents?.filter { it.extension == "jar" }
+        assertTrue(jars?.size == 2, "correct amount of jars in artifacts dir")
+    }
+
+    @Test
+    fun `single dir G project emits correct jarfile`() {
+        val projectDir = tempFolder.newFolder("rootImplArtifacts").toPath()
+        val name = "Single Dir G Proj"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .scopes("G")
+            .packageName("check.my.signage")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(true)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+
+        runTask(project.toFile(), "collectModlDependencies")
+
+        val artifactsDir = project.resolve("build/artifacts")
+        val manifestPath = artifactsDir.resolve(CollectModlDependencies.JSON_FILENAME)
+        assertTrue(manifestPath.toFile().exists(), "manifest should exist")
+
+        val manifest: ArtifactManifest = artifactManifestFromJson(manifestPath.toFile().readText(Charsets.UTF_8))
+
+        assertTrue(manifest.artifacts.size == 1, "should be one artifact found in manifest")
+        assertTrue(artifactsDir.toFile().listFiles().size == 2, "should have 2 files in artifact dir")
+        assertTrue(
+            artifactsDir.resolve("single-dir-g-proj-0.0.1-SNAPSHOT.jar").toFile().exists(),
+            "versioned jarfile should exist"
+        )
     }
 }

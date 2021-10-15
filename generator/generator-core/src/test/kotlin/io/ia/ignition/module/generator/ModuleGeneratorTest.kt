@@ -1,5 +1,6 @@
 package io.ia.ignition.module.generator
 
+import io.ia.ignition.module.generator.api.Defaults
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.ignition.module.generator.api.TemplateMarker
 import java.lang.Exception
@@ -170,6 +171,46 @@ class ModuleGeneratorTest {
         val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
         assertTrue(Files.exists(rootBuildFile))
         assertTrue(content.contains(expected))
+    }
+
+    @Test
+    fun `G single dir project has appropriate module and dependency configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "G"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .useRootForSingleScopeProject(true)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = "    hooks = [\n" +
+            "        \"bot.skynet.terminator.gateway.TTwoHundredGatewayHook\" : \"G\"\n" +
+            "    ]"
+        val rootBuildFile = projDir.resolve("build.gradle")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        assertTrue(content.contains(expected))
+        assertTrue(content.contains("dependencies {"))
+        val gwDeps = Defaults.GATEWAY_SCOPE_DEPENDENCIES
+        assertTrue(content.contains(gwDeps), "buildscript should include '$gwDeps'")
     }
 
     @Test

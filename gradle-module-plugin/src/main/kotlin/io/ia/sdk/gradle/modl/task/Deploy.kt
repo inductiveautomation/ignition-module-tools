@@ -71,7 +71,7 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
         if (connection.responseCode != HTTP_OK || connection.responseCode != HTTP_CREATED) {
             DataInputStream(connection.inputStream).use { instream ->
                 BufferedReader(instream.reader(Charsets.UTF_8)).use { reader ->
-                    val output = reader.readLine()
+                    val output = reader.readText()
                     logger.error("Error publishing module to gateway, $output")
                     throw Exception("Could not post module to gateway, $output")
                 }

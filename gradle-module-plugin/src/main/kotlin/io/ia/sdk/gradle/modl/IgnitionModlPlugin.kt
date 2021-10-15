@@ -3,6 +3,7 @@ package io.ia.sdk.gradle.modl
 import io.ia.sdk.gradle.modl.api.Constants.APPLY_IA_REPOSITORY_FLAG
 import io.ia.sdk.gradle.modl.api.Constants.MODULE_API_CONFIGURATION
 import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_CONFIGURATION
+import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_ELEMENTS
 import io.ia.sdk.gradle.modl.extension.EXTENSION_NAME
 import io.ia.sdk.gradle.modl.extension.ModuleSettings
 import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
@@ -22,7 +23,6 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.tasks.Jar
 
 /**
  * Group used by all tasks so they show up in the appropriate category when 'gradle tasks' is executed
@@ -62,8 +62,10 @@ class IgnitionModlPlugin : Plugin<Project> {
         val settings = project.extensions.create(
             EXTENSION_NAME,
             ModuleSettings::class.java
-        ).apply {
-            this.moduleVersion.convention(project.version.toString())
+        )
+
+        project.afterEvaluate {
+            settings.moduleVersion.convention(project.version.toString())
         }
 
         project.afterEvaluate {
@@ -73,7 +75,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         }
 
         setupRootTasks(project, settings)
-        project.subprojects.forEach { p: Project ->
+        project.allprojects.forEach { p: Project ->
             setupDependencyTasks(p, settings)
         }
     }
@@ -108,7 +110,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         // transitive dependency management, so we look for that plugin to be applied
         artifactContributor.plugins.withType(JavaLibraryPlugin::class.java) {
             createConfigurations(artifactContributor)
-            createJavaTasks(artifactContributor, this.appliedPluginProject, settings)
+            createDependencyCollectionTasks(artifactContributor, this.appliedPluginProject, settings)
         }
 
         // assemble on root should depend on subproject assembles, but don't try to depend on self and create a
@@ -133,7 +135,6 @@ class IgnitionModlPlugin : Plugin<Project> {
         root.logger.info("Initializing tasks on root module project...")
 
         val rootAssemble = root.tasks.findByName("assemble")
-        val rootBuild = root.tasks.findByName("build")
 
         // task that gathers dependencies and assets into a folder that will ultimately become the .modl contents
         val assembleModuleStructure = root.tasks.register(
@@ -239,7 +240,6 @@ class IgnitionModlPlugin : Plugin<Project> {
         }
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)
-        setupDependencyTasks(root, settings)
         rootAssemble?.dependsOn(buildReport)
     }
 
@@ -260,13 +260,26 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         val modlImplementation = p.configurations.create(MODULE_IMPLEMENTATION_CONFIGURATION) {
             it.isCanBeResolved = true
+            it.isTransitive = false
+            it.isCanBeConsumed = true
+            implementationConf?.extendsFrom(it)
         }
-        implementationConf?.extendsFrom(modlImplementation)
+
+        // The configuration that is used to resolve the runtime dependencies from modlImplementation. Used in the
+        // CollectAndManifestDependencies task in order to fully resolve transitives.
+        p.configurations.create(MODULE_IMPLEMENTATION_ELEMENTS) {
+            it.isCanBeResolved = true
+            it.isCanBeConsumed = false
+            it.isTransitive = true
+            it.extendsFrom(modlImplementation)
+        }
 
         val modlApi = p.configurations.create(MODULE_API_CONFIGURATION) {
             it.isCanBeResolved = true
+            it.isTransitive = true
+            it.isCanBeConsumed = true
+            apiConf?.extendsFrom(it)
         }
-        apiConf?.extendsFrom(modlApi)
 
         return listOf(modlImplementation, modlApi)
     }
@@ -274,7 +287,7 @@ class IgnitionModlPlugin : Plugin<Project> {
     /**
      * Registers tasks that depend on/utilize the output of java/jvm targetted compilation.
      */
-    private fun createJavaTasks(
+    private fun createDependencyCollectionTasks(
         p: Project,
         rootModuleProject: Project,
         settings: ModuleSettings
@@ -282,19 +295,13 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         p.logger.info("Setting up Java tasks on ${p.path}")
 
-        p.tasks.named("jar") {
-            if (it is Jar) {
-                it.archiveFileName.convention("${p.name}-${settings.moduleVersion.get()}.jar")
-            }
-        }
-
         val assemble = p.tasks.findByName("assemble")
 
         val collectModlDependencies: TaskProvider<CollectModlDependencies> = p.tasks.register(
             CollectModlDependencies.ID,
             CollectModlDependencies::class.java
         ) {
-            it.dependsOn(p.tasks.findByName("jar"))
+            it.dependsOn(p.tasks.named("jar"))
             assemble?.dependsOn(it)
             it.projectScopes.set(settings.projectScopes)
             it.moduleVersion.set(settings.moduleVersion)

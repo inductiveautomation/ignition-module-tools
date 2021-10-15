@@ -1,5 +1,6 @@
 package io.ia.ignition.module.generator
 
+import io.ia.ignition.module.generator.api.Defaults
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.ProjectScope
 import io.ia.ignition.module.generator.data.ModuleGeneratorContext
@@ -54,10 +55,10 @@ object ModuleGenerator {
         logger.debug("Validating configuration values...")
 
         val errors: List<ValidationResult> = listOf(
-                validateModuleName(config.moduleName),
-                validatePackagePath(config.packageName),
-                validateParentDirPath(config.parentDir),
-                validateScope(config.scopes)
+            validateModuleName(config.moduleName),
+            validatePackagePath(config.packageName),
+            validateParentDirPath(config.parentDir),
+            validateScope(config.scopes)
         ).filter { !it.validated }
 
         if (errors.isNotEmpty()) {
@@ -140,6 +141,31 @@ object ModuleGenerator {
         val rootBuildScript = rootDir.resolve(context.getBuildScriptFilename())
         val templateResource = "templates/buildscript/root.${context.getBuildScriptFilename()}"
         rootBuildScript.createAndFillFromResource(templateResource, context.getTemplateReplacements())
+
+        // also need to add dependencies to 'single dir project' root buildscripts
+        if (context.isSingleDirProject()) {
+            val scopeString = context.config.scopes
+            val scopes = ProjectScope.scopesFromShorthand(scopeString)
+            // should only be one scope in a single dir project
+            val projectScope = if (scopes.size > 1) {
+                throw Exception("A single directory project can only have one scope, but was configured with $scopeString")
+            } else scopes.first()
+
+            val dependencies = when (projectScope) {
+                ProjectScope.CLIENT -> Defaults.CLIENT_SCOPE_DEPENDENCIES
+                ProjectScope.GATEWAY -> Defaults.GATEWAY_SCOPE_DEPENDENCIES
+                ProjectScope.DESIGNER -> Defaults.DESIGNER_SCOPE_DEPENDENCIES
+                ProjectScope.COMMON -> ""
+            }.trim('\n')
+
+            rootBuildScript.toFile().appendText("""
+                |dependencies {
+                |$dependencies        
+                |}
+            """.trimMargin()
+            )
+        }
+
         return rootBuildScript
     }
 
@@ -154,8 +180,8 @@ object ModuleGenerator {
 
         // write settings.gradle
         settingsFile.createAndFillFromResource(
-                "templates/${context.settingsFilename()}",
-                context.getTemplateReplacements()
+            "templates/${context.settingsFilename()}",
+            context.getTemplateReplacements()
         )
     }
 }

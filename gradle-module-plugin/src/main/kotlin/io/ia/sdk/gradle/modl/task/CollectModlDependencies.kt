@@ -29,8 +29,8 @@ import javax.inject.Inject
  * Task which collects the artifacts produced by a single project, and moves them to the appropriate scoped folder
  * in the build/module/ directory.
  *
- * This task should be registered to each project associated with the module, if that project applies the java gradle
- * plugin (e.g. - if it produces jar artifacts)
+ * This task should be registered to each project associated with the module, if that project applies the java-library
+ * gradle plugin (e.g. - if it produces jar artifacts)
  */
 open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
     companion object {
@@ -73,7 +73,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     @InputFiles
     fun getModlImplementationDeps(): Configuration {
-        return project.configurations.getByName("modlImplementation")
+        return project.configurations.getByName("modlImplementationElements")
     }
 
     @get:OutputDirectory
@@ -109,6 +109,9 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
                 val file = it.file
                 val id = it.id
                 FileArtifact(id.displayName, file)
+            }.apply {
+                logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
+                this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
             }
     }
 
@@ -120,7 +123,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         val mainJar = project.tasks.getByName("jar").outputs.files.toList().first()
         if (!mainJar.exists()) throw FileNotFoundException("Could not identify jar task output file $mainJar")
 
-        val mainArtifact = FileArtifact("${project.group}:${project.name}:${moduleVersion.get()}", mainJar)
+        val mainArtifact = FileArtifact("${project.group}:${project.name}:${project.version}", mainJar)
         val apiDeps = buildArtifactsFromArtifactView(getModlApiDeps())
         val implDeps = buildArtifactsFromArtifactView(getModlImplementationDeps())
 
@@ -129,7 +132,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     private fun copyArtifacts(artifacts: List<FileArtifact>) {
         project.logger.info("Copying ${project.path} artifacts to ${artifactOutputDir.get()}")
-        project.copy { copySpec ->
+        project.sync { copySpec ->
             copySpec.from(artifacts.map { it.jarFile })
             copySpec.into(artifactOutputDir.get())
         }

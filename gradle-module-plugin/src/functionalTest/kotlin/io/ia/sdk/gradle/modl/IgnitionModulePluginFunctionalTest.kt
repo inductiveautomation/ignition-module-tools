@@ -101,7 +101,7 @@ class IgnitionModulePluginFunctionalTest : BaseTest() {
             |ignitionModule {
             |    id = "com.fake.module"
             |    name = "$projectName"
-            |    moduleVersion = version
+            |    moduleVersion = project.version
             |
             |}
         """.trimMargin("|")
