@@ -6,7 +6,6 @@ import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.junit.Test
-import java.nio.file.Paths
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
