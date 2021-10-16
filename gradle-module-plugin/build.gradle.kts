@@ -19,7 +19,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.1.0-SNAPSHOT-19"
+version = "0.1.0-SNAPSHOT-20"
 
 configurations {
     val functionalTestImplementation by registering {

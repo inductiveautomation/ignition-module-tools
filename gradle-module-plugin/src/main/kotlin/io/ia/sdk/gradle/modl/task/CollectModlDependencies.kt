@@ -15,7 +15,6 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -62,9 +61,6 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
             else -> IgnitionScope.forShorthand(match.getValue(projectPath))
         }
     }
-
-    @get:Input
-    val moduleVersion: Property<String> = objects.property(String::class.java)
 
     @InputFiles
     fun getModlApiDeps(): Configuration {
