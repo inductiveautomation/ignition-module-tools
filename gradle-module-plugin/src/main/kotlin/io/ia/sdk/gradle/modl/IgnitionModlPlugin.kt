@@ -65,7 +65,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         )
 
         project.afterEvaluate {
-            settings.moduleVersion.convention(project.version.toString())
+            settings.moduleVersion.convention(project.provider { project.version.toString() })
         }
 
         project.afterEvaluate {
@@ -304,7 +304,6 @@ class IgnitionModlPlugin : Plugin<Project> {
             it.dependsOn(p.tasks.named("jar"))
             assemble?.dependsOn(it)
             it.projectScopes.set(settings.projectScopes)
-            it.moduleVersion.set(settings.moduleVersion)
         }
 
         val tasks = listOf(collectModlDependencies)
