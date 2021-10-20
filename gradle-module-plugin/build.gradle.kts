@@ -1,12 +1,12 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.time.LocalDateTime
 
 plugins {
     `java-gradle-plugin`
     `maven-publish`
-    id("com.gradle.plugin-publish") version "0.15.0"
-    kotlin("jvm") version "1.5.21"
+    id("com.gradle.plugin-publish") version "0.16.0"
     kotlin("kapt") version "1.5.21"
+    kotlin("jvm") version "1.5.21"
     id("com.diffplug.spotless") version "5.14.2"
 }
 
@@ -19,7 +19,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.1.0-SNAPSHOT-20"
+version = "0.1.0"
 
 configurations {
     val functionalTestImplementation by registering {
@@ -45,17 +45,21 @@ val functionalTest by tasks.registering(Test::class) {
 
 dependencies {
     // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     // Use the Kotlin JDK standard library.
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect"))
+    implementation(kotlin("bom", KotlinCompilerVersion.VERSION))
+    api(kotlin("stdlib-jdk8", KotlinCompilerVersion.VERSION))
+    api(kotlin("reflect", KotlinCompilerVersion.VERSION))
     implementation(libs.guava)
     implementation(libs.moshi)
-    kapt(libs.moshiCodegen)
+    // kapt(libs.moshiCodegen)
     implementation(libs.kotlinXmlBuilder)
     api(libs.moduleSigner)
     testImplementation(libs.bundles.kotlinTest)
     testImplementation("io.ia.sdk.tools.module.gen:generator-core")
+}
+
+repositories {
+    mavenCentral()
 }
 
 java {

@@ -3,6 +3,7 @@ package io.ia.sdk.gradle.modl.extension
 import io.ia.sdk.gradle.modl.task.HashAlgorithm
 import io.ia.sdk.gradle.modl.task.ZipModule
 import io.ia.sdk.gradle.modl.util.capitalize
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -112,14 +113,6 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
     val license: Property<String> = objects.property(String::class.java)
 
     /**
-     * The name of the root/parent documentation file for your module.  Documentation, if
-     * provided, should be placed in a directory named 'doc' at the root of your build.
-     *
-     * Optional
-     */
-    val documentation: Property<String> = objects.property(String::class.java)
-
-    /**
      * Optional Ignition platform requirements which fulfill the Ignition 8.0  ability to specify optional dependencies
      * which may be provided by the platform.  Current example is jxbrowser being added to client scope at runtime when
      * the module.xml contains an entry such as:
@@ -149,6 +142,20 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      */
     val checksumAlgorithm: Property<HashAlgorithm> = objects.property(HashAlgorithm::class.java)
         .convention(HashAlgorithm.SHA256)
+
+    /**
+     * Files that will be added to the `docs/` directory inside the module.  Use [documentationIndex] to set the path
+     * inside the `docs/` dir to the index.html file.
+     */
+    val documentationFiles: ConfigurableFileCollection = objects.fileCollection()
+
+    /**
+     * The path to the index html file for the optional module documentation , within the context of the assembled
+     * module's 'docs' directory.  Default's to `index.html`, meaning that the resolved file would exist in the module
+     * at `doc/index.html`.  Only gets used if there are one or more files associated with the [documentationFiles]
+     * collection.
+     */
+    val documentationIndex: Property<String> = objects.property(String::class.java)
 
     init {
         license.convention("")

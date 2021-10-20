@@ -66,4 +66,16 @@ ignitionModule {
     ]
 
     applyInductiveArtifactRepo = true
+
+    /*
+     * Optional 'documentation' settings.  Supply the files that would be desired to end up in the 'doc' dir of the
+     * assembled module, and specify the path to the index.html file inside that folder. In this commented-out
+     * example, the html files being collected are located in the module root project in `src/docs/`
+     */
+    // the files to collect into the documentation dir, with example implementation
+    // documentationFiles.from(project.file("src/docs/"))
+
+    // the path from the root documentation dir to the index file.
+    // documentationIndex.set("index.html")
+
 }
