@@ -5,7 +5,6 @@ import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.sdk.gradle.modl.BaseTest
 import org.junit.Test
 import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.test.assertTrue
 
 open class AssembleModuleStructureTest : BaseTest() {
