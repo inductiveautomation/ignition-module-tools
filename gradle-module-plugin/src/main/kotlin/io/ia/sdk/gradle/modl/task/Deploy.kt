@@ -6,7 +6,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import java.io.BufferedReader
@@ -24,32 +23,38 @@ import java.util.Base64
  */
 open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
-        const val ID: String = "deploy"
-        const val SERVLET_PATH: String = "/system/DeveloperModuleLoadingServlet"
+        const val ID: String = "deployModl"
+        const val SERVLET_PATH: String = "system/DeveloperModuleLoadingServlet"
     }
 
     init {
         this.mustRunAfter(":assemble")
     }
 
-    @Option(option = "gateway", description = "Host url for the development gateway, including protocol and port.")
-    @Input
-    @Optional
-    val gateway: Property<String> = objects.property(String::class.java)
+    @get:Input
+    val hostGateway: Property<String> = objects.property(String::class.java).convention("http://localhost:8088")
+
+    @Option(option = "gateway", description = "Host ip for the development gateway, including protocol and port.")
+    fun setGateway(url: String) {
+        hostGateway.set(url)
+    }
+
+    @get:Input
+    val module: RegularFileProperty = objects.fileProperty()
 
     @Option(option = "module", description = "Signed module file to be deployed to the running dev gateway")
-    @Input
-    @Optional
-    val signedModule: RegularFileProperty = objects.fileProperty()
+    fun setModule(path: String) {
+        module.set(project.file(path))
+    }
 
     @get:Nested
     val targetUrl: String by lazy {
-        "${gateway.get()}/$SERVLET_PATH"
+        "${hostGateway.get()}/$SERVLET_PATH"
     }
 
     @TaskAction
     fun deployToGateway() {
-        if (!signedModule.isPresent) {
+        if (!module.isPresent) {
             logger.error(
                 "Signed module property was not found.  Run `assemble` first, or specify module path with " +
                     "--module=/path/to/myfile.modl"
@@ -57,7 +62,7 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
             throw Exception("Module file not present!")
         }
 
-        val module = signedModule.asFile.get()
+        val module = module.asFile.get()
         val b64 = Base64.getEncoder().encodeToString(module.readBytes())
 
         // connect to gw
@@ -68,7 +73,9 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
             outstream.flush()
         }
 
-        if (connection.responseCode != HTTP_OK || connection.responseCode != HTTP_CREATED) {
+        project.logger.quiet("Response code ${connection.responseCode}")
+
+        if (connection.responseCode != HTTP_OK && connection.responseCode != HTTP_CREATED) {
             DataInputStream(connection.inputStream).use { instream ->
                 BufferedReader(instream.reader(Charsets.UTF_8)).use { reader ->
                     val output = reader.readText()
@@ -76,7 +83,10 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
                     throw Exception("Could not post module to gateway, $output")
                 }
             }
+        } else {
+            project.logger.quiet("Module ${module.name} was uploaded to ${hostGateway.get()}")
         }
+        connection.disconnect()
     }
 
     fun connect(url: URL): HttpURLConnection {
@@ -84,6 +94,7 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
         connection.requestMethod = "POST"
         connection.connectTimeout = 20000
         connection.doOutput = true
+        connection.doInput = true
         connection.useCaches = false
         connection.setRequestProperty("Content-Type", "multipart/form-data")
         return connection

@@ -9,6 +9,7 @@ import io.ia.sdk.gradle.modl.extension.ModuleSettings
 import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
 import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
+import io.ia.sdk.gradle.modl.task.Deploy
 import io.ia.sdk.gradle.modl.task.ModuleBuildReport
 import io.ia.sdk.gradle.modl.task.SignModule
 import io.ia.sdk.gradle.modl.task.WriteModuleXml
@@ -143,6 +144,8 @@ class IgnitionModlPlugin : Plugin<Project> {
         ) {
             it.moduleContentDir.set(root.layout.buildDirectory.dir("moduleContent"))
             it.license.set(settings.license)
+            it.docFiles.from(settings.documentationFiles)
+            it.docIndexPath.set(settings.documentationIndex)
         }
 
         val writeModuleXml = root.tasks.register(
@@ -162,6 +165,7 @@ class IgnitionModlPlugin : Plugin<Project> {
             xmlTask.requiredFrameworkVersion.set(settings.requiredFrameworkVersion)
             xmlTask.requireFromPlatform.set(settings.requireFromPlatform)
             xmlTask.freeModule.set(settings.freeModule)
+            xmlTask.docIndexPath.set(settings.documentationIndex)
 
             // xml task depends on having module structure
             xmlTask.dependsOn(assembleModuleStructure)
@@ -237,6 +241,10 @@ class IgnitionModlPlugin : Plugin<Project> {
                     }
                 }
             }
+        }
+
+        root.tasks.register(Deploy.ID, Deploy::class.java) {
+            it.module.convention(sign.flatMap { signTask -> signTask.signed })
         }
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)

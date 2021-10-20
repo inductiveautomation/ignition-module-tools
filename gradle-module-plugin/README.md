@@ -138,6 +138,12 @@ subprojects.  The following table is a brief reference:
 | checksumModl  | root project  | Generates a checksum for the signed module, and writes the result to a json file  |
 | moduleAssemblyReport  | root project | Writes a json file containing meta information about the module's assembly  |
 | signModl | root project | signs the unsigned modl using credentials/certs noted above
+| deployModl | root project | deploys the built module file to an ignition gateway running in developer module upload mode &#735;|
+
+> &#735; to enable the developer mode, add `-Dia.developer.moduleupload=true` to the 'Java Additional Parameters' in
+> the `ignition.conf` file and restart the gateway.  **This should only be done on secure development gateways, as it
+> opens a significant security risk on production gateways, in addition to instabilities that may result from your 
+> in-development module.**
 
 
 # How it Works

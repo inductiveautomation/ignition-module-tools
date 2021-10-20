@@ -17,7 +17,7 @@ import kotlin.test.assertTrue
 /**
  * Functional tests for the 'io.ia.gradle.module.greeting' plugin.
  */
-class IgnitionModulePluginFunctionalTest : BaseTest() {
+open class IgnitionModulePluginFunctionalTest : BaseTest() {
 
     @Test
     fun `plugin gets applied and executes task help with minimal configuration `() {
