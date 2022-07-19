@@ -25,3 +25,7 @@ generator-cli/out/
 generator-cli/build/
 
 gh_key
+
+# VS Code Files
+*.code-workspace
+.vscode
