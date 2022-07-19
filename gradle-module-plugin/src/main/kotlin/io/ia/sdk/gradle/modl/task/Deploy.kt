@@ -32,7 +32,7 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
     }
 
     @get:Input
-    val hostGateway: Property<String> = objects.property(String::class.java).convention("http://localhost:8088")
+    val hostGateway: Property<String> = objects.property(String::class.java)
 
     @Option(option = "gateway", description = "Host ip for the development gateway, including protocol and port.")
     fun setGateway(url: String) {
