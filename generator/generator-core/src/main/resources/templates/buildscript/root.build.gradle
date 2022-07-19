@@ -78,4 +78,10 @@ ignitionModule {
     // the path from the root documentation dir to the index file.
     // documentationIndex.set("index.html")
 
+    /*
+     * If the module is being automatically deployed to a development gateway, this setting can be used to specify
+     * the address of the gateway (Including IP and port)
+     */
+    hostGateway = "http://localhost:8088"
+
 }
