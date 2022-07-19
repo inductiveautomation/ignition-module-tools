@@ -245,6 +245,7 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         root.tasks.register(Deploy.ID, Deploy::class.java) {
             it.module.convention(sign.flatMap { signTask -> signTask.signed })
+            it.hostGateway.set(settings.hostGateway)
         }
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)

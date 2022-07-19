@@ -157,6 +157,14 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      */
     val documentationIndex: Property<String> = objects.property(String::class.java)
 
+     /**
+     * If the module is being deployed to a development gateawy, set this value to the host ip for the development gateway, 
+     * including protocol and port. Default is [http://localhost:8088]
+     *
+     * Optional
+     */
+    val hostGateway: Property<String> = objects.property(String::class.java).convention("http://localhost:8088")
+
     init {
         license.convention("")
         freeModule.convention(java.lang.Boolean.FALSE)
