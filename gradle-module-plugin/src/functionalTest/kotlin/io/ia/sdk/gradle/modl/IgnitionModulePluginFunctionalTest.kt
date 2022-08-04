@@ -11,7 +11,9 @@ import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -144,6 +146,73 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
         println("Expected: ${expected.absolutePath}")
 
         assertTrue(expected.exists(), "Built and signed module exists")
+    }
+
+    @Test
+    fun `gateway scoped unsigned module passes config and builds with signing credentials`() {
+        val rootDir = tempFolder.newFolder("gwScopedUnsignedConfigAndBuild").toPath()
+        val moduleName = "Great Tests"
+        val scopes = "G"
+        val packageName = "le.examp"
+        println(rootDir.absolutePathString())
+
+        val config: GeneratorConfig = GeneratorConfigBuilder()
+                .moduleName(moduleName)
+                .scopes(scopes)
+                .packageName(packageName)
+                .parentDir(rootDir)
+                .useRootForSingleScopeProject(false)
+                .build()
+
+        val projectDir = ModuleGenerator.generate(config)
+        projectDir.resolve("build.gradle").toFile().let {
+            it.writeText(it.readLines().map { line ->
+                if ("    // skipModlSigning = false" == line) {
+                    "    skipModlSigning = true"
+                } else {
+                    line
+                }
+            }.joinToString(System.lineSeparator()))
+        }
+        prepareSigningTestResources(rootDir.resolve(nameToDirName(moduleName)))
+
+        runTask(projectDir.toFile(), "build")
+        val expected = expectedSignedModule(projectDir, moduleName)
+
+        assertFalse(expected.exists(), "Built and signed module exists when `skipModlSigning` was true")
+    }
+
+    @Test
+    fun `gateway scoped unsigned module passes config and builds without signing credentials`() {
+        val rootDir = tempFolder.newFolder("gwScopedUnsignedNoConfigAndBuild").toPath()
+        val moduleName = "Great Tests"
+        val scopes = "G"
+        val packageName = "le.examp"
+        println(rootDir.absolutePathString())
+
+        val config: GeneratorConfig = GeneratorConfigBuilder()
+                .moduleName(moduleName)
+                .scopes(scopes)
+                .packageName(packageName)
+                .parentDir(rootDir)
+                .useRootForSingleScopeProject(false)
+                .build()
+
+        val projectDir = ModuleGenerator.generate(config)
+        projectDir.resolve("build.gradle").toFile().let {
+            it.writeText(it.readLines().map { line ->
+                if ("    // skipModlSigning = false" == line) {
+                    "    skipModlSigning = true"
+                } else {
+                    line
+                }
+            }.joinToString(System.lineSeparator()))
+        }
+
+        runTask(projectDir.toFile(), "build")
+        val expected = expectedSignedModule(projectDir, moduleName)
+
+        assertFalse(expected.exists(), "Built and signed module exists when `skipModlSigning` was true")
     }
 
     private fun expectedSignedModule(rootModuleDir: Path, moduleName: String): File {

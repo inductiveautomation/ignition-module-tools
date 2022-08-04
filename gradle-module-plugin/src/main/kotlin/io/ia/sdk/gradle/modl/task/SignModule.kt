@@ -33,10 +33,10 @@ import javax.inject.Inject
 /**
  * Signs the module file, using credentials provided by the task running.
  */
-@Suppress("UnstableApiUsage")
 open class SignModule @Inject constructor(_providers: ProviderFactory, _objects: ObjectFactory) : DefaultTask() {
     companion object {
         const val ID = "signModule"
+        private const val SKIP = "<SKIP_SIGNING_ENABLED>" // placeholder prop value for skipModuleSigning
     }
 
     init {
@@ -47,6 +47,9 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     // the unsigned .modl file
     @get:InputFile
     val unsigned: RegularFileProperty = _objects.fileProperty()
+
+    @get:Input
+    val skipSigning: Property<Boolean> = _objects.property(Boolean::class.java).convention(false)
 
     // the signed modl file
     @get:OutputFile
@@ -60,7 +63,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     @get:Optional
     val keystorePath: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            propOrLogError(KEYSTORE_FILE_FLAG, "keystore file location")
+            if (skipSigning.get()) SKIP else propOrLogError(KEYSTORE_FILE_FLAG, "keystore file location")
         }
     )
 
@@ -96,7 +99,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     @get:Input
     val keystorePw: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            propOrLogError(KEYSTORE_PW_FLAG, "keystore password")
+            if (skipSigning.get()) SKIP else propOrLogError(KEYSTORE_PW_FLAG, "keystore password")
         }
     )
 
@@ -109,7 +112,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     @get:Input
     val certFilePath: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            propOrLogError(CERT_FILE_FLAG, "certificate file location")
+            if (skipSigning.get()) SKIP else propOrLogError(CERT_FILE_FLAG, "certificate file location")
         }
     )
 
@@ -140,7 +143,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     @get:Input
     val alias: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            propOrLogError(ALIAS_FLAG, "certificate alias")
+            if (skipSigning.get()) SKIP else propOrLogError(ALIAS_FLAG, "certificate alias")
         }
     )
 
@@ -152,7 +155,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     @get:Input
     val certPw: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            propOrLogError(CERT_PW_FLAG, "certificate password")
+            if (skipSigning.get()) SKIP else propOrLogError(CERT_PW_FLAG, "certificate password")
         }
     )
 

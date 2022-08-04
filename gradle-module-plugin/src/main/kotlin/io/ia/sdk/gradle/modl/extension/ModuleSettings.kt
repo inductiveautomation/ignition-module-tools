@@ -8,7 +8,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 
-public const val EXTENSION_NAME = "ignitionModule"
+const val EXTENSION_NAME = "ignitionModule"
 
 /**
  * A data class representing the configuration of an Ignition module that is assembled by the gradle plugin.
@@ -19,8 +19,8 @@ public const val EXTENSION_NAME = "ignitionModule"
  *        reflected in the module.xml file that is generated and placed in the root of your assembled module by the plugin
  *     2. It identifies the project or subprojects that are to be included by your
  */
-@Suppress("UnstableApiUsage")
 open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactory) {
+
     /**
      * The 'name' of your module as is displayed in the Ignition Gateway configuration page when the module is installed.
      */
@@ -99,7 +99,7 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
 
     /**
      * If the module is a 'free' (non-commercial) module, without licensing restrictions, set this
-     * value to Boolean.TRUE.  Default is [Boolean.FALSE]
+     * value to `true`.  Default is `false`
      *
      * Optional
      */
@@ -157,9 +157,16 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      */
     val documentationIndex: Property<String> = objects.property(String::class.java)
 
+    /**
+     * If `true` the signing task is not executed on the module and the unsigned module is used for all downstream
+     * tasks. The default for this is `false` and should be in most scenarios. The exception being if you would like to
+     * build an unsigned module for a development gateway without the signing keyfile present on the filesystem.
+     */
+    val skipModlSigning: Property<Boolean> = objects.property(Boolean::class.javaObjectType).convention(false)
+
     init {
         license.convention("")
-        freeModule.convention(java.lang.Boolean.FALSE)
+        freeModule.convention(false)
         moduleDescription.convention("")
         requireFromPlatform.convention(emptyMap())
         requiredIgnitionVersion.convention("8.0.0")
