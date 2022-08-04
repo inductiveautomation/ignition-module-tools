@@ -157,22 +157,24 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
         println(rootDir.absolutePathString())
 
         val config: GeneratorConfig = GeneratorConfigBuilder()
-                .moduleName(moduleName)
-                .scopes(scopes)
-                .packageName(packageName)
-                .parentDir(rootDir)
-                .useRootForSingleScopeProject(false)
-                .build()
+            .moduleName(moduleName)
+            .scopes(scopes)
+            .packageName(packageName)
+            .parentDir(rootDir)
+            .useRootForSingleScopeProject(false)
+            .build()
 
         val projectDir = ModuleGenerator.generate(config)
         projectDir.resolve("build.gradle").toFile().let {
-            it.writeText(it.readLines().map { line ->
-                if ("    // skipModlSigning = false" == line) {
-                    "    skipModlSigning = true"
-                } else {
-                    line
-                }
-            }.joinToString(System.lineSeparator()))
+            it.writeText(
+                it.readLines().map { line ->
+                    if ("    // skipModlSigning = false" == line) {
+                        "    skipModlSigning = true"
+                    } else {
+                        line
+                    }
+                }.joinToString(System.lineSeparator())
+            )
         }
         prepareSigningTestResources(rootDir.resolve(nameToDirName(moduleName)))
 
@@ -191,22 +193,24 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
         println(rootDir.absolutePathString())
 
         val config: GeneratorConfig = GeneratorConfigBuilder()
-                .moduleName(moduleName)
-                .scopes(scopes)
-                .packageName(packageName)
-                .parentDir(rootDir)
-                .useRootForSingleScopeProject(false)
-                .build()
+            .moduleName(moduleName)
+            .scopes(scopes)
+            .packageName(packageName)
+            .parentDir(rootDir)
+            .useRootForSingleScopeProject(false)
+            .build()
 
         val projectDir = ModuleGenerator.generate(config)
         projectDir.resolve("build.gradle").toFile().let {
-            it.writeText(it.readLines().map { line ->
-                if ("    // skipModlSigning = false" == line) {
-                    "    skipModlSigning = true"
-                } else {
-                    line
-                }
-            }.joinToString(System.lineSeparator()))
+            it.writeText(
+                it.readLines().map { line ->
+                    if ("    // skipModlSigning = false" == line) {
+                        "    skipModlSigning = true"
+                    } else {
+                        line
+                    }
+                }.joinToString(System.lineSeparator())
+            )
         }
 
         runTask(projectDir.toFile(), "build")

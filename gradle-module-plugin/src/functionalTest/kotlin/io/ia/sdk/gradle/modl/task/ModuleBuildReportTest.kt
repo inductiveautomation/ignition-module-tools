@@ -121,27 +121,29 @@ class ModuleBuildReportTest : BaseTest() {
         val moduleName = "Foo"
 
         val config = GeneratorConfigBuilder()
-                .moduleName(moduleName)
-                .scopes("GCD")
-                .packageName("check.my.signage")
-                .parentDir(parentDir.toPath())
-                .debugPluginConfig(true)
-                .rootPluginConfig(
-                        """
+            .moduleName(moduleName)
+            .scopes("GCD")
+            .packageName("check.my.signage")
+            .parentDir(parentDir.toPath())
+            .debugPluginConfig(true)
+            .rootPluginConfig(
+                """
                     id("io.ia.sdk.modl")
                 """.trimIndent()
-                )
-                .build()
+            )
+            .build()
 
         val projectDir = ModuleGenerator.generate(config)
         projectDir.resolve("build.gradle").toFile().let {
-            it.writeText(it.readLines().map { line ->
-                if ("    // skipModlSigning = false" == line) {
-                    "    skipModlSigning = true"
-                } else {
-                    line
-                }
-            }.joinToString(System.lineSeparator()))
+            it.writeText(
+                it.readLines().map { line ->
+                    if ("    // skipModlSigning = false" == line) {
+                        "    skipModlSigning = true"
+                    } else {
+                        line
+                    }
+                }.joinToString(System.lineSeparator())
+            )
         }
 
         runTask(projectDir.toFile(), "modlReport")

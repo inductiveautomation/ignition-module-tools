@@ -197,7 +197,9 @@ class IgnitionModlPlugin : Plugin<Project> {
             signTask.onlyIf {
                 settings.skipModlSigning.get().also { useUnsigned ->
                     if (useUnsigned) {
-                        root.logger.warn("useUnsignedModule specified in Module Settings. Module Signing will be skipped")
+                        root.logger.warn(
+                            "useUnsignedModule specified in Module Settings. Module Signing will be skipped"
+                        )
                     }
                 }.not()
             }
@@ -205,25 +207,29 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         val checksum = root.tasks.register(Checksum.ID, Checksum::class.java) { checksum ->
             checksum.hashAlgorithm.set(settings.checksumAlgorithm)
-            checksum.modlFile.set(settings.skipModlSigning.flatMap { useUnsigned ->
-                if (useUnsigned) {
-                    zip.flatMap { it.unsignedModule }
-                } else {
-                    sign.flatMap { it.signed }
+            checksum.modlFile.set(
+                settings.skipModlSigning.flatMap { useUnsigned ->
+                    if (useUnsigned) {
+                        zip.flatMap { it.unsignedModule }
+                    } else {
+                        sign.flatMap { it.signed }
+                    }
                 }
-            })
+            )
             checksum.dependsOn(sign, zip)
         }
 
         val buildReport = root.tasks.register(ModuleBuildReport.ID, ModuleBuildReport::class.java) { report ->
             report.metaInfo.putAll(settings.metaInfo)
-            report.modlFile.set(settings.skipModlSigning.flatMap { useUnsigned ->
-                if (useUnsigned) {
-                    zip.flatMap { it.unsignedModule }
-                } else {
-                    sign.flatMap { it.signed }
+            report.modlFile.set(
+                settings.skipModlSigning.flatMap { useUnsigned ->
+                    if (useUnsigned) {
+                        zip.flatMap { it.unsignedModule }
+                    } else {
+                        sign.flatMap { it.signed }
+                    }
                 }
-            })
+            )
             report.moduleId.set(settings.id)
             report.moduleName.set(settings.name)
             report.moduleVersion.set(settings.moduleVersion)
@@ -261,13 +267,15 @@ class IgnitionModlPlugin : Plugin<Project> {
         }
 
         root.tasks.register(Deploy.ID, Deploy::class.java) {
-            it.module.convention(settings.skipModlSigning.flatMap { useUnsigned ->
-                if (useUnsigned) {
-                    zip.flatMap { it.unsignedModule }
-                } else {
-                    sign.flatMap { it.signed }
+            it.module.convention(
+                settings.skipModlSigning.flatMap { useUnsigned ->
+                    if (useUnsigned) {
+                        zip.flatMap { it.unsignedModule }
+                    } else {
+                        sign.flatMap { it.signed }
+                    }
                 }
-            })
+            )
         }
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)
