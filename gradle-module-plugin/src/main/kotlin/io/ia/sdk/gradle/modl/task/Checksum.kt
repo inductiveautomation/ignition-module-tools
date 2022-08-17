@@ -30,7 +30,7 @@ open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: Projec
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val signedModl: RegularFileProperty = _objects.fileProperty()
+    val modlFile: RegularFileProperty = _objects.fileProperty()
 
     @get:OutputFile
     val checksumJson: RegularFileProperty = _objects.fileProperty().convention(
@@ -38,14 +38,14 @@ open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: Projec
     )
 
     /**
-     * Hash function to use against the signed module file to get the file's checksum.
+     * Hash function to use against the module file to get the file's checksum.
      */
     @get:Input
     val hashAlgorithm: Property<HashAlgorithm> = _objects.property(HashAlgorithm::class.java)
 
     @TaskAction
     fun execute() {
-        val module = signedModl.get().asFile
+        val module = modlFile.get().asFile
 
         if (module.exists()) {
             val digest = Files.asByteSource(module).hash(hashImpl(hashAlgorithm.get()))
@@ -59,7 +59,7 @@ open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: Projec
     init {
         this.group = PLUGIN_TASK_GROUP
         this.description = """
-            |Executes a hash function (default SHA256) against the signed modl file, and emits a json file to the build
+            |Executes a hash function (default SHA256) against the modl file, and emits a json file to the build
             | directory containing the digest.""".trimMargin()
     }
 }

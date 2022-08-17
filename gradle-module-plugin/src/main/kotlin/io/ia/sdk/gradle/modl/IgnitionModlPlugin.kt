@@ -67,9 +67,6 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         project.afterEvaluate {
             settings.moduleVersion.convention(project.provider { project.version.toString() })
-        }
-
-        project.afterEvaluate {
             if (settings.applyInductiveArtifactRepo.get()) {
                 addInductiveAutoRepos(project)
             }
@@ -196,17 +193,43 @@ class IgnitionModlPlugin : Plugin<Project> {
         // task that signs the module, using [http://github.com/inductiveautomation/module-signer] to do so
         val sign = root.tasks.register(SignModule.ID, SignModule::class.java) { signTask ->
             signTask.unsigned.set(zip.flatMap { it.unsignedModule })
+            signTask.skipSigning.set(settings.skipModlSigning)
+            signTask.onlyIf {
+                settings.skipModlSigning.get().also { useUnsigned ->
+                    if (useUnsigned) {
+                        root.logger.warn(
+                            "useUnsignedModule specified in Module Settings. Module Signing will be skipped"
+                        )
+                    }
+                }.not()
+            }
         }
 
         val checksum = root.tasks.register(Checksum.ID, Checksum::class.java) { checksum ->
             checksum.hashAlgorithm.set(settings.checksumAlgorithm)
-            checksum.signedModl.set(sign.flatMap { it.signed })
-            checksum.dependsOn(sign)
+            checksum.modlFile.set(
+                settings.skipModlSigning.flatMap { useUnsigned ->
+                    if (useUnsigned) {
+                        zip.flatMap { it.unsignedModule }
+                    } else {
+                        sign.flatMap { it.signed }
+                    }
+                }
+            )
+            checksum.dependsOn(sign, zip)
         }
 
         val buildReport = root.tasks.register(ModuleBuildReport.ID, ModuleBuildReport::class.java) { report ->
             report.metaInfo.putAll(settings.metaInfo)
-            report.modlFile.set(sign.flatMap { it.signed })
+            report.modlFile.set(
+                settings.skipModlSigning.flatMap { useUnsigned ->
+                    if (useUnsigned) {
+                        zip.flatMap { it.unsignedModule }
+                    } else {
+                        sign.flatMap { it.signed }
+                    }
+                }
+            )
             report.moduleId.set(settings.id)
             report.moduleName.set(settings.name)
             report.moduleVersion.set(settings.moduleVersion)
@@ -244,7 +267,15 @@ class IgnitionModlPlugin : Plugin<Project> {
         }
 
         root.tasks.register(Deploy.ID, Deploy::class.java) {
-            it.module.convention(sign.flatMap { signTask -> signTask.signed })
+            it.module.convention(
+                settings.skipModlSigning.flatMap { useUnsigned ->
+                    if (useUnsigned) {
+                        zip.flatMap { it.unsignedModule }
+                    } else {
+                        sign.flatMap { it.signed }
+                    }
+                }
+            )
         }
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)

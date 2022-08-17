@@ -114,4 +114,45 @@ class ModuleBuildReportTest : BaseTest() {
         assertEquals(1, report.metaInfo.size, "metainfo should be added to report if configured in plugin")
         assertEquals("some string value", report.metaInfo["test.key"], "build report should hold metainfo value")
     }
+
+    @Test
+    fun `build report contains unsigned modl entry when skipModlSigning`() {
+        val parentDir: File = tempFolder.newFolder("build_report_unsigned")
+        val moduleName = "Foo"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(moduleName)
+            .scopes("GCD")
+            .packageName("check.my.signage")
+            .parentDir(parentDir.toPath())
+            .debugPluginConfig(true)
+            .rootPluginConfig(
+                """
+                    id("io.ia.sdk.modl")
+                """.trimIndent()
+            )
+            .build()
+
+        val projectDir = ModuleGenerator.generate(config)
+        projectDir.resolve("build.gradle").toFile().let {
+            it.writeText(
+                it.readLines().map { line ->
+                    if ("    // skipModlSigning = false" == line) {
+                        "    skipModlSigning = true"
+                    } else {
+                        line
+                    }
+                }.joinToString(System.lineSeparator())
+            )
+        }
+
+        runTask(projectDir.toFile(), "modlReport")
+        val buildDir = projectDir.resolve("build")
+        val buildJson = buildDir.resolve("buildResult.json")
+
+        assertTrue(buildJson.toFile().exists(), "buildResult.json should exist in the build dir")
+        val report = jsonToAssemblyManifest(buildJson.toFile().readText())
+        assertNotNull(report.fileName, "filename entry was not present")
+        assertEquals("Foo.unsigned.modl", report.fileName, "filename entry was not present")
+    }
 }
