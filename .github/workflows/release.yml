@@ -35,5 +35,5 @@ jobs:
         working-directory: ./gradle-module-plugin
         run: ./gradlew build --stacktrace --info
       - name: Publish Plugins
-        # dry run for now
-        run: ./gradlew publishPlugins --dry-run
+        working-directory: ./gradle-module-plugin
+        run: ./gradlew publishPlugins -Pgradle.publish.key=${{secrets.PLUGIN_PUBLISHING_KEY}} -Pgradle.publish.secret=${{secrets.PLUGIN_PUBLISHING_SECRET}}
