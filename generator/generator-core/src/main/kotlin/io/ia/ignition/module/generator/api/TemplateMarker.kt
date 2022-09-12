@@ -79,7 +79,11 @@ enum class TemplateMarker(val key: String) {
     /**
      * Value used in the `dependencies { }` block of designer scoped subproject
      */
-    DESIGNER_DEPENDENCIES("//<DESIGNER_DEPENDENCIES>");
+    DESIGNER_DEPENDENCIES("//<DESIGNER_DEPENDENCIES>"),
+
+    DEPENDENCIES("//<DEPENDENCIES>"),
+
+    JAVA_TOOLING_CONFIG("//<JAVA_TOOLING>");
 
     fun keys(): List<String> {
         return values().map { it.key }

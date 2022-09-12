@@ -11,6 +11,11 @@ interface GeneratorContext {
     fun getTemplateReplacements(): Map<String, String>
 
     /**
+     * Represents the set of configurable build files, generally representing _settings.gradle(.kts)_, _gradle.properties_, and the _build.gradle(.kts)_ files.
+     */
+    fun getBuildFileSettings(): Set<BuildFile>
+
+    /**
      * The root 'workspace' directory, aka where the settings.gradle and root build.gradle will be created
      */
     fun getRootDirectory(): Path
@@ -44,6 +49,16 @@ interface GeneratorContext {
      * The name of the build file, generally determined by the settings script type set in the [GeneratorConfig]
      */
     fun getSettingFileName(): String
+
+    /**
+     * A set of Gradle Feature Preview strings, each of which will be added to the `settings.gradle` or
+     * `settings.gradle.kts`.  See the
+     * [Gradle Feature Lifecycle](https://docs.gradle.org/current/userguide/feature_lifecycle.html) for additional
+     * details.
+     */
+    fun getFeaturePreviews(): Set<String> {
+        return emptySet<String>()
+    }
 
     /**
      * Returns the resource path for the boilerplate stub implementation of an Ignition hook class, or in the case of

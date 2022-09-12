@@ -3,8 +3,8 @@ package io.ia.ignition.module.generator.util
 import io.ia.ignition.module.generator.api.GeneratorContext
 import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.ProjectScope
-import io.ia.ignition.module.generator.api.SupportedLanguage
-import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
+import io.ia.ignition.module.generator.api.SourceFileType
+import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -18,7 +18,7 @@ data class SubProjectSettings(
     val subprojectDir: Path,
     val packagePath: String,
     val buildscriptLanguage: GradleDsl,
-    val projectLanguage: SupportedLanguage,
+    val projectLanguage: SourceFileType,
     val scope: ProjectScope,
     val dependencies: String = ""
 ) // optional dependencies injected into build file
@@ -83,10 +83,10 @@ fun writeHookFile(hookDir: Path, context: GeneratorContext, scope: ProjectScope)
  *                  directory
  * @param scopeTerminatedPackagePath the package path, with the final path element being the scope (if not a single
  *        scope/mono-project)
- * @param language the language intended to be used for this project.  Defaults to SupportedLanguage.JAVA
+ * @param language the language intended to be used for this project.  DefaultSdkDependencies to SourceFileType.JAVA
  * @return [Path] pointing to the src/main/package/name/scope source directory, where a hook file is commonly located
  */
-fun createSourceDirs(parentDir: Path, scopeTerminatedPackagePath: String, language: SupportedLanguage = JAVA): Path {
+fun createSourceDirs(parentDir: Path, scopeTerminatedPackagePath: String, language: SourceFileType = JAVA): Path {
 
     // make the main and test sourceset folders, e.g.  <parentDir>/src/main
     val srcMain = Paths.get(parentDir.toAbsolutePath().toString(), "src", "main")

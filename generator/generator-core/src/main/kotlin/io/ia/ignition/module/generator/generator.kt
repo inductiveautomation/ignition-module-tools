@@ -1,6 +1,6 @@
 package io.ia.ignition.module.generator
 
-import io.ia.ignition.module.generator.api.Defaults
+import io.ia.ignition.module.generator.api.DefaultSdkDependencies
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.ProjectScope
 import io.ia.ignition.module.generator.data.ModuleGeneratorContext
@@ -152,10 +152,11 @@ object ModuleGenerator {
             } else scopes.first()
 
             val dependencies = when (projectScope) {
-                ProjectScope.CLIENT -> Defaults.CLIENT_SCOPE_DEPENDENCIES
-                ProjectScope.GATEWAY -> Defaults.GATEWAY_SCOPE_DEPENDENCIES
-                ProjectScope.DESIGNER -> Defaults.DESIGNER_SCOPE_DEPENDENCIES
+                ProjectScope.CLIENT -> DefaultSdkDependencies.CLIENT_SCOPE_DEPENDENCIES
+                ProjectScope.GATEWAY -> DefaultSdkDependencies.GATEWAY_SCOPE_DEPENDENCIES
+                ProjectScope.DESIGNER -> DefaultSdkDependencies.DESIGNER_SCOPE_DEPENDENCIES
                 ProjectScope.COMMON -> ""
+                else -> throw Exception("Unknown Project Scope '$projectScope'")
             }.trim('\n')
 
             rootBuildScript.toFile().appendText("""

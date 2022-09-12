@@ -1,6 +1,6 @@
 package io.ia.ignition.module.generator
 
-import io.ia.ignition.module.generator.api.Defaults
+import io.ia.ignition.module.generator.api.DefaultSdkDependencies
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.ignition.module.generator.api.TemplateMarker
 import java.lang.Exception
@@ -209,7 +209,7 @@ class ModuleGeneratorTest {
         assertTrue(Files.exists(rootBuildFile))
         assertTrue(content.contains(expected))
         assertTrue(content.contains("dependencies {"))
-        val gwDeps = Defaults.GATEWAY_SCOPE_DEPENDENCIES
+        val gwDeps = DefaultSdkDependencies.GATEWAY_SCOPE_DEPENDENCIES
         assertTrue(content.contains(gwDeps), "buildscript should include '$gwDeps'")
     }
 

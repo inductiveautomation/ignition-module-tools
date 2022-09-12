@@ -1,7 +1,7 @@
 package io.ia.ignition.module.generator.util
 
 import io.ia.ignition.module.generator.api.ProjectScope
-import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
+import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

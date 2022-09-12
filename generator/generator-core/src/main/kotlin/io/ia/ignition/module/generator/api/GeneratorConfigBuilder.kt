@@ -1,8 +1,8 @@
 package io.ia.ignition.module.generator.api
 
-import io.ia.ignition.module.generator.api.Defaults.GRADLE_VERSION
+import io.ia.ignition.module.generator.api.DefaultSdkDependencies.GRADLE_VERSION
 import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
-import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
+import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import java.io.File
 import java.nio.file.Path
 import org.slf4j.Logger
@@ -20,7 +20,7 @@ class GeneratorConfigBuilder {
     private lateinit var scopes: String
     private var customReplacements: Map<String, String> = emptyMap()
     private var buildDsl: GradleDsl = GROOVY
-    private var projectLanguage: SupportedLanguage = JAVA
+    private var projectLanguage: SourceFileType = JAVA
     private var settingsDsl: GradleDsl = GROOVY
     private var gradleWrapperVersion: String = GRADLE_VERSION
     // todo: default to false for stable release
@@ -36,7 +36,7 @@ class GeneratorConfigBuilder {
     fun packageName(packageName: String?) = apply { this.packageName = packageName ?: "le.examp" }
     fun parentDir(dir: Path?) = apply { this.parentDir = dir ?: File("").toPath() }
     fun projectLanguage(language: String) = apply {
-        this.projectLanguage = SupportedLanguage.valueOf(language.toLowerCase())
+        this.projectLanguage = SourceFileType.valueOf(language.toLowerCase())
     }
     fun rootPluginConfig(config: String) = apply { this.rootPluginConfig = config }
     fun scopes(scopes: String?) = apply { this.scopes = scopes ?: "" }

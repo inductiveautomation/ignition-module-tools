@@ -1,16 +1,4 @@
 
-plugins {
-    <ROOT_PLUGIN_CONFIGURATION>
-}
-
-ext {
-    sdk_version = "8.1.20"
-}
-
-allprojects {
-    version = "0.0.1-SNAPSHOT"
-}
-
 ignitionModule {
     /*
      * Human readable name of the module, as will be displayed on the gateway status page
@@ -41,7 +29,7 @@ ignitionModule {
      *  Example entry: [ ":gateway": "G", ":common": "GC", ":vision-client": "C" ]
      */
     projectScopes = [
-    <PROJECT_SCOPE_CONFIG>
+        <PROJECT_SCOPE_CONFIG>
     ]
 
     /*
@@ -62,7 +50,7 @@ ignitionModule {
      * Example entry: "com.myorganization.vectorizer.VectorizerDesignerHook": "D"
      */
     hooks = [
-    <HOOK_CLASS_CONFIG>
+        <HOOK_CLASS_CONFIG>
     ]
 
     applyInductiveArtifactRepo = true
@@ -78,9 +66,4 @@ ignitionModule {
     // the path from the root documentation dir to the index file.
     // documentationIndex.set("index.html")
 
-    /*
-     * Optional unsigned modl settings. If true, modl signing will be skipped. This is not for production and should
-     * be used merely for development testing
-     */
-    // skipModlSigning = false
 }

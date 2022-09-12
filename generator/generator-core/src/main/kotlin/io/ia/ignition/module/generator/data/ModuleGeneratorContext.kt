@@ -1,6 +1,7 @@
 package io.ia.ignition.module.generator.data
 
-import io.ia.ignition.module.generator.api.Defaults
+import io.ia.ignition.module.generator.api.BuildFile
+import io.ia.ignition.module.generator.api.DefaultSdkDependencies
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorContext
 import io.ia.ignition.module.generator.api.GradleDsl
@@ -9,8 +10,8 @@ import io.ia.ignition.module.generator.api.ProjectScope.CLIENT
 import io.ia.ignition.module.generator.api.ProjectScope.COMMON
 import io.ia.ignition.module.generator.api.ProjectScope.DESIGNER
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
-import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
-import io.ia.ignition.module.generator.api.SupportedLanguage.KOTLIN
+import io.ia.ignition.module.generator.api.SourceFileType.JAVA
+import io.ia.ignition.module.generator.api.SourceFileType.KOTLIN
 import io.ia.ignition.module.generator.api.TemplateMarker.CLIENT_DEPENDENCIES
 import io.ia.ignition.module.generator.api.TemplateMarker.DESIGNER_DEPENDENCIES
 import io.ia.ignition.module.generator.api.TemplateMarker.GATEWAY_DEPENDENCIES
@@ -28,6 +29,7 @@ import io.ia.ignition.module.generator.api.TemplateMarker.SUBPROJECT_INCLUDES
 import io.ia.ignition.module.generator.util.logger
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 
 /**
  * Object which holds all the fully-validated state that may be used/useful in creating a module
@@ -37,11 +39,13 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private val effectiveScopes: List<ProjectScope> = ProjectScope.effectiveScopesFromShorthand(config.scopes)
     private val replacements = mutableMapOf<String, String>()
     private val classPrefix: String = config.moduleName.split(" ")
-        .joinToString("") { it.capitalize() }
+        .joinToString("") { name -> name.replaceFirstChar { it.uppercase() } }
 
     private val rootFolderName: String by lazy {
-        config.moduleName.split(" ").joinToString("-") { it.toLowerCase() }
+        config.moduleName.split(" ").joinToString("-") { it.lowercase() }
     }
+
+    lateinit private var _buildFileSettings: Set<BuildFile>
 
     init {
         // initialize the values that will be injected into the template resource files
@@ -82,18 +86,19 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             isSingleDirProject() -> {
                 logger.info("Detected single dir project, applying jvm plugins to root buildscript...")
                 when (config.projectLanguage) {
-                    JAVA -> Defaults.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
-                    KOTLIN -> Defaults.ROOT_PLUGIN_CONFIG + "\n    `java-library`\n    " +
+                    JAVA -> DefaultSdkDependencies.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
+                    KOTLIN -> DefaultSdkDependencies.ROOT_PLUGIN_CONFIG + "\n    `java-library`\n    " +
                         "id(\"org.jetbrains.kotlin.jvm\") version \"1.4.20\""
+                    else -> ""
                 }
             }
             else -> {
-                Defaults.ROOT_PLUGIN_CONFIG
+                DefaultSdkDependencies.ROOT_PLUGIN_CONFIG
             }
         }
-        replacements[CLIENT_DEPENDENCIES.key] = Defaults.CLIENT_SCOPE_DEPENDENCIES
-        replacements[DESIGNER_DEPENDENCIES.key] = Defaults.DESIGNER_SCOPE_DEPENDENCIES
-        replacements[GATEWAY_DEPENDENCIES.key] = Defaults.GATEWAY_SCOPE_DEPENDENCIES
+        replacements[CLIENT_DEPENDENCIES.key] = DefaultSdkDependencies.CLIENT_SCOPE_DEPENDENCIES
+        replacements[DESIGNER_DEPENDENCIES.key] = DefaultSdkDependencies.DESIGNER_SCOPE_DEPENDENCIES
+        replacements[GATEWAY_DEPENDENCIES.key] = DefaultSdkDependencies.GATEWAY_SCOPE_DEPENDENCIES
 
         // this is a quick hack to support arbitrary replacements for resource files.  Works for now as all formal
         // template replacements are enclosed in < > characters, making collisions unlikely.
@@ -188,6 +193,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             GATEWAY -> "${getClassPrefix()}GatewayHook"
             CLIENT -> "${getClassPrefix()}ClientHook"
             COMMON -> "${getClassPrefix()}Module"
+            else -> throw Exception("Generator encounted unknown Project Scope '$scope'!")
         }
     }
 
@@ -229,4 +235,10 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     override fun getModuleId(): String {
         return "${config.packageName}.${getClassPrefix().toLowerCase()}"
     }
+
+    override fun getBuildFileSettings(): Set<BuildFile> {
+        return emptySet() // todo
+    }
+
+
 }

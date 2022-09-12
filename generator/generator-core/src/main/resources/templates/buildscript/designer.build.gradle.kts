@@ -1,11 +1,15 @@
 plugins {
-    id "java-library"
+    `java-library`
 }
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+java {
+    toolchain {
+        languageVersion.set(org.gradle.jvm.toolchain.JavaLanguageVersion.of(11))
+    }
+}
 
 dependencies {
-    compileOnly("com.inductiveautomation.ignitionsdk:designer-api:${sdk_version}")
-    compileOnly("com.inductiveautomation.ignitionsdk:ignition-common:${sdk_version}")
+    //<DESIGNER_DEPENDENCIES>
+
+    // add designer scoped dependencies here
 }

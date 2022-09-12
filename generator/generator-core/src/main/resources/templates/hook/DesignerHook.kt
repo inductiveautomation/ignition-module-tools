@@ -14,6 +14,6 @@ class <MODULE_CLASSNAME>DesignerHook: AbstractDesignerModuleHook() {
 
     @Throws(Exception)
     override fun startup(context: DesignerContext, activationState: LicenseState) {
-        // implelement functionality as required
+        // implement functionality as required
     }
 }
