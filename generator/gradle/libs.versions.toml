@@ -1,7 +1,7 @@
 [versions]
-kotlin = "1.5.21"
-picoCli = "4.6.1"
-slf4j = "1.7.30"
+kotlin = "1.5.32"
+picoCli = "4.6.3"
+slf4j = "1.7.36"
 
 [libraries]
 # Dependencies referencable in buildscripts.  Note that dashes are replaced by periods in the buildscript reference.

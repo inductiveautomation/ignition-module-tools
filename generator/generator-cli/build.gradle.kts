@@ -17,6 +17,15 @@ repositories {
     mavenCentral()
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+
+    toolchain {
+        this.languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 group = "io.ia.sdk.tools.module.gen"
 
 dependencies {
@@ -104,4 +113,3 @@ val runNative by tasks.registering(Exec::class) {
     commandLine(binaryName)
     dependsOn(tasks.nativeImage)
 }
-

@@ -3,6 +3,7 @@ package io.ia.ignition.module.generator.util
 import io.ia.ignition.module.generator.api.ProjectScope.CLIENT
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
 import java.io.File
+import kotlin.io.path.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Rule
@@ -90,6 +91,39 @@ class ExtensionTests {
         val testFile = testFolder.resolve("destination.txt")
 
         testFile.createAndFillFromResource("fillFromResourceTest.txt", swaps)
+
+        val readBack = testFile.toFile().readText(Charsets.UTF_8)
+
+        assertTrue(readBack.contains(checkPhrase1))
+        assertTrue(readBack.contains(checkPhrase2))
+    }
+
+    @Test
+    fun `Path append from resource appends`() {
+        val checkPhrase1 = "i am some appended text content"
+
+        val testFolder = tempFolder.newFolder().toPath()
+        val testFile = testFolder.resolve("destination.txt")
+
+        testFile.createAndFillFromResource("fillFromResourceTest.txt")
+            .appendFromResource("appendedResource.txt")
+
+        val readBack = testFile.toFile().readText(Charsets.UTF_8)
+
+        assertTrue(readBack.contains(checkPhrase1))
+    }
+
+    @Test
+    fun `Path append from resource appends and applies replacement map`() {
+        val checkPhrase1 = "i am working!"
+        val checkPhrase2 = "Sleepin' in the morning sun"
+        val swaps = mapOf("Sittin" to "Sleepin", "some appended text content" to "working!")
+
+        val testFolder = tempFolder.newFolder().toPath()
+        val testFile = testFolder.resolve("destination.txt")
+
+        testFile.createAndFillFromResource("fillFromResourceTest.txt")
+            .appendFromResource("appendedResource.txt", swaps)
 
         val readBack = testFile.toFile().readText(Charsets.UTF_8)
 

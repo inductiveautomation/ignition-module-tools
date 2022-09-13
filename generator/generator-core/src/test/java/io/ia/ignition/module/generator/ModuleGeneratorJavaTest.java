@@ -31,11 +31,11 @@ public class ModuleGeneratorJavaTest {
 
         Throwable t = null;
 
-        try {
+        // try {
             ModuleGenerator.generate(config);
-        } catch (Exception e) {
-            t = e;
-        }
+        // } catch (Exception e) {
+        //     t = e;
+        // }
 
         assertNull(t);
     }

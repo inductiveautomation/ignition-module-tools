@@ -8,7 +8,6 @@ enum class BuildFileType {
     MISC
 }
 
-
 /**
  * A BuildFile represents a single file that will be generated.
  */
@@ -30,5 +29,3 @@ interface BuildFile {
      */
     fun renderContents(): String
 }
-
-

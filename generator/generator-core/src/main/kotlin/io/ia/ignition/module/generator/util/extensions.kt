@@ -4,10 +4,14 @@ import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.ProjectScope
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 /* This file contains extension functions associated with JVM/Std Lib classes */
 
@@ -36,6 +40,47 @@ fun String.toPackagePath(maybeScope: ProjectScope? = null): String {
     }
 }
 
+fun Path.replacePlaceholders(replacements: Map<String, String> = emptyMap()): Path {
+    this.toFile().replacePlaceholders(replacements)
+    return this
+}
+
+fun File.replacePlaceholders(replacements: Map<String, String> = emptyMap()): String {
+    return this.readText().let { ctnt ->
+        ctnt.lines().map { line ->
+            var updatedLine = line
+
+            replacements.forEach { (key, value) ->
+                if (line.contains(key)) {
+                    updatedLine = line.replace(key, value)
+                }
+            }
+            updatedLine
+        }.joinToString("\n")
+    }.also {
+        this@replacePlaceholders.writeText(it)
+    }
+}
+
+fun InputStream.writeToFileWithReplacements(file: File, replacements: Map<String, String> = emptyMap()) {
+    BufferedReader(InputStreamReader(this)).use { reader ->
+        file.outputStream().use { outStream ->
+            while (reader.ready()) {
+                var line = reader.readLine()
+
+                if (line != null) {
+                    replacements.forEach {
+                        if (line.contains(it.key)) {
+                            line = line.replace(it.key, it.value)
+                        }
+                    }
+                    outStream.write("$line\n".toByteArray(Charsets.UTF_8))
+                }
+            }
+        }
+    }
+}
+
 /**
  * Extension function which fills the File with text originating from the given resource
  *
@@ -54,27 +99,8 @@ fun File.createAndFillFromResource(resourcePath: String, replacements: Map<Strin
 
         this.createNewFile()
 
-        ClassLoader.getSystemResourceAsStream(resourcePath).use { inputStream ->
-            if (inputStream != null) {
-                BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                    outputStream().use { outStream ->
-                        while (reader.ready()) {
-                            var line = reader.readLine()
-
-                            if (line != null) {
-                                replacements.forEach {
-                                    if (line.contains(it.key)) {
-                                        line = line.replace(it.key, it.value)
-                                    }
-                                }
-                                outStream.write("$line\n".toByteArray(Charsets.UTF_8))
-                            }
-                        }
-                    }
-                }
-            } else {
-                throw IllegalArgumentException("Did not locate requested resource $resourcePath!")
-            }
+        ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath).use { inputStream ->
+            inputStream?.writeToFileWithReplacements(this, replacements)
         }
     } else {
         throw IOException("Could not create '${this.absolutePath}', already exists. Skipping content write!")
@@ -103,8 +129,34 @@ fun Path.copyFromResource(resourcePath: String): Path {
         this.toFile().parentFile.mkdirs()
     }
 
-    ModuleGenerator::class.java.getResourceAsStream(resourcePath).use { inputStream ->
-        Files.copy(inputStream, this)
+    println("Loading resource $resourcePath")
+    val resPath = ClassLoader.getSystemClassLoader().getResource(resourcePath).file.toString()
+
+    ModuleGenerator::class.java.classLoader.getResourceAsStream(resourcePath).use { inputStream ->
+        Files.copy(inputStream, this@copyFromResource)
     }
+    return this
+}
+
+/**
+ * Attempts to read the resource bath and appends its contents to the file located at the Path.
+ *  * @param resourcePath the path to the resource who's content is intended to fill the 'this' Path
+ * @return the Path object that was appended
+ */
+fun Path.appendFromResource(resourcePath: String, replacements: Map<String, String> = emptyMap()): Path {
+    if (!this.toFile().exists()) {
+        throw FileNotFoundException("Could not append to ${this.absolutePathString()}, file did not exist.")
+    }
+
+    ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath).use { inputStream ->
+        if (inputStream == null) {
+            throw FileNotFoundException("Could not read item at Path $resourcePath")
+        }
+        val contentToAppend = String(inputStream.readAllBytes(), StandardCharsets.UTF_8)
+        this@appendFromResource.toFile().appendText("\n$contentToAppend")
+    }
+
+    if (replacements.isNotEmpty()) this.replacePlaceholders(replacements)
+
     return this
 }

@@ -19,7 +19,7 @@ java {
     withSourcesJar()
 
     toolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(8))
+        this.languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
@@ -65,6 +65,7 @@ spotless {
         // optionally takes a version
         ktlint()
         targetExclude(
+            "src/main/resources/templates/config/*.kts",
             "src/main/resources/templates/buildscript/*.build.gradle.kts",
             "src/main/resources/templates/settings.gradle.kts",
             "src/main/resources/templates/hook/*.kt"
@@ -114,4 +115,3 @@ publishing {
 fun String.load(): String {
     return project.rootProject.properties[this]?.toString() ?: "null"
 }
-

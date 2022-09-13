@@ -5,7 +5,7 @@ import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.ProjectScope
 
-class BuildScriptFile(val type: GradleDsl, val projectScope: ProjectScope, config: GeneratorConfig): BuildFile {
+class BuildScriptFile(val type: GradleDsl, val projectScope: ProjectScope, config: GeneratorConfig) : BuildFile {
     override fun getLocalFilePath(): String {
         // return when ()
         return ""

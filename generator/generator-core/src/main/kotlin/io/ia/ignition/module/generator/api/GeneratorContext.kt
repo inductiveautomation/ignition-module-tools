@@ -11,11 +11,6 @@ interface GeneratorContext {
     fun getTemplateReplacements(): Map<String, String>
 
     /**
-     * Represents the set of configurable build files, generally representing _settings.gradle(.kts)_, _gradle.properties_, and the _build.gradle(.kts)_ files.
-     */
-    fun getBuildFileSettings(): Set<BuildFile>
-
-    /**
      * The root 'workspace' directory, aka where the settings.gradle and root build.gradle will be created
      */
     fun getRootDirectory(): Path

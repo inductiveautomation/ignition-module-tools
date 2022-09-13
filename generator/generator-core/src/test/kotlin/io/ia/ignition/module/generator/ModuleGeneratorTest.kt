@@ -2,7 +2,9 @@ package io.ia.ignition.module.generator
 
 import io.ia.ignition.module.generator.api.DefaultSdkDependencies
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
+import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.TemplateMarker
+import java.io.File
 import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.Path
@@ -45,11 +47,11 @@ class ModuleGeneratorTest {
             var t: Throwable? = null
             var projectRootDir: Path? = null
 
-            try {
+            // try {
                 projectRootDir = ModuleGenerator.generate(config)
-            } catch (e: Exception) {
-                t = e
-            }
+            // } catch (e: Exception) {
+            //     t = e
+            // }
 
             assertNull(t)
             assertTrue(
@@ -214,7 +216,7 @@ class ModuleGeneratorTest {
     }
 
     @Test
-    fun `CG project has appropriate module configuration`() {
+    fun `CG groovy project has appropriate module configuration`() {
         val parentDir = tempFolder.newFolder().toPath()
 
         val scopes = "GC"
@@ -226,6 +228,7 @@ class ModuleGeneratorTest {
             .packageName(pkg)
             .parentDir(parentDir)
             .scopes(scopes)
+            .buildDSL(GradleDsl.GROOVY)
             .build()
 
         var t: Throwable? = null
@@ -251,7 +254,7 @@ class ModuleGeneratorTest {
     }
 
     @Test
-    fun `CGD project has appropriate module configuration`() {
+    fun `CGD groovy project has appropriate module configuration`() {
         val parentDir = tempFolder.newFolder().toPath()
 
         val scopes = "GCD"
@@ -263,6 +266,7 @@ class ModuleGeneratorTest {
             .packageName(pkg)
             .parentDir(parentDir)
             .scopes(scopes)
+            .buildDSL(GradleDsl.GROOVY)
             .build()
 
         var t: Throwable? = null
@@ -308,6 +312,7 @@ class ModuleGeneratorTest {
             .parentDir(parentDir)
             .scopes(scopes)
             .useRootForSingleScopeProject(true)
+            .buildDSL(GradleDsl.GROOVY)
             .build()
 
         var t: Throwable? = null

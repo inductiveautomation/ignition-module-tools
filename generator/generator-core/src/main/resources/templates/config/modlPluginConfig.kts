@@ -33,7 +33,7 @@ ignitionModule {
      */
     projectScopes.set(
         listOf(
-            < PROJECT_SCOPE_CONFIG >
+        <PROJECT_SCOPE_CONFIG>
     ))
 
     /*
@@ -41,20 +41,21 @@ ignitionModule {
      * for (G)ateway, (D)esigner, Vision (C)lient.
      * Example:
      * moduleDependencies = mapOf(
-     *    "CD" to "com.inductiveautomation.vision"
+     *    "CD" to "com.inductiveautomation.vision",
      *    "G" to "com.inductiveautomation.opcua"
      *  )
      */
     moduleDependencies.set(mapOf<String, String>())
 
     /*
-     * Map of fully qualified hook class to the shorthand scope.  Only one scope per hook class.
+     * Map of fully qualified hook class to the shorthand scope.  Only one scope may apply to a class, and each scope
+     * must have no more than single class registered.  You may omit scope registrations if they do not apply.
      *
      * Example entry: "com.myorganization.vectorizer.VectorizerDesignerHook" to "D"
      */
     hooks.set(
         mapOf(
-            // <HOOK_CLASS_CONFIG>
+         <HOOK_CLASS_CONFIG>
         )
     )
 
@@ -66,7 +67,12 @@ ignitionModule {
     // the files to collect into the documentation dir, with example implementation
     // documentationFiles.from(project.file("src/docs/"))
 
-    // the path from the root documentation dir to the index file.
+    /* The path from the root documentation dir to the index file, or filename if in the root doc dir. */
     // documentationIndex.set("index.html")
-}
 
+    /*
+     * Optional unsigned modl settings. If true, modl signing will be skipped. This is not for production and should
+     * be used merely for development testing
+     */
+    // skipModlSigning.set(false)
+}

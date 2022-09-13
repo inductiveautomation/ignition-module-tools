@@ -1,6 +1,5 @@
 package io.ia.ignition.module.generator.data
 
-import io.ia.ignition.module.generator.api.BuildFile
 import io.ia.ignition.module.generator.api.DefaultSdkDependencies
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorContext
@@ -29,7 +28,6 @@ import io.ia.ignition.module.generator.api.TemplateMarker.SUBPROJECT_INCLUDES
 import io.ia.ignition.module.generator.util.logger
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 
 /**
  * Object which holds all the fully-validated state that may be used/useful in creating a module
@@ -44,8 +42,6 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private val rootFolderName: String by lazy {
         config.moduleName.split(" ").joinToString("-") { it.lowercase() }
     }
-
-    lateinit private var _buildFileSettings: Set<BuildFile>
 
     init {
         // initialize the values that will be injected into the template resource files
@@ -235,10 +231,4 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     override fun getModuleId(): String {
         return "${config.packageName}.${getClassPrefix().toLowerCase()}"
     }
-
-    override fun getBuildFileSettings(): Set<BuildFile> {
-        return emptySet() // todo
-    }
-
-
 }
