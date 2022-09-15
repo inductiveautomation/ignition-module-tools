@@ -9,7 +9,6 @@ java {
 }
 
 dependencies {
-    // add gateway scoped dependencies here
-
     //<GATEWAY_DEPENDENCIES>
+    // add gateway scoped dependencies here
 }

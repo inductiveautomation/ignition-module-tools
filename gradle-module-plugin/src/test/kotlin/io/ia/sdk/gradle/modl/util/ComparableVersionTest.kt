@@ -7,9 +7,12 @@ import kotlin.test.assertTrue
 
 
 /**
- * Test ComparableVersion.
  *
- * @author [Hervé Boutemy](mailto:hboutemy@apache.org)
+ * This test and the corresponding implementation were ported from the java implementation which exists in the open
+ * source, Apache 2 licensed Maven project. For full attribution of the original Java implementation, see
+ * [the Maven repo on github](https://github.com/apache/maven).
+ *
+ * The original author in that repository is noted as [Hervé Boutemy](mailto:hboutemy@apache.org)
  */
 class ComparableVersionTest {
     private fun newComparable(version: String): ComparableVersion {

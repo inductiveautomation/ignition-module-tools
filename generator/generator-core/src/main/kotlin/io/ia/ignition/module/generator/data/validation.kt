@@ -33,7 +33,7 @@ fun validateModuleName(name: String): ValidationResult {
         else -> {
             var message = "The module name $name is valid."
             if (name.length > 32) {
-                message += " The module name is excessively long, please consider renaming."
+                message += " The module name is excessively long, consider renaming."
             }
             ValidationResult(true, message)
         }

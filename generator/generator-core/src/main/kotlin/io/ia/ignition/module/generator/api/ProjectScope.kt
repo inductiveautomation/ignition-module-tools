@@ -17,7 +17,7 @@ enum class ProjectScope(val folderName: String) {
          * shorthand string.
          */
         fun scopesFromShorthand(scopes: String): List<ProjectScope> {
-            return scopes.toUpperCase()
+            return scopes.uppercase()
                 .map {
                     when (it) {
                         'C' -> CLIENT
@@ -40,21 +40,5 @@ enum class ProjectScope(val folderName: String) {
 
             return if (asParsed.size > 1) listOf(COMMON) + asParsed else asParsed
         }
-    }
-
-    /**
-     * Builds a string containing the default SDK dependencies for a scope.  The default dependencies string
-     * will take contain [compileOnly]() entries for the most typical sdk dependencies
-     */
-    fun defaultDependencies(
-        customizer: ((artifactStubs: Set<String>) -> String)? = null
-    ): String {
-        return DefaultSdkDependencies.ARTIFACTS[this]?.let {
-            if (customizer != null) {
-                customizer(it)
-            } else {
-                it.joinToString(separator = "\n    ", postfix = "\n") { "compileOnly(\"${'$'}{ignitionSdkVersion}\")" }
-            }
-        } ?: throw Exception("Default dependencies failed to resolve for ProjectScope '$this'")
     }
 }

@@ -26,6 +26,13 @@ java {
     }
 }
 
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+
 group = "io.ia.sdk.tools.module.gen"
 
 dependencies {
@@ -39,7 +46,7 @@ dependencies {
     kapt(libs.picoCliCodegen)
     compileOnly(libs.slf4jApi)
     // Use the Kotlin test library.
-    testImplementation(libs.bundles.kotlinTest)
+    testImplementation(kotlin("test-junit"))
 }
 
 val JVM_TARGET = "1.8"
@@ -53,7 +60,7 @@ application {
 spotless {
     kotlin {
         // Optional user arguments can be set as such:
-        ktlint().userData(mapOf("indent_size" to "4", "continuation_indent_size" to "4"))
+        ktlint().editorConfigOverride(mapOf("indent_size" to "4", "continuation_indent_size" to "4"))
     }
 }
 
@@ -66,7 +73,7 @@ val binaryName = "ignition-module-gen"
 
 graal {
     javaVersion("11")
-    graalVersion("20.2.0")
+    graalVersion("20.3.5")
     mainClass(APP_MAIN_CLASS)
     outputName(binaryName)
     windowsVsVersion("2019")
@@ -105,6 +112,12 @@ tasks {
     }
     nativeImage {
         dependsOn(build)
+    }
+    named<JavaExec>("run") {
+        standardInput = System.`in`
+    }
+    named<JavaExec>("runShadow") {
+        standardInput = System.`in`
     }
 }
 

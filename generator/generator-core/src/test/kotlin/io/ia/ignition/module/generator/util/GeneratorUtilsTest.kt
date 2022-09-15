@@ -2,14 +2,14 @@ package io.ia.ignition.module.generator.util
 
 import io.ia.ignition.module.generator.api.ProjectScope
 import io.ia.ignition.module.generator.api.SourceFileType.JAVA
-import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class GeneratorUtilsTest {
     private val logger: Logger = LoggerFactory.getLogger(GeneratorUtilsTest::class.java)

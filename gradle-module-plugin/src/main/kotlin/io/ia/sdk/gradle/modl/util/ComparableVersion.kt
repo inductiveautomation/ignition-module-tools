@@ -351,6 +351,11 @@ private class ListItem() : ArrayList<Item>(), Item {
 
 /**
  *
+ * This class and the corresponding tests were ported from the java implementation which exists in the open
+ * source, Apache 2 licensed, Maven project. For full attribution of the original Java implementation, see
+ * [the Maven repo on github](https://github.com/apache/maven).
+ *
+ * The original author in that repository is noted as [Hervé Boutemy](mailto:hboutemy@apache.org)
  */
 public class ComparableVersion(private var value: String) : Comparable<ComparableVersion?> {
     private var items: ListItem = ListItem()

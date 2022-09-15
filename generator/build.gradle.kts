@@ -16,9 +16,9 @@ buildscript {
 
 plugins {
     base
-    kotlin("jvm") version "1.5.21" apply false
-    id("org.jetbrains.dokka") version "1.5.0" apply false
-    id("com.diffplug.spotless") version "5.14.2" apply false
+    kotlin("jvm") version "1.6.21" apply false
+    id("org.jetbrains.dokka") version "1.5.31" apply false
+    id("com.diffplug.spotless") version "6.11.0" apply false
 }
 
 allprojects {
@@ -31,8 +31,12 @@ tasks {
     }
 }
 
-val runCli by tasks.registering(Exec::class) {
+val runNativeCli by tasks.registering(Exec::class) {
     dependsOn(":generator-cli:nativeImage")
     workingDir("$projectDir/module-generator/cli/build/graal")
     commandLine("./ignition-module-gen")
+}
+
+val runCli by tasks.registering {
+    dependsOn(":generator-cli:run")
 }

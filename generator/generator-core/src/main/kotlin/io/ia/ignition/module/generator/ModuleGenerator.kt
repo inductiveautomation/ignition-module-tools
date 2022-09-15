@@ -1,6 +1,7 @@
 package io.ia.ignition.module.generator
 
-import io.ia.ignition.module.generator.api.DefaultSdkDependencies
+import io.ia.ignition.module.generator.api.DefaultDependencies
+import io.ia.ignition.module.generator.api.DefaultDependencies.toDependencyFormat
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.ProjectScope
@@ -19,9 +20,8 @@ import io.ia.ignition.module.generator.util.createSourceDirs
 import io.ia.ignition.module.generator.util.createSubProject
 import io.ia.ignition.module.generator.util.replacePlaceholders
 import io.ia.ignition.module.generator.util.writeHookFile
-import java.lang.IllegalStateException
-import java.nio.file.Path
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
 
 object ModuleGenerator {
     val logger = LoggerFactory.getLogger("ModuleGenerator")
@@ -161,19 +161,15 @@ object ModuleGenerator {
                 throw Exception("A single directory project can only have one scope, but was configured with $scopeString")
             } else scopes.first()
 
-            val dependencies = when (projectScope) {
-                ProjectScope.CLIENT -> DefaultSdkDependencies.CLIENT_SCOPE_DEPENDENCIES
-                ProjectScope.GATEWAY -> DefaultSdkDependencies.GATEWAY_SCOPE_DEPENDENCIES
-                ProjectScope.DESIGNER -> DefaultSdkDependencies.DESIGNER_SCOPE_DEPENDENCIES
-                ProjectScope.COMMON -> ""
-                else -> throw Exception("Unknown Project Scope '$projectScope'")
-            }.trim('\n')
+            val dependencies =
+                DefaultDependencies.ARTIFACTS[projectScope]?.toDependencyFormat(context.config.buildDsl) ?: ""
 
-            rootBuildScript.toFile().appendText("""
+            rootBuildScript.toFile().appendText(
+                """
                 |dependencies {
-                |$dependencies
+                |    $dependencies
                 |}
-            """.trimMargin()
+                """.trimMargin()
             )
         }
 

@@ -31,9 +31,8 @@ ignitionModule {
      *  (using gradle path syntax), and the value is the shorthand Scope string.
      *  Example entry: listOf( ":gateway" to "G", ":common" to "GC", ":vision-client" to "C" )
      */
-    projectScopes.set(
-        listOf(
-        <PROJECT_SCOPE_CONFIG>
+    projectScopes.putAll(mapOf(
+    <PROJECT_SCOPE_CONFIG>
     ))
 
     /*
@@ -53,11 +52,9 @@ ignitionModule {
      *
      * Example entry: "com.myorganization.vectorizer.VectorizerDesignerHook" to "D"
      */
-    hooks.set(
-        mapOf(
-         <HOOK_CLASS_CONFIG>
-        )
-    )
+    hooks.putAll(mapOf(
+    <HOOK_CLASS_CONFIG>
+    ))
 
     /*
      * Optional 'documentation' settings.  Supply the files that would be desired to end up in the 'doc' dir of the
@@ -74,5 +71,5 @@ ignitionModule {
      * Optional unsigned modl settings. If true, modl signing will be skipped. This is not for production and should
      * be used merely for development testing
      */
-    // skipModlSigning.set(false)
+    //<SKIP_MODULE_SIGNING>
 }

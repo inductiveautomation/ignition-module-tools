@@ -10,4 +10,5 @@ java {
 
 dependencies {
     // add common scoped dependencies here
+    //<COMMON_DEPENDENCIES>
 }

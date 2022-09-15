@@ -5,11 +5,11 @@ import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.ProjectScope
 import io.ia.ignition.module.generator.api.SourceFileType
 import io.ia.ignition.module.generator.api.SourceFileType.JAVA
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 val logger: Logger = LoggerFactory.getLogger("generatorUtils")
 
@@ -35,8 +35,10 @@ fun buildSubProjectSettings(context: GeneratorContext, scope: ProjectScope): Sub
 
     val packagePath = context.config.packageName.toPackagePath(scope)
 
-    return SubProjectSettings(moduleRootDir, subProjectDir, packagePath, context.config.buildDsl,
-            context.config.projectLanguage, scope)
+    return SubProjectSettings(
+        moduleRootDir, subProjectDir, packagePath, context.config.buildDsl,
+        context.config.projectLanguage, scope
+    )
 }
 
 /**
@@ -83,7 +85,7 @@ fun writeHookFile(hookDir: Path, context: GeneratorContext, scope: ProjectScope)
  *                  directory
  * @param scopeTerminatedPackagePath the package path, with the final path element being the scope (if not a single
  *        scope/mono-project)
- * @param language the language intended to be used for this project.  DefaultSdkDependencies to SourceFileType.JAVA
+ * @param language the language intended to be used for this project.  DefaultDependencies to SourceFileType.JAVA
  * @return [Path] pointing to the src/main/package/name/scope source directory, where a hook file is commonly located
  */
 fun createSourceDirs(parentDir: Path, scopeTerminatedPackagePath: String, language: SourceFileType = JAVA): Path {

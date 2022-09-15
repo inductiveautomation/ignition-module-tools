@@ -2,13 +2,12 @@ package io.ia.ignition.module.generator.util
 
 import io.ia.ignition.module.generator.api.ProjectScope.CLIENT
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
-import java.io.File
-import kotlin.io.path.Path
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Unit tests supporting extension functions

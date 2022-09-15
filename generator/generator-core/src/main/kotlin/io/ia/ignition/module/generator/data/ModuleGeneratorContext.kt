@@ -1,6 +1,7 @@
 package io.ia.ignition.module.generator.data
 
-import io.ia.ignition.module.generator.api.DefaultSdkDependencies
+import io.ia.ignition.module.generator.api.DefaultDependencies
+import io.ia.ignition.module.generator.api.DefaultDependencies.toDependencyFormat
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorContext
 import io.ia.ignition.module.generator.api.GradleDsl
@@ -11,7 +12,9 @@ import io.ia.ignition.module.generator.api.ProjectScope.DESIGNER
 import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
 import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import io.ia.ignition.module.generator.api.SourceFileType.KOTLIN
+import io.ia.ignition.module.generator.api.TemplateMarker
 import io.ia.ignition.module.generator.api.TemplateMarker.CLIENT_DEPENDENCIES
+import io.ia.ignition.module.generator.api.TemplateMarker.COMMON_DEPENDENCIES
 import io.ia.ignition.module.generator.api.TemplateMarker.DESIGNER_DEPENDENCIES
 import io.ia.ignition.module.generator.api.TemplateMarker.GATEWAY_DEPENDENCIES
 import io.ia.ignition.module.generator.api.TemplateMarker.HOOK_CLASS_CONFIG
@@ -25,6 +28,7 @@ import io.ia.ignition.module.generator.api.TemplateMarker.ROOT_PLUGIN_CONFIGURAT
 import io.ia.ignition.module.generator.api.TemplateMarker.ROOT_PROJECT_NAME
 import io.ia.ignition.module.generator.api.TemplateMarker.SETTINGS_HEADER
 import io.ia.ignition.module.generator.api.TemplateMarker.SUBPROJECT_INCLUDES
+import io.ia.ignition.module.generator.util.capitalize
 import io.ia.ignition.module.generator.util.logger
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -37,7 +41,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private val effectiveScopes: List<ProjectScope> = ProjectScope.effectiveScopesFromShorthand(config.scopes)
     private val replacements = mutableMapOf<String, String>()
     private val classPrefix: String = config.moduleName.split(" ")
-        .joinToString("") { name -> name.replaceFirstChar { it.uppercase() } }
+        .joinToString("") { name -> name.capitalize() }
 
     private val rootFolderName: String by lazy {
         config.moduleName.split(" ").joinToString("-") { it.lowercase() }
@@ -75,26 +79,45 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 |}
             """.trimMargin("|")
         }
-        replacements[ROOT_PLUGIN_CONFIGURATION.key] = when {
+        replacements[ROOT_PLUGIN_CONFIGURATION.key] = DefaultDependencies.MODL_PLUGIN.replace(
+            TemplateMarker.MODL_PLUGIN_VERSION.key,
+            config.modulePluginVersion
+        ) + when {
             config.rootPluginConfig.isNotEmpty() -> {
                 config.rootPluginConfig
             }
+
             isSingleDirProject() -> {
                 logger.info("Detected single dir project, applying jvm plugins to root buildscript...")
                 when (config.projectLanguage) {
-                    JAVA -> DefaultSdkDependencies.ROOT_PLUGIN_CONFIG + "\n    id(\"java-library\")"
-                    KOTLIN -> DefaultSdkDependencies.ROOT_PLUGIN_CONFIG + "\n    `java-library`\n    " +
-                        "id(\"org.jetbrains.kotlin.jvm\") version \"1.4.20\""
+                    JAVA -> DefaultDependencies.MODL_PLUGIN + "\n    id(\"java-library\")"
+                    KOTLIN ->
+                        DefaultDependencies.MODL_PLUGIN + "\n    `java-library`\n    " +
+                            "id(\"org.jetbrains.kotlin.jvm\") version \"1.5.32\""
+
                     else -> ""
                 }
             }
-            else -> {
-                DefaultSdkDependencies.ROOT_PLUGIN_CONFIG
+
+            else -> ""
+        }
+        replacements[TemplateMarker.SKIP_SIGNING_CONFIG.key] = config.buildDsl.skipSigningConfig(config.skipModuleSigning)
+
+        // populate the dependency replacements
+        scopes.forEach {
+            @Suppress("UNUSED_EXPRESSION")
+            when (it) {
+                CLIENT -> replacements[CLIENT_DEPENDENCIES.key] =
+                    DefaultDependencies.ARTIFACTS[CLIENT]?.toDependencyFormat(config.buildDsl) ?: ""
+                DESIGNER -> replacements[DESIGNER_DEPENDENCIES.key] =
+                    DefaultDependencies.ARTIFACTS[DESIGNER]?.toDependencyFormat(config.buildDsl) ?: ""
+                GATEWAY -> replacements[GATEWAY_DEPENDENCIES.key] =
+                    DefaultDependencies.ARTIFACTS[GATEWAY]?.toDependencyFormat(config.buildDsl) ?: ""
+                COMMON -> replacements[COMMON_DEPENDENCIES.key] =
+                    DefaultDependencies.ARTIFACTS[COMMON]?.toDependencyFormat(config.buildDsl) ?: ""
+                else -> ""
             }
         }
-        replacements[CLIENT_DEPENDENCIES.key] = DefaultSdkDependencies.CLIENT_SCOPE_DEPENDENCIES
-        replacements[DESIGNER_DEPENDENCIES.key] = DefaultSdkDependencies.DESIGNER_SCOPE_DEPENDENCIES
-        replacements[GATEWAY_DEPENDENCIES.key] = DefaultSdkDependencies.GATEWAY_SCOPE_DEPENDENCIES
 
         // this is a quick hack to support arbitrary replacements for resource files.  Works for now as all formal
         // template replacements are enclosed in < > characters, making collisions unlikely.
@@ -106,10 +129,12 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private fun buildHookEntry(): String {
         val hookEntry = scopes.map {
             logger.trace("Creating module hook configuration entry for '$it' scope")
+            val scopeInitial = it.name.first().uppercaseChar()
+            val pkgName = config.packageName
             when (it) {
-                DESIGNER -> "\"${config.packageName}.designer.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
-                CLIENT -> "\"${config.packageName}.client.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
-                GATEWAY -> "\"${config.packageName}.gateway.${getHookClassName(it)}\" ${associator()} \"${it.name.first().toUpperCase()}\""
+                DESIGNER -> "\"$pkgName.designer.${getHookClassName(it)}\" ${associator()} \"$scopeInitial\""
+                CLIENT -> "\"$pkgName.client.${getHookClassName(it)}\" ${associator()} \"$scopeInitial\""
+                GATEWAY -> "\"$pkgName.gateway.${getHookClassName(it)}\" ${associator()} \"$scopeInitial\""
                 else -> {
                     logger.warn("Unknown scope '$it', hook configuration entry skipped.")
                     null
@@ -122,23 +147,19 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     }
 
     private fun associator(): String {
-        return when (config.buildDsl) {
-            GradleDsl.KOTLIN -> "to"
-            GradleDsl.GROOVY -> ":"
-        }
+        return config.buildDsl.mapAssociator()
     }
 
     /**
      * Emits a String that is a valid project scope configuration, consistent with the buildscript dsl type.
      */
     private fun buildProjectScopeConfiguration(): String {
-        val associator = associator()
 
         // single dir project will only have a single scope, so just return the initial
         if (isSingleDirProject()) {
             val scopeName = scopes[0].name
 
-            return "\":\"" + associator + " \"${scopeName[0]}\""
+            return "\":\" ${associator()} \"${scopeName[0]}\""
         }
 
         // create the string to populate the `scopes` in the ignitionModule configuration DSL, each of which being
@@ -149,16 +170,16 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             val scope = when (ps) {
                 // common should be available in all scopes the project is created for
                 COMMON -> scopes.joinToString(separator = "") { sc ->
-                    sc.folderName[0].toUpperCase().toString()
+                    sc.folderName[0].uppercaseChar().toString()
                 }
                 // client scope implies availability in the designer, if designer scope is present
                 CLIENT -> if (scopes.contains(DESIGNER)) "CD" else "C"
                 else -> {
-                    ps.folderName[0].toUpperCase().toString()
+                    ps.folderName[0].uppercaseChar().toString()
                 }
             }
 
-            "\":${ps.folderName}\" $associator \"$scope\""
+            "\":${ps.folderName}\" ${associator()} \"$scope\""
         }.sorted().joinToString(separator = ",\n        ", prefix = "    ", postfix = "")
     }
 
@@ -168,8 +189,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
 
     private val rootDirectory: Path = Paths.get(config.parentDir.toString(), rootFolderName).toAbsolutePath()
 
-    private val buildScriptFilename: String =
-        if (config.buildDsl == GradleDsl.GROOVY) "build.gradle" else "build.gradle.kts"
+    private val buildScriptFilename: String = config.buildDsl.buildScriptFilename()
 
     private val settingsFileName: String =
         if (config.settingsDsl == GradleDsl.GROOVY) "settings.gradle" else "settings.gradle.kts"
@@ -217,7 +237,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         return if (scope == COMMON) {
             "hook/Module.$fileExtension"
         } else {
-            "hook/${scope.name.toLowerCase().capitalize()}Hook.$fileExtension"
+            "hook/${scope.name.lowercase().capitalize()}Hook.$fileExtension"
         }
     }
 
@@ -229,6 +249,6 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     }
 
     override fun getModuleId(): String {
-        return "${config.packageName}.${getClassPrefix().toLowerCase()}"
+        return "${config.packageName}.${getClassPrefix().lowercase()}"
     }
 }

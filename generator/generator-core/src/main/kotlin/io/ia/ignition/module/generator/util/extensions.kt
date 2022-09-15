@@ -11,6 +11,7 @@ import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.Locale
 import kotlin.io.path.absolutePathString
 
 /* This file contains extension functions associated with JVM/Std Lib classes */
@@ -22,7 +23,7 @@ import kotlin.io.path.absolutePathString
 fun String.toClassFriendlyName(): String {
     val split = this.split(" ")
 
-    return split.joinToString("") { it.capitalize() }
+    return split.joinToString("") { s -> s.capitalize() }
 }
 
 /**
@@ -36,7 +37,7 @@ fun String.toPackagePath(maybeScope: ProjectScope? = null): String {
     return if (maybeScope == null) {
         path
     } else {
-        "$path/${maybeScope.name.toLowerCase()}"
+        "$path/${maybeScope.name.lowercase()}"
     }
 }
 
@@ -129,9 +130,6 @@ fun Path.copyFromResource(resourcePath: String): Path {
         this.toFile().parentFile.mkdirs()
     }
 
-    println("Loading resource $resourcePath")
-    val resPath = ClassLoader.getSystemClassLoader().getResource(resourcePath).file.toString()
-
     ModuleGenerator::class.java.classLoader.getResourceAsStream(resourcePath).use { inputStream ->
         Files.copy(inputStream, this@copyFromResource)
     }
@@ -139,8 +137,8 @@ fun Path.copyFromResource(resourcePath: String): Path {
 }
 
 /**
- * Attempts to read the resource bath and appends its contents to the file located at the Path.
- *  * @param resourcePath the path to the resource who's content is intended to fill the 'this' Path
+ * Attempts to read the resource path and appends its contents to the file located at the Path.
+ * @param resourcePath the path to the resource who's content is intended to fill the 'this' Path
  * @return the Path object that was appended
  */
 fun Path.appendFromResource(resourcePath: String, replacements: Map<String, String> = emptyMap()): Path {
@@ -159,4 +157,8 @@ fun Path.appendFromResource(resourcePath: String, replacements: Map<String, Stri
     if (replacements.isNotEmpty()) this.replacePlaceholders(replacements)
 
     return this
+}
+
+fun String.capitalize(): String {
+    return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 }
