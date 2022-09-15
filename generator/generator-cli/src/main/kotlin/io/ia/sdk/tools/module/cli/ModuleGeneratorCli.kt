@@ -29,7 +29,7 @@ class ModuleGeneratorCli : Callable<Int> {
     /**
      *
      */
-    @Option(names = ["-s", "--scope"], interactive = true, description = ["Shorthand scope String like 'DCG'"])
+    @Option(names = ["-s", "--scope"], description = ["Shorthand scope String like 'DCG'"])
     var scope: String? = null
 
     /**
@@ -37,28 +37,26 @@ class ModuleGeneratorCli : Callable<Int> {
      */
     @Option(
         names = ["-d", "--directory"],
-        description = ["Path to directory where new project should be created."],
-        interactive = true
+        description = ["Absolute path to directory where new project should be created. Default's to cli working dir."]
     )
-    var directory: String? = null
+    var directory: String? = File("").absolutePath
 
     /**
      *
      */
     @Option(
         names = ["-n", "--name"],
-        description = ["Spoken name of the module, not ending in 'module'"],
-        interactive = true
+        description = ["Spoken name of the module, not ending in 'module'"]
     )
     var moduleName: String? = null
 
     /**
      * The java package qualification to use for the generated module.  For instance "org.mycompany.area"
      */
-    @Option(names = ["-p", "--package"], description = ["'Base' package path for the module"], interactive = true)
+    @Option(names = ["-p", "--package"], description = ["'Base' package path for the module"])
     var packageRoot: String? = null
 
-    @Option(names = ["--localDev"], description = ["Support 'local' plugin debugging."])
+    @Option(names = ["--localDev"], description = ["Aid 'local' debugging by adding mavenLocal() artifact repo."])
     var localDev = false
 
     @Option(names = ["--buildscriptDsl"], description = ["Language to use for buildscripts, either 'groovy' or 'kotlin'"])
@@ -75,32 +73,26 @@ class ModuleGeneratorCli : Callable<Int> {
         }
     }
 
+    fun promptRequired(): Boolean {
+        //  we need to prompt with the initial header if there are any missing required inputs
+        return scope == null || moduleName == null || packageRoot == null || buildscriptDsl == null
+    }
+
     override fun call(): Int {
-        println(
-            """
+        if (promptRequired()) {
+            println(
+                """
                 |** Ignition Module Generator **
                 |Please provide some information so we can generate your skeleton module.
                 |Press 'Enter' to use default if a default is stated as available.
                 |"""
-                .trimMargin("|")
-        )
+                    .trimMargin("|")
+            )
+        }
 
         when (scope) {
             null -> {
                 scope = prompt("Enter scopes (any combination G, C or D. Example - GD): ")
-            }
-        }
-
-        when (directory) {
-            null -> {
-                val input = prompt("Directory in which to make new project (default: current directory): ")
-
-                directory = if (input.isNotEmpty()) {
-                    input
-                } else {
-                    val currentDir = File("").absolutePath
-                    currentDir
-                }
             }
         }
 
