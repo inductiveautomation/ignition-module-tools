@@ -71,7 +71,6 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             }
         replacements[HOOK_CLASS_CONFIG.key] = buildHookEntry()
 
-
         replacements[TemplateMarker.SKIP_SIGNING_CONFIG.key] = config.buildDsl.skipSigningConfig(config.skipModuleSigning)
         settingsHeaderReplacement()
         rootPluginReplacement()
@@ -111,18 +110,18 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 |        }
                 |    }
                 |}
-            """.trimMargin("|").let { pluginBlock ->
-                var block = if (config.settingsDsl == GROOVY) {
-                    pluginBlock.replace(
-                        """url = uri("https://nexus.inductiveautomation.com/repository/public")""",
-                        """url = "https://nexus.inductiveautomation.com/repository/public" """
-                    )
-                } else pluginBlock
-
+        """.trimMargin("|").let { pluginBlock ->
+            var block = if (config.settingsDsl == GROOVY) {
+                pluginBlock.replace(
+                    """url = uri("https://nexus.inductiveautomation.com/repository/public")""",
+                    """url = "https://nexus.inductiveautomation.com/repository/public" """
+                )
+            } else pluginBlock
 
             block.let {
                 if (config.debugPluginConfig) {
-                    it.replace("gradlePluginPortal()",
+                    it.replace(
+                        "gradlePluginPortal()",
                         "mavenLocal()\n        gradlePluginPortal()\n"
                     )
                 } else it
@@ -155,7 +154,6 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             }
             else -> ""
         }
-
     }
 
     private fun buildHookEntry(): String {
