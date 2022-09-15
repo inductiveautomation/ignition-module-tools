@@ -299,7 +299,7 @@ class CollectModlDependenciesTest : BaseTest() {
             modlImplementation('org.eclipse.milo:sdk-server:0.6.1') {
                 exclude(module: "stack-core")
             }
-            """
+        """
         val customizers = mapOf(
             CLIENT_DEP to jfreeLib,
             GW_DEP to milo

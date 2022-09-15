@@ -5,6 +5,7 @@ import io.ia.ignition.module.generator.api.DefaultDependencies.toDependencyForma
 import io.ia.ignition.module.generator.api.GeneratorConfig
 import io.ia.ignition.module.generator.api.GeneratorContext
 import io.ia.ignition.module.generator.api.GradleDsl
+import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.ProjectScope
 import io.ia.ignition.module.generator.api.ProjectScope.CLIENT
 import io.ia.ignition.module.generator.api.ProjectScope.COMMON
@@ -69,40 +70,11 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 ) { "\":${it.folderName}\"" }
             }
         replacements[HOOK_CLASS_CONFIG.key] = buildHookEntry()
-        replacements[SETTINGS_HEADER.key] = if (!config.debugPluginConfig) "" else {
-            """
-                |pluginManagement {
-                |    repositories {
-                |        mavenLocal()
-                |        gradlePluginPortal()
-                |    }
-                |}
-            """.trimMargin("|")
-        }
-        replacements[ROOT_PLUGIN_CONFIGURATION.key] = DefaultDependencies.MODL_PLUGIN.replace(
-            TemplateMarker.MODL_PLUGIN_VERSION.key,
-            config.modulePluginVersion
-        ) + when {
-            config.rootPluginConfig.isNotEmpty() -> {
-                config.rootPluginConfig
-            }
 
-            isSingleDirProject() -> {
-                logger.info("Detected single dir project, applying jvm plugins to root buildscript...")
-                when (config.projectLanguage) {
-                    JAVA -> DefaultDependencies.MODL_PLUGIN + "\n    id(\"java-library\")"
-                    KOTLIN ->
-                        DefaultDependencies.MODL_PLUGIN + "\n    `java-library`\n    " +
-                            "id(\"org.jetbrains.kotlin.jvm\") version \"1.5.32\""
 
-                    else -> ""
-                }
-            }
-
-            else -> ""
-        }
         replacements[TemplateMarker.SKIP_SIGNING_CONFIG.key] = config.buildDsl.skipSigningConfig(config.skipModuleSigning)
-
+        settingsHeaderReplacement()
+        rootPluginReplacement()
         // populate the dependency replacements
         scopes.forEach {
             @Suppress("UNUSED_EXPRESSION")
@@ -124,6 +96,66 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         if (config.customReplacements.isNotEmpty()) {
             config.customReplacements.forEach { (k, v) -> replacements[k] = v }
         }
+    }
+
+    /**
+     * Establishes the pluginManagement, so that the plugin can resolve the module signer lib from nexus
+     */
+    private fun settingsHeaderReplacement() {
+        replacements[SETTINGS_HEADER.key] = """
+                |pluginManagement {
+                |    repositories {
+                |        gradlePluginPortal()
+                |        maven {
+                |            url = uri("https://nexus.inductiveautomation.com/repository/public")
+                |        }
+                |    }
+                |}
+            """.trimMargin("|").let { pluginBlock ->
+                var block = if (config.settingsDsl == GROOVY) {
+                    pluginBlock.replace(
+                        """url = uri("https://nexus.inductiveautomation.com/repository/public")""",
+                        """url = "https://nexus.inductiveautomation.com/repository/public" """
+                    )
+                } else pluginBlock
+
+
+            block.let {
+                if (config.debugPluginConfig) {
+                    it.replace("gradlePluginPortal()",
+                        "mavenLocal()\n        gradlePluginPortal()\n"
+                    )
+                } else it
+            }
+        }
+    }
+
+    /**
+     *  Populates the replacement map with the plugin entries.  If the the rootPluginConfig is provided by the
+     *  [GeneratorConfig] then it will be used, otherwise we fall back to just applying the modl plugin.  We also
+     *  apply java-lib plugin if we're dealing with a single-directory project (where the root directory has sources
+     *  for a single scope module).
+     */
+    private fun rootPluginReplacement() {
+        replacements[ROOT_PLUGIN_CONFIGURATION.key] = config.rootPluginConfig.ifEmpty {
+            DefaultDependencies.MODL_PLUGIN.replace(
+                TemplateMarker.MODL_PLUGIN_VERSION.key,
+                config.modulePluginVersion
+            )
+        } + when {
+            isSingleDirProject() -> {
+                logger.info("Detected single dir project, applying jvm plugins to root buildscript...")
+                when (config.projectLanguage) {
+                    JAVA -> "\n    id(\"java-library\")"
+                    KOTLIN -> if (config.buildDsl == GradleDsl.KOTLIN) {
+                        "`java-library`\n    kotlin(\"jvm\") version(\"1.6.21\")"
+                    } else "id(\"java-library\")\n    id(\"org.jetbrains.kotlin.jvm\") version \"1.6.21\""
+                    else -> ""
+                }
+            }
+            else -> ""
+        }
+
     }
 
     private fun buildHookEntry(): String {
@@ -192,7 +224,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private val buildScriptFilename: String = config.buildDsl.buildScriptFilename()
 
     private val settingsFileName: String =
-        if (config.settingsDsl == GradleDsl.GROOVY) "settings.gradle" else "settings.gradle.kts"
+        if (config.settingsDsl == GROOVY) "settings.gradle" else "settings.gradle.kts"
 
     override fun getRootDirectory(): Path {
         return rootDirectory

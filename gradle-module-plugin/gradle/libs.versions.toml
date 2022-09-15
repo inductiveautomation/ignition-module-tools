@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.5.21"
+kotlin = "1.6.21"
 moshi = "1.9.3"
 
 [libraries]
@@ -14,4 +14,3 @@ moduleSigner = { module = "com.inductiveautomation.ignitionsdk:module-signer", v
 
 [bundles]
 kotlinTest = ["kotlinTest", "kotlinTestJunit"]
-

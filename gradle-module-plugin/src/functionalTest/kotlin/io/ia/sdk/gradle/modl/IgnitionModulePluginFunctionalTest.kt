@@ -42,7 +42,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|")
+            """.trimMargin("|")
         )
 
         val result: BuildResult = runTask(projectDir, "tasks")
@@ -72,7 +72,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-        """.trimMargin("|")
+            """.trimMargin("|")
         )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
@@ -106,7 +106,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = project.version
             |
             |}
-        """.trimMargin("|")
+            """.trimMargin("|")
         )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
@@ -161,21 +161,11 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             .scopes(scopes)
             .packageName(packageName)
             .parentDir(rootDir)
+            .allowUnsignedModules(true)
             .useRootForSingleScopeProject(false)
             .build()
 
         val projectDir = ModuleGenerator.generate(config)
-        projectDir.resolve("build.gradle").toFile().let {
-            it.writeText(
-                it.readLines().map { line ->
-                    if ("    // skipModlSigning = false" == line) {
-                        "    skipModlSigning = true"
-                    } else {
-                        line
-                    }
-                }.joinToString(System.lineSeparator())
-            )
-        }
         prepareSigningTestResources(rootDir.resolve(nameToDirName(moduleName)))
 
         runTask(projectDir.toFile(), "build")
@@ -197,6 +187,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             .scopes(scopes)
             .packageName(packageName)
             .parentDir(rootDir)
+            .allowUnsignedModules(true)
             .useRootForSingleScopeProject(false)
             .build()
 

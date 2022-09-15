@@ -1,6 +1,7 @@
 package io.ia.ignition.module.generator.api
 
 import io.ia.ignition.module.generator.api.DefaultDependencies.GRADLE_VERSION
+import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
 import io.ia.ignition.module.generator.api.GradleDsl.KOTLIN
 import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import java.nio.file.Path

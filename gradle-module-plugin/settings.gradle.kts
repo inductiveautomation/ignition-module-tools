@@ -8,6 +8,7 @@ pluginManagement {
         mavenCentral()
     }
 }
+rootProject.name = "gradle-module-plugin"
 
 include(":")
 
