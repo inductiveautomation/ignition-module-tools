@@ -17,9 +17,7 @@ This project uses Gradle for build tooling and includes the gradle wrapper.  To 
 
 ### Requirements
 
-   - *JDK 11* should resolve automatically via the Gradle JavaToolchain api.  To specify JDK available to gradle, via
-system `JAVA_HOME` variable, or `org.gradle.java.home =/path/to/jdk/home` as a commandline flag
-(`-Dorg.gradle.java.home.=/path`), or in the gradle.properties file.
+   - *JDK 11* should resolve automatically via the Gradle JavaToolchain api.  To specify JDK available to gradle, via system `JAVA_HOME` variable, or `org.gradle.java.home =/path/to/jdk/home` as a commandline flag (`-Dorg.gradle.java.home.=/path`), or in the gradle.properties file.
 
 ### How To
 

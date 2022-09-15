@@ -25,6 +25,6 @@ gradlew.bat build
 
 ### Running the CLI
 
-To run the CLI locally, you from the `generator/` directory, you can run the `runCli --console plain` task, using the
-wrappers as shown above.  `--console plain ` is optional but suggested to avoid interpolation of gradle loggers in
-the commandline prompts.
+To run the CLI locally, cd into the `generator/` directory and run `./gradlew runCli --console plain` task, (windows
+users, use the _bat_ wrappers as shown above.  `--console plain ` is optional but suggested to avoid interpolation of
+gradle console logging while the commandline prompts for user input.

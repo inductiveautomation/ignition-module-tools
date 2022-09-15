@@ -16,8 +16,9 @@ can save a lot of time getting started.
 
 ## Adding to Your Project as a Dependency
 
-This small library is intended for use in a Java runtime environment, and is not currently to a public artifact
-respository. To use in a maven or gradle project dependency, you can build and publish it to your local maven cache:
+This small library is intended for use in a Java runtime environment, and is not currently published to a public
+artifact repository. To use in a maven or gradle project dependency, you can build and publish it to your local maven
+cache.  To publish to your local maven cache (by default, in `<user home>/.m2/`), run:
 
 
 ```shell
@@ -46,6 +47,7 @@ dependencies {
 }
 
 dependencies {
+    // VERSION is the version defined in generator/build.gradle.kts
     implementation("io.ia.sdk.tools.module.gen:generator-core:$VERSION")
 }
 ```

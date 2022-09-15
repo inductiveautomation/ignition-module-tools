@@ -6,7 +6,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     id("com.gradle.plugin-publish") version "0.16.0"
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.7.10"
     id("com.diffplug.spotless") version "6.11.0"
 }
 
@@ -69,11 +69,11 @@ java {
     }
 }
 
-// kotlin {
-//     jvmToolchain {
-//         (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
-//     }
-// }
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
 
 
 gradlePlugin {

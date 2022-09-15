@@ -52,12 +52,6 @@ tasks {
             exclude("**/resources/**/*.kts")
         }
     }
-
-    withType<Test>().configureEach {
-        // javaLauncher.set(javaToolchains.launcherFor {
-        //     languageVersion.set(JavaLanguageVersion.of(11))
-        // })
-    }
 }
 
 dependencies {
