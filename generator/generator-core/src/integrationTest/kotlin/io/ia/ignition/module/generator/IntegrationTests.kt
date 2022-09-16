@@ -12,7 +12,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertTrue
 
-class FunctionalTests {
+class IntegrationTests {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
