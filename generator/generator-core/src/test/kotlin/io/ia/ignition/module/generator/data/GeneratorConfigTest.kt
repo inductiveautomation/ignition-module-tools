@@ -1,10 +1,10 @@
 package io.ia.ignition.module.generator.data
 
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
-import kotlin.test.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import kotlin.test.assertTrue
 
 class GeneratorConfigTest {
     @get:Rule

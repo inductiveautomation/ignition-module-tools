@@ -43,7 +43,8 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
     |Collects modlApi and modlImplementation artifact (jar) dependencies into the ./build/artifacts of the local
     |  gradle project (including the jar produce by the subproject). I addition, writes a json file containing 
     |  meta-information about the dependencies.  This file is used by the 'root' project when assembling the final
-    |  module structure""".trimMargin()
+    |  module structure
+        """.trimMargin()
     }
 
     @get:Input

@@ -1,3 +1,6 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `java-library`
     `maven-publish`
@@ -19,29 +22,35 @@ java {
     withSourcesJar()
 
     toolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(8))
+        this.languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
 
 tasks {
-    compileKotlin {
+    withType(KotlinCompile::class) {
         kotlinOptions {
-            jvmTarget = "1.8"
-            // will retain parameter names for java reflection
-            javaParameters = true
-        }
-    }
-
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
             javaParameters = true
         }
     }
 
     withType(JavaCompile::class) {
         options.encoding = "UTF-8"
+    }
+
+    named<KotlinCompile>("compileTestKotlin") {
+        // don't try compiling resources that somehow end up in the test compilation path when we add the integration
+        // test suite
+        sourceSets {
+            exclude("**/resources/**/*.groovy")
+            exclude("**/resources/**/*.kts")
+        }
     }
 }
 
@@ -53,18 +62,48 @@ dependencies {
     api(libs.slf4jApi)
 
     // Use the Kotlin test library.
-    testImplementation(libs.bundles.kotlinTest)
+    // testImplementation(libs.bundles.kotlinTest)
+    testImplementation(kotlin("test-junit"))
 
     // support logging in tests
     testImplementation(libs.slf4jApi)
     testImplementation(libs.slf4jSimple)
 }
 
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class)
+
+        val integrationTest by registering(JvmTestSuite::class) {
+            // useKotlinTest()
+            dependencies {
+                implementation(project)
+                implementation(libs.kotlinTestJunit)
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                        testClassesDirs = sourceSets.named("integrationTest").get().output.classesDirs
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn(testing.suites.named("integrationTest"))
+}
+
 spotless {
     kotlin {
         // optionally takes a version
-        ktlint()
+        ktlint("0.44.0").editorConfigOverride(mapOf("ktlint_disabled_rules" to "filename"))
+
         targetExclude(
+            "src/main/resources/templates/config/*.kts",
             "src/main/resources/templates/buildscript/*.build.gradle.kts",
             "src/main/resources/templates/settings.gradle.kts",
             "src/main/resources/templates/hook/*.kt"
@@ -114,4 +153,3 @@ publishing {
 fun String.load(): String {
     return project.rootProject.properties[this]?.toString() ?: "null"
 }
-

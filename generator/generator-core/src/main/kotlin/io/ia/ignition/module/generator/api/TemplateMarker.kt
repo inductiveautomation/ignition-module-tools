@@ -72,6 +72,11 @@ enum class TemplateMarker(val key: String) {
     CLIENT_DEPENDENCIES("//<CLIENT_DEPENDENCIES>"),
 
     /**
+     * Value used in the `dependencies` block of a common scoped subproject
+     */
+    COMMON_DEPENDENCIES("//<COMMON_DEPENDENCIES>"),
+
+    /**
      * Value used in the `dependencies { }` block of gateway scoped subproject
      */
     GATEWAY_DEPENDENCIES("//<GATEWAY_DEPENDENCIES>"),
@@ -79,7 +84,15 @@ enum class TemplateMarker(val key: String) {
     /**
      * Value used in the `dependencies { }` block of designer scoped subproject
      */
-    DESIGNER_DEPENDENCIES("//<DESIGNER_DEPENDENCIES>");
+    DESIGNER_DEPENDENCIES("//<DESIGNER_DEPENDENCIES>"),
+
+    DEPENDENCIES("//<DEPENDENCIES>"),
+
+    JAVA_TOOLING_CONFIG("//<JAVA_TOOLING>"),
+
+    SKIP_SIGNING_CONFIG("//<SKIP_MODULE_SIGNING>"),
+
+    MODL_PLUGIN_VERSION("<MODL_PLUGIN_VERSION>");
 
     fun keys(): List<String> {
         return values().map { it.key }

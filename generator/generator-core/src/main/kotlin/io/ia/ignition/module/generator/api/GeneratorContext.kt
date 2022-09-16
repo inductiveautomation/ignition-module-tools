@@ -46,6 +46,16 @@ interface GeneratorContext {
     fun getSettingFileName(): String
 
     /**
+     * A set of Gradle Feature Preview strings, each of which will be added to the `settings.gradle` or
+     * `settings.gradle.kts`.  See the
+     * [Gradle Feature Lifecycle](https://docs.gradle.org/current/userguide/feature_lifecycle.html) for additional
+     * details.
+     */
+    fun getFeaturePreviews(): Set<String> {
+        return emptySet<String>()
+    }
+
+    /**
      * Returns the resource path for the boilerplate stub implementation of an Ignition hook class, or in the case of
      * a 'common' project, a simple empty `<moduleName>Module.java`.
      *

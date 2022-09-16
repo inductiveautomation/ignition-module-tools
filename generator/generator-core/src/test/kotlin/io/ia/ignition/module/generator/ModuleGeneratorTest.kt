@@ -1,8 +1,11 @@
 package io.ia.ignition.module.generator
 
-import io.ia.ignition.module.generator.api.Defaults
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
+import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.TemplateMarker
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.Path
@@ -10,9 +13,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 
 class ModuleGeneratorTest {
     @get:Rule
@@ -209,12 +209,61 @@ class ModuleGeneratorTest {
         assertTrue(Files.exists(rootBuildFile))
         assertTrue(content.contains(expected))
         assertTrue(content.contains("dependencies {"))
-        val gwDeps = Defaults.GATEWAY_SCOPE_DEPENDENCIES
+        val gwDeps = """
+            |    compileOnly("com.inductiveautomation.ignitionsdk:ignition-common:${'$'}sdk_version")
+            |    compileOnly("com.inductiveautomation.ignitionsdk:gateway-api:${'$'}sdk_version")
+        """.trimMargin()
         assertTrue(content.contains(gwDeps), "buildscript should include '$gwDeps'")
     }
 
     @Test
-    fun `CG project has appropriate module configuration`() {
+    fun `G single dir kotlin project has appropriate module and dependency configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "G"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .buildscriptDsl(GradleDsl.KOTLIN)
+            .useRootForSingleScopeProject(true)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = """
+            |    hooks.putAll(mapOf(
+            |        "bot.skynet.terminator.gateway.TTwoHundredGatewayHook" to "G"
+            |    ))
+        """.trimMargin()
+        val rootBuildFile = projDir.resolve("build.gradle.kts")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        assertTrue(content.contains(expected))
+        assertTrue(content.contains("dependencies {"))
+        val gwDeps = """
+            |    compileOnly("com.inductiveautomation.ignitionsdk:ignition-common:${'$'}{rootProject.extra["sdk_version"]}")
+            |    compileOnly("com.inductiveautomation.ignitionsdk:gateway-api:${'$'}{rootProject.extra["sdk_version"]}")
+        """.trimMargin()
+        assertTrue(content.contains(gwDeps), "buildscript should include '$gwDeps'")
+    }
+
+    @Test
+    fun `CG groovy project has appropriate module configuration`() {
         val parentDir = tempFolder.newFolder().toPath()
 
         val scopes = "GC"
@@ -226,6 +275,7 @@ class ModuleGeneratorTest {
             .packageName(pkg)
             .parentDir(parentDir)
             .scopes(scopes)
+            .buildscriptDsl(GradleDsl.GROOVY)
             .build()
 
         var t: Throwable? = null
@@ -251,7 +301,48 @@ class ModuleGeneratorTest {
     }
 
     @Test
-    fun `CGD project has appropriate module configuration`() {
+    fun `CG kotlin project has appropriate hook configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "GC"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .buildscriptDsl(GradleDsl.KOTLIN)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = """
+        |    hooks.putAll(mapOf(
+        |        "bot.skynet.terminator.gateway.TTwoHundredGatewayHook" to "G",
+        |        "bot.skynet.terminator.client.TTwoHundredClientHook" to "C"
+        |    ))
+        """.trimMargin()
+        val rootBuildFile = projDir.resolve("build.gradle.kts")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        println(content)
+        assertTrue(content.contains(expected))
+    }
+
+    @Test
+    fun `CGD groovy project has appropriate module configuration`() {
         val parentDir = tempFolder.newFolder().toPath()
 
         val scopes = "GCD"
@@ -263,6 +354,7 @@ class ModuleGeneratorTest {
             .packageName(pkg)
             .parentDir(parentDir)
             .scopes(scopes)
+            .buildscriptDsl(GradleDsl.GROOVY)
             .build()
 
         var t: Throwable? = null
@@ -289,6 +381,47 @@ class ModuleGeneratorTest {
     }
 
     @Test
+    fun `CGD kotlin project has appropriate hook configuration`() {
+        val parentDir = tempFolder.newFolder().toPath()
+
+        val scopes = "GCD"
+        val pkg = "bot.skynet.terminator"
+        val name = "T Two Hundred"
+
+        val config = GeneratorConfigBuilder()
+            .moduleName(name)
+            .packageName(pkg)
+            .parentDir(parentDir)
+            .scopes(scopes)
+            .buildscriptDsl(GradleDsl.KOTLIN)
+            .build()
+
+        var t: Throwable? = null
+        var projDir: Path? = null
+
+        try {
+            projDir = ModuleGenerator.generate(config)
+        } catch (e: Exception) {
+            t = e
+        }
+
+        assertNull(t)
+        assertNotNull(projDir)
+
+        val expected = """
+        |    hooks.putAll(mapOf(
+        |        "bot.skynet.terminator.gateway.TTwoHundredGatewayHook" to "G",
+        |        "bot.skynet.terminator.client.TTwoHundredClientHook" to "C",
+        |        "bot.skynet.terminator.designer.TTwoHundredDesignerHook" to "D"
+        |    ))
+        """.trimMargin()
+        val rootBuildFile = projDir.resolve("build.gradle.kts")
+        val content = rootBuildFile.toFile().readText(Charsets.UTF_8)
+        assertTrue(Files.exists(rootBuildFile))
+        assertTrue(content.contains(expected))
+    }
+
+    @Test
     fun `G scoped single directory project builds without error`() {
         val parentDir = tempFolder.newFolder("gScopedSingleDirProjBuildsWithoutError").toPath()
 
@@ -308,6 +441,7 @@ class ModuleGeneratorTest {
             .parentDir(parentDir)
             .scopes(scopes)
             .useRootForSingleScopeProject(true)
+            .buildscriptDsl(GradleDsl.GROOVY)
             .build()
 
         var t: Throwable? = null

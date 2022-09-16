@@ -1,8 +1,8 @@
 package io.ia.ignition.module.generator.api
 
-import io.ia.ignition.module.generator.api.Defaults.GRADLE_VERSION
-import io.ia.ignition.module.generator.api.GradleDsl.GROOVY
-import io.ia.ignition.module.generator.api.SupportedLanguage.JAVA
+import io.ia.ignition.module.generator.api.DefaultDependencies.GRADLE_VERSION
+import io.ia.ignition.module.generator.api.GradleDsl.KOTLIN
+import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import java.nio.file.Path
 
 /**
@@ -33,17 +33,17 @@ data class GeneratorConfig constructor(
     /**
      * Language the Gradle settings file should be created with.
      */
-    val settingsDsl: GradleDsl = GROOVY,
+    val settingsDsl: GradleDsl = KOTLIN,
 
     /**
      * Which language/dsl the Gradle build files should be created with.
      */
-    val buildDsl: GradleDsl = GROOVY,
+    val buildDsl: GradleDsl = KOTLIN,
 
     /**
      * Which language the module should be written in.
      */
-    val projectLanguage: SupportedLanguage = JAVA,
+    val projectLanguage: SourceFileType = JAVA,
 
     /**
      * Version of gradle wrapper to create the project with.  Must be a version that has appropriate gradle scripts
@@ -61,7 +61,8 @@ data class GeneratorConfig constructor(
      *
      * By default, a multi-scope (or single-scope with multi-project structure) root buildscript file will have only
      * the module plugin applied.  In a single directory/single scope project structure, it will also have the
-     * appropriate java/kotlin plugins (`java-library` or `org.jetbrains.kotlin.jvm`) applied.
+     * appropriate java/kotlin plugins (`java-library` or `kotlin("jvm")`) applied, according to the project source
+     * language.
      *
      * Setting this value to a non-empty string will override the default plugin configuration, replacing it entirely.
      */
@@ -108,5 +109,20 @@ data class GeneratorConfig constructor(
      *         build.gradle
      * ```
      */
-    val useRootProjectWhenSingleScope: Boolean = false
+    val useRootProjectWhenSingleScope: Boolean = false,
+
+    /**
+     * Version of the module plugin to be used for the project.  Is excluded when 'dev mode' module structure is
+     * generated, as it is assumed the plugin will be established via 'includeBuild' in settings.gradle
+     * pluginManagement.
+     */
+    val modulePluginVersion: String = "0.1.1",
+
+    /**
+     * If signing the module should be required, set to false.  Set to true by default to allow building the
+     * generated module without needing to establish signing certificate configuration.  Should be set to 'false'
+     * in the generated project when building modules intended for production use.
+     */
+    val skipModuleSigning: Boolean = true
+
 )

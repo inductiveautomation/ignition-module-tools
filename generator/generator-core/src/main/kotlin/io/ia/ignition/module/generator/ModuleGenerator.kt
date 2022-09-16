@@ -1,7 +1,9 @@
 package io.ia.ignition.module.generator
 
-import io.ia.ignition.module.generator.api.Defaults
+import io.ia.ignition.module.generator.api.DefaultDependencies
+import io.ia.ignition.module.generator.api.DefaultDependencies.toDependencyFormat
 import io.ia.ignition.module.generator.api.GeneratorConfig
+import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.ignition.module.generator.api.ProjectScope
 import io.ia.ignition.module.generator.data.ModuleGeneratorContext
 import io.ia.ignition.module.generator.data.ValidationResult
@@ -10,15 +12,16 @@ import io.ia.ignition.module.generator.data.validatePackagePath
 import io.ia.ignition.module.generator.data.validateParentDirPath
 import io.ia.ignition.module.generator.data.validateScope
 import io.ia.ignition.module.generator.error.IllegalConfigurationException
+import io.ia.ignition.module.generator.util.appendFromResource
 import io.ia.ignition.module.generator.util.buildSubProjectSettings
 import io.ia.ignition.module.generator.util.copyFromResource
 import io.ia.ignition.module.generator.util.createAndFillFromResource
 import io.ia.ignition.module.generator.util.createSourceDirs
 import io.ia.ignition.module.generator.util.createSubProject
+import io.ia.ignition.module.generator.util.replacePlaceholders
 import io.ia.ignition.module.generator.util.writeHookFile
-import java.lang.IllegalStateException
-import java.nio.file.Path
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
 
 object ModuleGenerator {
     val logger = LoggerFactory.getLogger("ModuleGenerator")
@@ -128,7 +131,7 @@ object ModuleGenerator {
         newScriptFile.toFile().setExecutable(true)
         newScriptFile.toFile().setReadable(true)
 
-        wrapperJarTarget.copyFromResource("/$sourceWrapperJar")
+        wrapperJarTarget.copyFromResource("$sourceWrapperJar")
     }
 
     /**
@@ -140,7 +143,14 @@ object ModuleGenerator {
         val rootDir = context.getRootDirectory()
         val rootBuildScript = rootDir.resolve(context.getBuildScriptFilename())
         val templateResource = "templates/buildscript/root.${context.getBuildScriptFilename()}"
-        rootBuildScript.createAndFillFromResource(templateResource, context.getTemplateReplacements())
+        val configurationResource = when (context.config.buildDsl) {
+            GradleDsl.KOTLIN -> "templates/config/modlPluginConfig.kts"
+            GradleDsl.GROOVY -> "templates/config/modlPluginConfig.groovy"
+        }
+
+        rootBuildScript.copyFromResource(templateResource)
+            .appendFromResource(configurationResource)
+            .replacePlaceholders(context.getTemplateReplacements())
 
         // also need to add dependencies to 'single dir project' root buildscripts
         if (context.isSingleDirProject()) {
@@ -151,18 +161,15 @@ object ModuleGenerator {
                 throw Exception("A single directory project can only have one scope, but was configured with $scopeString")
             } else scopes.first()
 
-            val dependencies = when (projectScope) {
-                ProjectScope.CLIENT -> Defaults.CLIENT_SCOPE_DEPENDENCIES
-                ProjectScope.GATEWAY -> Defaults.GATEWAY_SCOPE_DEPENDENCIES
-                ProjectScope.DESIGNER -> Defaults.DESIGNER_SCOPE_DEPENDENCIES
-                ProjectScope.COMMON -> ""
-            }.trim('\n')
+            val dependencies =
+                DefaultDependencies.ARTIFACTS[projectScope]?.toDependencyFormat(context.config.buildDsl) ?: ""
 
-            rootBuildScript.toFile().appendText("""
+            rootBuildScript.toFile().appendText(
+                """
                 |dependencies {
-                |$dependencies        
+                |    $dependencies
                 |}
-            """.trimMargin()
+                """.trimMargin()
             )
         }
 

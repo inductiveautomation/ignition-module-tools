@@ -17,10 +17,10 @@ This project uses Gradle for build tooling and includes the gradle wrapper.  To 
 
 ### Requirements
 
-   - *JDK 11* available to gradle, either via system `JAVA_HOME` variable, or `org.gradle.java.home
-   =/path/to/jdk/home` as a commandline flag (`-Dorg.gradle.java.home.=/path`), or in the gradle.properties file.
+   - *JDK 11* should resolve automatically via the [Gradle Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) api.  To explicitly specify JDK available to gradle, you have a few options: rely on the `JAVA_HOME` environmental variable, set `org.gradle.java.home=/path/to/jdk/home` as a commandline flag (`-Dorg.gradle.java.home=/path`), or specify the `org.gradle.java.home` in a [gradle.properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) file.
 
-### How To 
+
+### How To
 
 
 To see a list of all tasks available, run `./gradlew tasks` or if on Windows, `gradle.bat tasks`.
@@ -49,12 +49,12 @@ If an appropriate JDK is not installed, you may install a compatible JDK using c
     choco install adoptopenjdk11
 ```
 
-If you encounter errors relating 'missing Windows 7.1 SDK', you can try specifying the visual studio version (2019 if following the install instructions just above), or provide the path to the appropriate `vsvars64.bat` by using the graal plugin configuration as [documented at the plugin repo](https://github.com/palantir/gradle-graal). 
+If you encounter errors relating 'missing Windows 7.1 SDK', you can try specifying the visual studio version (2019 if following the install instructions just above), or provide the path to the appropriate `vsvars64.bat` by using the graal plugin configuration as [documented at the plugin repo](https://github.com/palantir/gradle-graal).
 
 See the official [Graal Native-Image docs](https://www.graalvm.org/docs/reference-manual/native-image/) for details on
-environmental prerequisites. 
+environmental prerequisites.
 
 
 ## Questions?  Feedback?  Want to Contribute?
 
-Open an Issue. 
+Open an Issue.

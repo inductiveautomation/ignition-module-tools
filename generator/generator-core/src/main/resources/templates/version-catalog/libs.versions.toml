@@ -1,0 +1,31 @@
+[versions]
+# Library/Dependency Versions
+ignitionSdk = "<IGNITION SDK VERSION>"
+
+[libraries]
+# Dependencies referencable in buildscripts.  Note that dashes are replaced by periods in the buildscript reference.
+# batik-swing -> libs.batik.swing
+ignition-alarmNotificationCommon = { module = "com.inductiveautomation.ignitionsdk:alarm-notification-common", version.ref = "ignitionSdk" }
+ignition-alarmNotificationDesigner = { module = "com.inductiveautomation.ignitionsdk:alarm-notification-designer", version.ref = "ignitionSdk" }
+ignition-alarmNotificationGatewayApi = { module = "com.inductiveautomation.ignitionsdk:alarm-notification-gateway-api", version.ref = "ignitionSdk" }
+ignition-clientApi = { module = "com.inductiveautomation.ignitionsdk:client-api", version.ref = "ignitionSdk" }
+ignition-clientLauncher = { module = "com.inductiveautomation.ignitionsdk:client-launcher", version.ref = "ignitionSdk" }
+ignition-common = { module = "com.inductiveautomation.ignitionsdk:ignition-common", version.ref = "ignitionSdk" }
+ignition-designerApi = { module = "com.inductiveautomation.ignitionsdk:designer-api", version.ref = "ignitionSdk" }
+ignition-designerLauncher = { module = "com.inductiveautomation.ignitionsdk:designer-launcher", version.ref = "ignitionSdk" }
+ignition-driverApi = { module = "com.inductiveautomation.ignitionsdk:driver-api", version.ref = "ignitionSdk" }
+ignition-gatewayApi = { module = "com.inductiveautomation.ignitionsdk:gateway-api", version.ref = "ignitionSdk" }
+ignition-perspectiveCommon = { module = "com.inductiveautomation.ignitionsdk:perspective-common", version.ref = "ignitionSdk" }
+ignition-perspectiveDesigner = { module = "com.inductiveautomation.ignitionsdk:perspective-designer", version.ref = "ignitionSdk" }
+ignition-perspectiveGateway = { module = "com.inductiveautomation.ignitionsdk:perspective-gateway", version.ref = "ignitionSdk" }
+ignition-reportingCommon = { module = "com.inductiveautomation.ignitionsdk:reporting-common", version.ref = "ignitionSdk" }
+ignition-reportingDesigner = { module = "com.inductiveautomation.ignitionsdk:reporting-designer", version.ref = "ignitionSdk" }
+ignition-reportingGateway = { module = "com.inductiveautomation.ignitionsdk:reporting-gateway", version.ref = "ignitionSdk" }
+ignition-sfcClient = { module = "com.inductiveautomation.ignitionsdk:sfc-client", version.ref = "ignitionSdk" }
+ignition-sfcCommon = { module = "com.inductiveautomation.ignitionsdk:sfc-common", version.ref = "ignitionSdk" }
+ignition-sfcDesigner = { module = "com.inductiveautomation.ignitionsdk:sfc-designer", version.ref = "ignitionSdk" }
+ignition-sfcGatewayApi = { module = "com.inductiveautomation.ignitionsdk:sfc-gateway-api", version.ref = "ignitionSdk" }
+ignition-tagHistorian = { module = "com.inductiveautomation.ignitionsdk:tag-historian", version.ref = "ignitionSdk" }
+ignition-visionClientApi = { module = "com.inductiveautomation.ignitionsdk:vision-client-api", version.ref = "ignitionSdk" }
+ignition-visionCommon = { module = "com.inductiveautomation.ignitionsdk:vision-common", version.ref = "ignitionSdk" }
+ignition-visionDesignerApi = { module = "com.inductiveautomation.ignitionsdk:vision-designer-api", version.ref = "ignitionSdk" }

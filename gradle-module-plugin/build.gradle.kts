@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.LocalDateTime
 
 plugins {
     `java-gradle-plugin`
     `maven-publish`
     id("com.gradle.plugin-publish") version "0.16.0"
-    kotlin("kapt") version "1.5.21"
-    kotlin("jvm") version "1.5.21"
-    id("com.diffplug.spotless") version "5.14.2"
+    kotlin("jvm") version "1.7.10"
+    id("com.diffplug.spotless") version "6.11.0"
 }
 
 repositories {
@@ -19,7 +19,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.1.1"
+version = "0.1.2-SNAPSHOT"
 
 configurations {
     val functionalTestImplementation by registering {
@@ -51,10 +51,9 @@ dependencies {
     api(kotlin("reflect", KotlinCompilerVersion.VERSION))
     implementation(libs.guava)
     implementation(libs.moshi)
-    // kapt(libs.moshiCodegen)
     implementation(libs.kotlinXmlBuilder)
     api(libs.moduleSigner)
-    testImplementation(libs.bundles.kotlinTest)
+    testImplementation(libs.kotlinTestJunit)
     testImplementation("io.ia.sdk.tools.module.gen:generator-core")
 }
 
@@ -69,6 +68,13 @@ java {
         this.languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
+
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 
 gradlePlugin {
     plugins {
@@ -108,17 +114,9 @@ tasks {
         options.encoding = "UTF-8"
     }
 
-    compileKotlin {
+    withType<KotlinCompile>() {
         kotlinOptions {
-            jvmTarget = "11"
             // will retain parameter names for java reflection
-            javaParameters = true
-        }
-    }
-
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "11"
             javaParameters = true
         }
     }
@@ -153,8 +151,8 @@ tasks {
 
 spotless {
     kotlin {
-        ktlint("0.39.0").userData(mapOf("max_line_length" to "120"))
+        ktlint("0.44.0").editorConfigOverride(mapOf(
+            "ktlint_disabled_rules" to "filename"
+        ))
     }
 }
-
-

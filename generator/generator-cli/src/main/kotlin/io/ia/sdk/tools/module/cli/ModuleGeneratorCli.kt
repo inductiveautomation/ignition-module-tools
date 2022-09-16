@@ -5,85 +5,94 @@ package io.ia.sdk.tools.module.cli
 
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
-import java.io.File
-import java.time.Duration
-import java.time.Instant
-import java.util.concurrent.Callable
+import io.ia.ignition.module.generator.api.GradleDsl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.HelpCommand
 import picocli.CommandLine.Option
+import java.io.File
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.Callable
 
 @Command(
-        name = "ignition-module-gen",
-        version = ["0.0.1"],
-        description = ["Generates an Ignition module skeleton according to provided arguments."],
-        subcommands = [HelpCommand::class],
-        mixinStandardHelpOptions = true
+    name = "ignition-module-gen",
+    version = ["0.0.2"],
+    description = ["Generates an Ignition module skeleton according to provided arguments."],
+    subcommands = [HelpCommand::class],
+    mixinStandardHelpOptions = true
 )
 class ModuleGeneratorCli : Callable<Int> {
 
     /**
      *
      */
-    @Option(names = ["-s", "--scope"], interactive = true, description = ["Shorthand scope String like 'DCG'"])
+    @Option(names = ["-s", "--scope"], description = ["Shorthand scope String like 'DCG'"])
     var scope: String? = null
 
     /**
      *
      */
-    @Option(names = ["-d", "--directory"],
-            description = ["Path to directory where new project should be created."], interactive = true)
-    var directory: String? = null
+    @Option(
+        names = ["-d", "--directory"],
+        description = ["Absolute path to directory where new project should be created. Default's to cli working dir."]
+    )
+    var directory: String? = File("").absolutePath
 
     /**
      *
      */
-    @Option(names = ["-n", "--name"], description = ["Spoken name of the module, not ending in 'module'"],
-            interactive = true)
+    @Option(
+        names = ["-n", "--name"],
+        description = ["Spoken name of the module, not ending in 'module'"]
+    )
     var moduleName: String? = null
 
     /**
      * The java package qualification to use for the generated module.  For instance "org.mycompany.area"
      */
-    @Option(names = ["-p", "--package"], description = ["'Base' package path for the module"], interactive = true)
+    @Option(names = ["-p", "--package"], description = ["'Base' package path for the module"])
     var packageRoot: String? = null
 
-    @Option(names = ["--localDev"], description = ["Support 'local' plugin debugging."])
+    @Option(names = ["--localDev"], description = ["Aid 'local' debugging by adding mavenLocal() artifact repo."])
     var localDev = false
 
+    @Option(names = ["--buildscriptDsl"], description = ["Language to use for buildscripts, either 'groovy' or 'kotlin'"])
+    var buildscriptDsl: String? = null
+
     private fun prompt(userPrompt: String): String {
-        return System.console().readLine(userPrompt)
+        return if (System.console() != null) {
+            System.console().readLine(userPrompt)
+        } else {
+            print(userPrompt)
+            readLine().let {
+                if (it.isNullOrEmpty()) "" else it
+            }
+        }
+    }
+
+    fun promptRequired(): Boolean {
+        //  we need to prompt with the initial header if there are any missing required inputs
+        return scope == null || moduleName == null || packageRoot == null || buildscriptDsl == null
     }
 
     override fun call(): Int {
-
-        println("""
+        if (promptRequired()) {
+            println(
+                """
                 |** Ignition Module Generator **
                 |Please provide some information so we can generate your skeleton module.
                 |Press 'Enter' to use default if a default is stated as available.
                 |"""
-            .trimMargin("|")
-        )
+                    .trimMargin("|")
+            )
+        }
 
         when (scope) {
             null -> {
                 scope = prompt("Enter scopes (any combination G, C or D. Example - GD): ")
-            }
-        }
-
-        when (directory) {
-            null -> {
-                val input = prompt("Directory in which to make new project (default: current directory): ")
-
-                directory = if (input.isNotEmpty()) {
-                    input
-                } else {
-                    val currentDir = File("").absolutePath
-                    currentDir
-                }
             }
         }
 
@@ -105,6 +114,33 @@ class ModuleGeneratorCli : Callable<Int> {
             }
         }
 
+        when (buildscriptDsl) {
+            null -> {
+                var input: String? = null
+                while (input != "groovy" && input != "kotlin") {
+                    val prompt = if (input == null) {
+                        "Language for gradle buildscripts ('kotlin' or 'groovy', default: kotlin): "
+                    } else {
+                        "Please choose a valid language for buildscripts ('kotlin' or 'groovy'): "
+                    }
+
+                    prompt(prompt).lowercase().also {
+                        if (it.isEmpty()) {
+                            input = "kotlin"
+                        } else {
+                            if (it.contains("kotlin")) {
+                                input = "kotlin"
+                            } else if (it.contains("groovy")) {
+                                input = "groovy"
+                            }
+                        }
+                    }
+                }
+
+                buildscriptDsl = (input as String).lowercase()
+            }
+        }
+
         log.debug("CLI configuration: ${toString()} ")
 
         val parent = if (directory == null || directory!!.isEmpty()) {
@@ -114,13 +150,17 @@ class ModuleGeneratorCli : Callable<Int> {
         }
 
         val configBuilder = GeneratorConfigBuilder().moduleName(moduleName)
-                .parentDir(parent)
-                .scopes(scope!!.toCharArray().distinct().joinToString(""))
-                .packageName(packageRoot)
+            .parentDir(parent)
+            .scopes(scope!!.toCharArray().distinct().joinToString(""))
+            .packageName(packageRoot)
+            .buildscriptDsl(GradleDsl.valueOf(buildscriptDsl?.uppercase() ?: "KOTLIN"))
 
         if (localDev) {
+            // useful when using modules created by the generator as test support for module development
             configBuilder.debugPluginConfig(true)
-            configBuilder.rootPluginConfig("   id('io.ia.sdk.gradle.modl') version('0.0.1-PREVIEW.1')")
+            configBuilder.rootPluginConfig("""id("io.ia.sdk.modl")""")
+        } else {
+            configBuilder.rootPluginConfig("""id("io.ia.sdk.modl") version("0.1.1")""")
         }
 
         val config = configBuilder.build()

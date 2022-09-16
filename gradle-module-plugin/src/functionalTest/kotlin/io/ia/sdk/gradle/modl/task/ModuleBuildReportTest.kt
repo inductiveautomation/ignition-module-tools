@@ -126,6 +126,7 @@ class ModuleBuildReportTest : BaseTest() {
             .packageName("check.my.signage")
             .parentDir(parentDir.toPath())
             .debugPluginConfig(true)
+            .allowUnsignedModules(true)
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
@@ -134,18 +135,6 @@ class ModuleBuildReportTest : BaseTest() {
             .build()
 
         val projectDir = ModuleGenerator.generate(config)
-        projectDir.resolve("build.gradle").toFile().let {
-            it.writeText(
-                it.readLines().map { line ->
-                    if ("    // skipModlSigning = false" == line) {
-                        "    skipModlSigning = true"
-                    } else {
-                        line
-                    }
-                }.joinToString(System.lineSeparator())
-            )
-        }
-
         runTask(projectDir.toFile(), "modlReport")
         val buildDir = projectDir.resolve("build")
         val buildJson = buildDir.resolve("buildResult.json")

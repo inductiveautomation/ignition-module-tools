@@ -70,7 +70,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     @Option(
         option = KEYSTORE_FILE_FLAG,
         description =
-            "Path to the keystore used for signing.  Resolves in the same manner as gradle's project.file('<path>')"
+        "Path to the keystore used for signing.  Resolves in the same manner as gradle's project.file('<path>')"
     )
     fun setKeystorePath(path: String) {
         keystorePath.set(path)

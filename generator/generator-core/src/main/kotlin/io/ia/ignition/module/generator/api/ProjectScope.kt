@@ -4,7 +4,9 @@ enum class ProjectScope(val folderName: String) {
     CLIENT("client"),
     DESIGNER("designer"),
     GATEWAY("gateway"),
-    COMMON("common");
+    COMMON("common"),
+    // not an ignition scope, but represents the root build gradle project scope
+    ROOT("");
 
     companion object {
 
@@ -15,7 +17,7 @@ enum class ProjectScope(val folderName: String) {
          * shorthand string.
          */
         fun scopesFromShorthand(scopes: String): List<ProjectScope> {
-            return scopes.toUpperCase()
+            return scopes.uppercase()
                 .map {
                     when (it) {
                         'C' -> CLIENT

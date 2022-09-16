@@ -3,6 +3,7 @@ package io.ia.sdk.gradle.modl.task
 import com.inductiveautomation.ignitionsdk.ZipMap
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
+import io.ia.ignition.module.generator.api.GradleDsl
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.util.signedModuleName
 import org.gradle.testkit.runner.BuildResult
@@ -31,6 +32,8 @@ class SignModuleTest : BaseTest() {
             .packageName("check.my.signage")
             .parentDir(parentDir.toPath())
             .debugPluginConfig(true)
+            .allowUnsignedModules(false)
+            .settingsDsl(GradleDsl.GROOVY)
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
@@ -71,6 +74,8 @@ class SignModuleTest : BaseTest() {
             .packageName("check.my.signage")
             .parentDir(parentDir.toPath())
             .debugPluginConfig(true)
+            .allowUnsignedModules(false)
+            .settingsDsl(GradleDsl.GROOVY)
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
@@ -116,6 +121,8 @@ class SignModuleTest : BaseTest() {
             .scopes("GCD")
             .packageName("check.my.signage")
             .parentDir(tempFolder.newFolder(dirName).toPath())
+            .allowUnsignedModules(false)
+            .settingsDsl(GradleDsl.GROOVY)
             .build()
 
         val projectDir = ModuleGenerator.generate(config)
@@ -147,6 +154,8 @@ class SignModuleTest : BaseTest() {
             .packageName("check.my.signage")
             .parentDir(workingDir.toPath())
             .debugPluginConfig(true)
+            .allowUnsignedModules(false)
+            .settingsDsl(GradleDsl.GROOVY)
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
@@ -192,6 +201,8 @@ class SignModuleTest : BaseTest() {
             .packageName("check.my.signage")
             .parentDir(workingDir.toPath())
             .debugPluginConfig(true)
+            .allowUnsignedModules(false)
+            .settingsDsl(GradleDsl.GROOVY)
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")

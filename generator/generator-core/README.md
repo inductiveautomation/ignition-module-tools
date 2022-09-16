@@ -8,72 +8,47 @@ We've had requests to make it easier to get started with module development usin
 functional tests for
 the [Gradle Module Plugin](https://github.com/inductiveautomation/ignition-module-tools/tree/master/gradle-module-plugin#readme)
 and realized that we were generating module projects, we decided to pull out the functions and make them an independent
-library. The result is a somewhat unpolished but functional codebase, owing to its roots as simple testing support. 
+library. The result is a somewhat unpolished but functional codebase, owing to its roots as simple testing support.
 
 While the modules it generates may not be 100% ready for production (nor do they absolve one from learning Gradle!), it
-can save a lot of time getting started.  
+can save a lot of time getting started.
 
 
-## Adding to Your Project
+## Adding to Your Project as a Dependency
 
-This small library is intended for use in a Java runtime environment, and is currently published to the Inductive
-Automation public repository. To use in a maven or gradle project, add the IA artifact repo to your project's
-repositories, then add the dependency.
+This small library is intended for use in a Java runtime environment, and is not currently published to a public
+artifact repository. To use in a maven or gradle project dependency, you can build and publish it to your local maven
+cache.  To publish to your local maven cache (by default, in `<user home>/.m2/`), run:
 
-##### Add the Inductive Automation Artifact Repo
+
+```shell
+// for posix systems
+./gradlew build publishToMavenLocal
+```
 
 ```
-// gradle
-repositories {
-    // gradle can resolve via the singlular public url
-    maven { url 'https://nexus.inductiveautomation.com/repository/public'  }
-}
-
-// maven -- requires independent entries
-<repositories>
-        <repository>
-            <id>releases</id>
-            <url>https://nexus.inductiveautomation.com/repository/inductiveautomation-releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>snapshots</id>
-            <url>https://nexus.inductiveautomation.com/repository/inductiveautomation-snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>thirdparty</id>
-            <url>https://nexus.inductiveautomation.com/repository/inductiveautomation-thirdparty</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
+// for windows cmd
+gradlew.bat build publishToMavenLocal
 ```
+
+Once published to maven's local cache, you may consume the artifact by adding a dependency on it to your project.  To
+resolve the artifact, you'll need `mavenLocal()` as a valid gradle repository.
+
 
 #### Adding to a Gradle buildscript
 
-```
+```kotlin
+// gradle example for kotlin buildscripts , in build.gradle.kts of project depending on the generator-core
 dependencies {
-    implementation("io.ia.sdk.tools.module.gen:core:$VERSION")
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+dependencies {
+    // VERSION is the version defined in generator/build.gradle.kts
+    implementation("io.ia.sdk.tools.module.gen:generator-core:$VERSION")
 }
 ```
 
@@ -83,7 +58,7 @@ dependencies {
 ...
 <dependency>
     <groupId>io.ia.sdk.tools.module.gen</groupId>
-    <artifactId>core</artifactId>
+    <artifactId>generator-core</artifactId>
     <version>$VERSION</version>
 </dependency>
 
@@ -128,9 +103,9 @@ jar will be available in the `generator-core/build/libs` directory
 
 To see a list of all tasks available, run `./gradlew tasks` or if on Windows, `gradle.bat tasks`.
 
-## Publishing
+## Publishing to Artifact Repo
 
-The assembled library may be published to an artifact repository by configuring the appropriate publishing settings.  
+The assembled library may be published to an artifact repository by configuring the appropriate publishing settings.
 By default, it is configured to publish to a maven repository. To publish using this default setup, set the following
 properties (with appropriate values) as environmental parameters. This is most easily done with a 'gradle.properties'
 file, which can reside in the root of this repository, or in your user '.gradle' directory (
@@ -151,10 +126,10 @@ ignitionModuleGen.maven.repo.release.password=
 
 ### Planned
 
-* [ ] Functional kotlin buildscript generation
+* [x] Functional kotlin buildscript generation
 * [ ] Fully functional kotlin-based modules
     * [ ] kotlin module sources
-    
+
 
 ## Contributing
 

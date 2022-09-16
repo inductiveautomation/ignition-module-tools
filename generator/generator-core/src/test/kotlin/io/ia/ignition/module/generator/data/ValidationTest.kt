@@ -1,7 +1,7 @@
 package io.ia.ignition.module.generator.data
 
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class ValidationTest {
 
@@ -33,7 +33,7 @@ class ValidationTest {
             ValidationResult(
                 true,
                 "The module name $moduleName is valid. The module name is excessively long," +
-                    " please consider renaming."
+                    " consider renaming."
             ),
             validateModuleName(moduleName)
         )

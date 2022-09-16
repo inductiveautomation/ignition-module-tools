@@ -2,6 +2,16 @@
 
 rootProject.name = "<ROOT_PROJECT_NAME>"
 
+dependencyResolutionManagement {
+    repositories {
+        // enable resolving dependencies from the inductive automation artifact repository
+        maven {
+            url "https://nexus.inductiveautomation.com/repository/public"
+        }
+        mavenCentral()
+    }
+}
+
 include(
 <SUBPROJECT_INCLUDES>
 )
