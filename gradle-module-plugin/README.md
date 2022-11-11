@@ -180,12 +180,12 @@ ignitionModule {
      * for (G)ateway, (D)esigner, Vision (C)lient.
      * Example:
      * moduleDependencies = mapOf(
-     *    "CD" to "com.inductiveautomation.vision",
-     *    "G" to "com.inductiveautomation.opcua"
+     *    "com.inductiveautomation.vision" to "CD",
+     *    "com.inductiveautomation.opcua" to "G"
      *  )
      */
     moduleDependencies.set(mapOf<String, String>(
-        "G" to "com.inductiveautomation.opcua"
+        "com.inductiveautomation.opcua" to "G"
     ))
 
     /*
@@ -213,7 +213,7 @@ ignitionModule {
      * Optional unsigned modl settings. If true, modl signing will be skipped. This is not for production and should
      * be used merely for development testing
      */
-    skipModuleSigning.set(false)
+    skipModlSigning.set(false)
 }
 ```
 
