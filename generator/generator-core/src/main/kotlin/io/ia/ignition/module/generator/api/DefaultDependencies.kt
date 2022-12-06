@@ -1,5 +1,7 @@
 package io.ia.ignition.module.generator.api
 
+import io.ia.ignition.module.generator.api.TemplateMarker.SDK_VERSION_PLACEHOLDER
+
 object DefaultDependencies {
 
     // default gradle version
@@ -7,8 +9,6 @@ object DefaultDependencies {
 
     // default plugin configuration for the root build.gradle
     val MODL_PLUGIN: String = "id(\"io.ia.sdk.modl\") version(\"${TemplateMarker.MODL_PLUGIN_VERSION.key}\")"
-
-    const val SDK_VERSION_PLACEHOLDER = "<SDK_VERSION>"
 
     // example
     // "com.inductiveautomation.ignitionsdk:client-api:${'$'}{sdk_version}"
@@ -37,7 +37,7 @@ object DefaultDependencies {
     ): String {
         return map { artifact ->
             val version = dsl.artifactSdkVersion()
-            "$configuration(\"${artifact.replace(SDK_VERSION_PLACEHOLDER, version)}\")"
+            "$configuration(\"${artifact.replace(SDK_VERSION_PLACEHOLDER.toString(), version)}\")"
         }.joinToString(separator = "\n    ")
     }
 }

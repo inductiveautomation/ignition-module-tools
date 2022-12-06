@@ -20,8 +20,8 @@ data class SubProjectSettings(
     val buildscriptLanguage: GradleDsl,
     val projectLanguage: SourceFileType,
     val scope: ProjectScope,
-    val dependencies: String = ""
-) // optional dependencies injected into build file
+    val dependencies: String = "" // optional dependencies injected into build file
+)
 
 fun buildSubProjectSettings(context: GeneratorContext, scope: ProjectScope): SubProjectSettings {
     val moduleRootDir = context.getRootDirectory()

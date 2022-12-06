@@ -57,12 +57,12 @@ tasks {
 dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-
     // Use SLF4J api for logging, logger implementation to be provided by lib consumer
     api(libs.slf4jApi)
 
     // Use the Kotlin test library.
     // testImplementation(libs.bundles.kotlinTest)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     testImplementation(kotlin("test-junit"))
 
     // support logging in tests
