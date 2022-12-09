@@ -71,7 +71,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         settingsHeaderReplacement()
         rootPluginReplacement()
         // populate the dependency replacements
-        replacements.putAll(buildDependencyEntries(scopes))
+        replacements.putAll(buildDependencyEntries(effectiveScopes))
 
         // this is a quick hack to support arbitrary replacements for resource files.  Works for now as all formal
         // template replacements are enclosed in < > characters, making collisions unlikely.
