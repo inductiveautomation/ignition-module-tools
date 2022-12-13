@@ -70,21 +70,28 @@ class IntegrationTests {
             applyExecPermissions(workingDir.resolve("gradlew"))
         }
         val cmd = command(this)
-        val process = ProcessBuilder(*(cmd.toTypedArray()))
+        var result: String = ""
+
+        ProcessBuilder(*(cmd.toTypedArray()))
             .directory(workingDir.toFile())
-            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectErrorStream(true)
+            .start().also { process ->
+                process.inputStream.bufferedReader().run {
+                    while (true) {
+                        readLine()?.let { line ->
+                            result += "$line\n"
+                        } ?: break
+                    }
+                }
 
-        val result = process.inputStream.bufferedReader().readText()
+                process.waitFor(60, TimeUnit.SECONDS)
+                if (process.isAlive) {
+                    result += "TIMEOUT occurred\n"
+                    process.destroy()
+                }
+            }
 
-        if (!process.waitFor(60, TimeUnit.SECONDS)) {
-            process.destroy()
-            throw RuntimeException("execution timed out: $this")
-        }
-        if (process.exitValue() != 0) {
-            throw RuntimeException("execution failed with code ${process.exitValue()}: $this")
-        }
         return result
     }
 
@@ -109,7 +116,7 @@ class IntegrationTests {
 
             val projectRootDir: Path = ModuleGenerator.generate(config)
 
-            var processOutput = "build".runCommand(projectRootDir)
+            val processOutput = "build".runCommand(projectRootDir)
             assertTrue(processOutput.contains("BUILD SUCCESSFUL"))
         }
     }
@@ -117,13 +124,13 @@ class IntegrationTests {
     @Test
     fun `generated kotlin buildscript projects build successfully`() {
         listOf(
-            TestConfig("The Greatness", "le.examp", "G", dir("v1")),
-            TestConfig("almost Greatness", "le.examp.odd", "GC", dir("v2")),
-            TestConfig("The greatness", "le.examp.whoa", "GCD", dir("v3")),
-            TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4")),
-            TestConfig("The Greatness", "le.pant", "CD", dir("v5")),
-            TestConfig("A Goodness", "come.va", "C", dir("v6")),
-            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7"))
+            TestConfig("The Greatness", "le.examp", "G", dir("v1_kts")),
+            TestConfig("almost Greatness", "le.examp.odd", "GC", dir("v2_kts")),
+            TestConfig("The greatness", "le.examp.whoa", "GCD", dir("v3_kts")),
+            TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4_kts")),
+            TestConfig("The Greatness", "le.pant", "CD", dir("v5_kts")),
+            TestConfig("A Goodness", "come.va", "C", dir("v6_kts")),
+            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7_kts"))
         ).forEach {
             val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
@@ -136,6 +143,7 @@ class IntegrationTests {
             val projectRootDir: Path = ModuleGenerator.generate(config)
 
             val processOutput = "build".runCommand(projectRootDir)
+            println("OUTPUT:\n$processOutput")
             assertTrue(processOutput.contains("BUILD SUCCESSFUL"))
         }
     }

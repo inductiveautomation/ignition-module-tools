@@ -1,5 +1,10 @@
 package io.ia.ignition.module.generator.api
 
+import io.ia.ignition.module.generator.api.ProjectScope.CLIENT
+import io.ia.ignition.module.generator.api.ProjectScope.COMMON
+import io.ia.ignition.module.generator.api.ProjectScope.DESIGNER
+import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
+
 /**
  * Markers used in the various template files that are string replaced during assembly in order to create the
  * appropriately named project elements.
@@ -86,15 +91,31 @@ enum class TemplateMarker(val key: String) {
      */
     DESIGNER_DEPENDENCIES("//<DESIGNER_DEPENDENCIES>"),
 
-    DEPENDENCIES("//<DEPENDENCIES>"),
-
     JAVA_TOOLING_CONFIG("//<JAVA_TOOLING>"),
 
     SKIP_SIGNING_CONFIG("//<SKIP_MODULE_SIGNING>"),
 
-    MODL_PLUGIN_VERSION("<MODL_PLUGIN_VERSION>");
+    MODL_PLUGIN_VERSION("<MODL_PLUGIN_VERSION>"),
+
+    SDK_VERSION_PLACEHOLDER("<SDK_VERSION>");
 
     fun keys(): List<String> {
         return values().map { it.key }
+    }
+
+    override fun toString(): String {
+        return key
+    }
+
+    companion object {
+        fun dependencyKeyForScope(scope: ProjectScope): TemplateMarker? {
+            return when (scope) {
+                CLIENT -> TemplateMarker.CLIENT_DEPENDENCIES
+                DESIGNER -> TemplateMarker.DESIGNER_DEPENDENCIES
+                GATEWAY -> TemplateMarker.GATEWAY_DEPENDENCIES
+                COMMON -> TemplateMarker.COMMON_DEPENDENCIES
+                else -> null
+            }
+        }
     }
 }

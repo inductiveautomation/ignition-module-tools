@@ -14,10 +14,6 @@ import io.ia.ignition.module.generator.api.ProjectScope.GATEWAY
 import io.ia.ignition.module.generator.api.SourceFileType.JAVA
 import io.ia.ignition.module.generator.api.SourceFileType.KOTLIN
 import io.ia.ignition.module.generator.api.TemplateMarker
-import io.ia.ignition.module.generator.api.TemplateMarker.CLIENT_DEPENDENCIES
-import io.ia.ignition.module.generator.api.TemplateMarker.COMMON_DEPENDENCIES
-import io.ia.ignition.module.generator.api.TemplateMarker.DESIGNER_DEPENDENCIES
-import io.ia.ignition.module.generator.api.TemplateMarker.GATEWAY_DEPENDENCIES
 import io.ia.ignition.module.generator.api.TemplateMarker.HOOK_CLASS_CONFIG
 import io.ia.ignition.module.generator.api.TemplateMarker.MODULE_CLASSNAME
 import io.ia.ignition.module.generator.api.TemplateMarker.MODULE_FILENAME
@@ -75,25 +71,26 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         settingsHeaderReplacement()
         rootPluginReplacement()
         // populate the dependency replacements
-        scopes.forEach {
-            @Suppress("UNUSED_EXPRESSION")
-            when (it) {
-                CLIENT -> replacements[CLIENT_DEPENDENCIES.key] =
-                    DefaultDependencies.ARTIFACTS[CLIENT]?.toDependencyFormat(config.buildDsl) ?: ""
-                DESIGNER -> replacements[DESIGNER_DEPENDENCIES.key] =
-                    DefaultDependencies.ARTIFACTS[DESIGNER]?.toDependencyFormat(config.buildDsl) ?: ""
-                GATEWAY -> replacements[GATEWAY_DEPENDENCIES.key] =
-                    DefaultDependencies.ARTIFACTS[GATEWAY]?.toDependencyFormat(config.buildDsl) ?: ""
-                COMMON -> replacements[COMMON_DEPENDENCIES.key] =
-                    DefaultDependencies.ARTIFACTS[COMMON]?.toDependencyFormat(config.buildDsl) ?: ""
-                else -> ""
-            }
-        }
+        replacements.putAll(buildDependencyEntries(effectiveScopes))
 
         // this is a quick hack to support arbitrary replacements for resource files.  Works for now as all formal
         // template replacements are enclosed in < > characters, making collisions unlikely.
         if (config.customReplacements.isNotEmpty()) {
             config.customReplacements.forEach { (k, v) -> replacements[k] = v }
+        }
+    }
+
+    private fun buildDependencyEntries(scopes: List<ProjectScope>): Map<String, String> {
+        return mutableMapOf<String, String>().apply {
+            scopes.forEach { scope ->
+                TemplateMarker.dependencyKeyForScope(scope)?.let { tm ->
+                    this[tm.key] = DefaultDependencies.ARTIFACTS[scope]?.toDependencyFormat(config.buildDsl) ?: ""
+                    // if not a common scope and there is a common project, add it as a dependency to other scopes
+                    if (scope != COMMON && scopes.size > 1) {
+                        this[tm.key] = "${this[tm.key]}\n    compileOnly(project(\":common\"))"
+                    }
+                }
+            }
         }
     }
 
