@@ -77,7 +77,7 @@ testing {
         val integrationTest by registering(JvmTestSuite::class) {
             // useKotlinTest()
             dependencies {
-                implementation(project)
+                implementation(project())
                 implementation(libs.kotlinTestJunit)
             }
 
