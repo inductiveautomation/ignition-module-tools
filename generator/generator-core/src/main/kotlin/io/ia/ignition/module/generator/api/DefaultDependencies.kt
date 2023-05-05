@@ -5,7 +5,7 @@ import io.ia.ignition.module.generator.api.TemplateMarker.SDK_VERSION_PLACEHOLDE
 object DefaultDependencies {
 
     // default gradle version
-    const val GRADLE_VERSION = "7.5.1"
+    const val GRADLE_VERSION = "7.6"
 
     // default plugin configuration for the root build.gradle
     val MODL_PLUGIN: String = "id(\"io.ia.sdk.modl\") version(\"${TemplateMarker.MODL_PLUGIN_VERSION.key}\")"
