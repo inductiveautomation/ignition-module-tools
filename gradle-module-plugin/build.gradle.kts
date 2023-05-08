@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.lang.Boolean.getBoolean
 import java.time.LocalDateTime
 
 plugins {
@@ -41,6 +42,12 @@ val functionalTest by tasks.registering(Test::class) {
 
     group = "verification"
     description = "Executes tests in the 'functionalTest' sourceset"
+
+    // because this is a custom task or some other Gradle voodoo we can not rely on the debug system prop
+    // propagating to the GradleRunner in our function tests even though documentation suggests it
+    // should; we have to wire this up explicitly
+    val testkitDebugProp = "org.gradle.testkit.debug" // the unreferenceable (?) DefaultGradleRunner.DEBUG_SYS_PROP
+    systemProperty(testkitDebugProp, getBoolean(testkitDebugProp))
 }
 
 dependencies {

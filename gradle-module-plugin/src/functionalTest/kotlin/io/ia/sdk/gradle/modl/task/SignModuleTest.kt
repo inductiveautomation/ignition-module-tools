@@ -181,8 +181,10 @@ class SignModuleTest : BaseTest() {
             ex = e
         }
 
-        val expectedError = "> Task :signModule FAILED\nRequired keystore password not found.  Specify via flag " +
+        val expectedError = Regex(
+            """> Task :signModule FAILED\RRequired keystore password not found.  Specify via flag """ +
             "'--keystorePassword=<value>', or in gradle.properties file as 'ignition.signing.keystorePassword=<value>'"
+        )
         assertNull(result, "build output will be null due to failure")
         assertNotNull(ex, "Exception should be caught and not null")
         assertNotNull(ex.message, "Exception should have message")
@@ -228,8 +230,10 @@ class SignModuleTest : BaseTest() {
             ex = e
         }
 
-        val expectedError = "> Task :signModule FAILED\nRequired keystore password not found.  Specify via flag " +
+        val expectedError = Regex(
+            """> Task :signModule FAILED\RRequired keystore password not found.  Specify via flag """ +
             "'--keystorePassword=<value>', or in gradle.properties file as 'ignition.signing.keystorePassword=<value>'"
+        )
         assertNull(result, "build output will be null due to failure")
         assertNotNull(ex, "Exception should be caught and not null")
         assertNotNull(ex.message, "Exception should have message")
