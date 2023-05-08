@@ -2,6 +2,8 @@ package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.api.Constants.ARTIFACT_DIR
+import io.ia.sdk.gradle.modl.api.Constants.MODULE_API_CONFIGURATION
+import io.ia.sdk.gradle.modl.api.Constants.MODULE_IMPLEMENTATION_ELEMENTS
 import io.ia.sdk.gradle.modl.model.Artifact
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.FileArtifact
@@ -17,10 +19,12 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.bundling.Jar
 import java.io.FileNotFoundException
 import javax.inject.Inject
 
@@ -65,12 +69,18 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     @InputFiles
     fun getModlApiDeps(): Configuration {
-        return project.configurations.getByName("modlApi")
+        return project.configurations.getByName(MODULE_API_CONFIGURATION)
     }
 
     @InputFiles
     fun getModlImplementationDeps(): Configuration {
-        return project.configurations.getByName("modlImplementationElements")
+        return project.configurations.getByName(MODULE_IMPLEMENTATION_ELEMENTS)
+    }
+
+    @InputFile
+    fun getJar(): Provider<RegularFile> {
+        // type casting to get at .archiveFile instead of internal-ish DefaultTask.outputs.files
+        return (project.tasks.getByName("jar") as Jar).archiveFile
     }
 
     @get:OutputDirectory
@@ -117,7 +127,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
      * in this list are those being staged for inclusion in the module.
      */
     private fun deriveArtifacts(): List<FileArtifact> {
-        val mainJar = project.tasks.getByName("jar").outputs.files.toList().first()
+        val mainJar = getJar().get().asFile
         if (!mainJar.exists()) throw FileNotFoundException("Could not identify jar task output file $mainJar")
 
         val mainArtifact = FileArtifact("${project.group}:${project.name}:${project.version}", mainJar)
