@@ -340,7 +340,6 @@ class IgnitionModlPlugin : Plugin<Project> {
             CollectModlDependencies.ID,
             CollectModlDependencies::class.java
         ) {
-            it.dependsOn(p.tasks.named("jar"))
             assemble?.dependsOn(it)
             it.projectScopes.set(settings.projectScopes)
         }

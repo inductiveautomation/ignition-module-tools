@@ -6,8 +6,17 @@ import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.zip.ZipFile
+import java.util.zip.ZipFile.OPEN_READ
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
+import kotlin.test.assertContains
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class CollectModlDependenciesTest : BaseTest() {
@@ -411,6 +420,229 @@ class CollectModlDependenciesTest : BaseTest() {
         assertTrue(
             artifactsDir.resolve("single-dir-g-proj-0.0.1-SNAPSHOT.jar").toFile().exists(),
             "versioned jarfile should exist"
+        )
+    }
+
+    private fun spliceResourceFileIntoProject(srcPath: String, destPath: Path) {
+        runCatching {
+            ClassLoader.getSystemResourceAsStream(srcPath).use { inp ->
+                Files.copy(inp!!, destPath)
+            }
+        }.onFailure { e ->
+            throw Exception("Unable to read or copy test resource '$srcPath'", e)
+        }
+    }
+
+    @Test
+    // @Tag("IGN-6325")
+    fun `subproject programmatic source file deletion detected during rebuild`() {
+        val projectDir = tempFolder.newFolder("sourceDeletion").toPath()
+
+        val config = GeneratorConfigBuilder()
+            .moduleName("Source Deletion")
+            .scopes("G")
+            .packageName("hot.sources")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(false)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+        val projRoot = project.toFile()
+
+        val javaSrc = project.resolve("gateway/src/main/java/hot/sources")
+        val srcFile = "NotRealClass1.java"
+        val srcPath = javaSrc.resolve(srcFile)
+        spliceResourceFileIntoProject("java/$srcFile", srcPath)
+
+        // Our Java source ultimately becomes a Java class and is archived up into the JAR.
+        val out1 = runTask(projRoot, "collectModlDependencies").output
+        val classFile = "NotRealClass1.class"
+        val subprojJar = project.resolve("gateway/build/artifacts/gateway-0.0.1-SNAPSHOT.jar").toFile()
+        assertNotNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry("hot/sources/$classFile"),
+            "Class [$classFile] not found in [$subprojJar]",
+        )
+        // And our target task was out-of-date.
+        val outOfDatePatt = Regex(""":gateway:collectModlDependencies\R""")
+        assertContains(out1, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***No `clean` task between builds. We're testing the task's ability to discern dirty inputs.***
+        // Now nuke the source and ensure on rebuild it is not in the resulting JAR.
+        srcPath.deleteExisting()
+        val out2 = runTask(projRoot, "collectModlDependencies").output
+        assertNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry("hot/sources/$classFile"),
+            "Class [$classFile] found in [$subprojJar] despite source [$srcFile] deletion prior to rebuild",
+        )
+        // And our target task was out-of-date.
+        assertContains(out2, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***Again no `clean` task between builds.***
+        // Rebuild again, and ensure that `collectModlDependencies` is up to date this time.
+        val out3 = runTask(projRoot, "collectModlDependencies").output
+        assertContains(
+            out3,
+            Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
+            "Expected `collectModlDependencies` task to be up-to-date"
+        )
+    }
+
+    @Test
+    // @Tag("IGN-6325")
+    fun `subproject programmatic source file addition detected during rebuild`() {
+        val projectDir = tempFolder.newFolder("sourceAddition").toPath()
+
+        val config = GeneratorConfigBuilder()
+            .moduleName("Source Addition")
+            .scopes("G")
+            .packageName("hot.sources")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(false)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+        val projRoot = project.toFile()
+
+        // At the outset we don't have this class source in the project, and thus don't get a class in the JAR.
+        val out1 = runTask(projRoot, "collectModlDependencies").output
+        val srcFile = "NotRealClass1.java"
+        val classFile = "NotRealClass1.class"
+        val subprojJar = project.resolve("gateway/build/artifacts/gateway-0.0.1-SNAPSHOT.jar").toFile()
+        assertNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry("hot/sources/$classFile"),
+            "Class [$classFile] found in [$subprojJar] despite source [$srcFile] not yet part of the project",
+        )
+        // And our target task was out-of-date.
+        val outOfDatePatt = Regex(""":gateway:collectModlDependencies\R""")
+        assertContains(out1, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***No `clean` task between builds. We're testing the task's ability to discern dirty inputs.***
+        // Our new Java source ultimately becomes a Java class and is archived up into the JAR.
+        val javaSrc = project.resolve("gateway/src/main/java/hot/sources")
+        val srcPath = javaSrc.resolve(srcFile)
+        spliceResourceFileIntoProject("java/$srcFile", srcPath)
+        val out2 = runTask(projRoot, "collectModlDependencies").output
+        assertNotNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry("hot/sources/$classFile"),
+            "Class [$classFile] not found in [$subprojJar]",
+        )
+        // And our target task was out-of-date.
+        assertContains(out2, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***Again no `clean` task between builds.***
+        // Rebuild again, and ensure that `collectModlDependencies` is up to date this time.
+        val out3 = runTask(projRoot, "collectModlDependencies").output
+        assertContains(
+            out3,
+            Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
+            "Expected `collectModlDependencies` task to be up-to-date"
+        )
+    }
+
+    @Test
+    // @Tag("IGN-6325")
+    fun `subproject programmatic source file mutation detected during rebuild`() {
+        val projectDir = tempFolder.newFolder("sourceMutation").toPath()
+
+        val config = GeneratorConfigBuilder()
+            .moduleName("Source Mutation")
+            .scopes("G")
+            .packageName("hot.sources")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(false)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+        val projRoot = project.toFile()
+
+        val javaSrc = project.resolve("gateway/src/main/java/hot/sources")
+        val srcFile = "NotRealClass1.java"
+        val srcPath = javaSrc.resolve(srcFile)
+        spliceResourceFileIntoProject("java/$srcFile", srcPath)
+
+        // Our Java source ultimately becomes a Java class and is archived up into the JAR.
+        val out1 = runTask(projRoot, "collectModlDependencies").output
+        val classFile = "NotRealClass1.class"
+        val subprojJar = project.resolve("gateway/build/artifacts/gateway-0.0.1-SNAPSHOT.jar").toFile()
+        assertNotNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry("hot/sources/$classFile"),
+            "Class [$classFile] not found in [$subprojJar]",
+        )
+        // And our target task was out-of-date.
+        val outOfDatePatt = Regex(""":gateway:collectModlDependencies\R""")
+        assertContains(out1, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***No `clean` task between builds. We're testing the task's ability to discern dirty inputs.***
+        // Now tweak the source and ensure on rebuild it is still in the resulting JAR.
+        val newSrcText = srcPath.readText().replaceFirst("automated", "unit")
+        srcPath.writeText(newSrcText)
+        val out2 = runTask(projRoot, "collectModlDependencies").output
+        assertNotNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry("hot/sources/$classFile"),
+            "Class [$classFile] disappeared from [$subprojJar]",
+        )
+        // And our target task was out-of-date.
+        assertContains(out2, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***Again no `clean` task between builds.***
+        // Rebuild again, and ensure that `collectModlDependencies` is up to date this time.
+        val out3 = runTask(projRoot, "collectModlDependencies").output
+        assertContains(
+            out3,
+            Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
+            "Expected `collectModlDependencies` task to be up-to-date"
+        )
+    }
+
+    @Test
+    // @Tag("IGN-6325")
+    fun `subproject resource source file addition detected during rebuild`() {
+        val projectDir = tempFolder.newFolder("resourceAddition").toPath()
+
+        val config = GeneratorConfigBuilder()
+            .moduleName("Resource Addition")
+            .scopes("G")
+            .packageName("hot.sources")
+            .parentDir(projectDir)
+            .useRootForSingleScopeProject(false)
+            .build()
+
+        val project = ModuleGenerator.generate(config)
+        val projRoot = project.toFile()
+
+        // At the outset we don't have this resource in the project, and thus don't get it in the JAR.
+        val out1 = runTask(projRoot, "collectModlDependencies").output
+        val resourceFile = "README.md"
+        val subprojJar = project.resolve("gateway/build/artifacts/gateway-0.0.1-SNAPSHOT.jar").toFile()
+        assertNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry(resourceFile),
+            "Resource [$resourceFile] found in [$subprojJar] despite [$resourceFile] not yet part of the project",
+        )
+        // And our target task was out-of-date.
+        val outOfDatePatt = Regex(""":gateway:collectModlDependencies\R""")
+        assertContains(out1, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***No `clean` task between builds. We're testing the task's ability to discern dirty inputs.***
+        // Our new resource file is archived up into the JAR.
+        val resources = project.resolve("gateway/src/main/resources")
+        val resourcePath = resources.resolve(resourceFile)
+        if (!Files.exists(resources)) { Files.createDirectories(resources) } // src/main/resources is gap in generator?
+        spliceResourceFileIntoProject("certs/$resourceFile", resourcePath)
+        val out2 = runTask(projRoot, "collectModlDependencies").output
+        assertNotNull(
+            ZipFile(subprojJar, OPEN_READ).getEntry(resourceFile),
+            "Resource [$resourceFile] not found in [$subprojJar]",
+        )
+        // And our target task was out-of-date.
+        assertContains(out2, outOfDatePatt, "Expected `collectModlDependencies` task to be out-of-date")
+
+        // ***Again no `clean` task between builds.***
+        // Rebuild again, and ensure that `collectModlDependencies` is up to date this time.
+        val out3 = runTask(projRoot, "collectModlDependencies").output
+        assertContains(
+            out3,
+            Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
+            "Expected `collectModlDependencies` task to be up-to-date"
         )
     }
 }
