@@ -119,7 +119,6 @@ open class BaseTest {
     open fun runTask(projectDir: File, taskArgs: List<String>): BuildResult {
         val runner = GradleRunner.create()
         runner.forwardOutput()
-        runner.withDebug(true)
         runner.withPluginClasspath()
         runner.withArguments(taskArgs)
         runner.withProjectDir(projectDir)
