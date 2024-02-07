@@ -73,7 +73,8 @@ object Constants {
     const val CERT_PW_FLAG: String = "certPassword"
 
     /**
-     * The keystore file to be used for signing the module
+     * The keystore file to be used for signing the module. Not compatible
+     * with [PKCS11_CFG_FILE_FLAG].
      */
     const val KEYSTORE_FILE_FLAG: String = "keystoreFile"
 
@@ -83,20 +84,26 @@ object Constants {
     const val KEYSTORE_PW_FLAG: String = "keystorePassword"
 
     /**
+     * PKCS#11 config file, typically used for hardware token keystores and
+     * other HSMs. Not compatible with [KEYSTORE_FILE_FLAG].
+     */
+    const val PKCS11_CFG_FILE_FLAG: String = "pkcs11CfgFile"
+
+    /**
      * Map of CLI option flag `gradle <taskname> --taskProperty=value` to namespaced gradle property equivalent.
      *
      * Examples:
      *
-     *
      * | Task Flag    |  Project Property  | Property File (in gradle.properties, or as -P property)|
      * |------------------------------------------------------------|
-     *|gradle signModule --certAlias=someAlias | gradle signModule -Pignition.signning.certAlias=someAlias | ignition.signing.certAlias=someAlias|
+     * |gradle signModule --certAlias=someAlias | gradle signModule -Pignition.signning.certAlias=someAlias | ignition.signing.certAlias=someAlias|
      */
     val SIGNING_PROPERTIES: Map<String, String> = mapOf(
         ALIAS_FLAG to "$PROPERTY_NAMESPACE.$ALIAS_FLAG",
         CERT_FILE_FLAG to "$PROPERTY_NAMESPACE.$CERT_FILE_FLAG",
         CERT_PW_FLAG to "$PROPERTY_NAMESPACE.$CERT_PW_FLAG",
         KEYSTORE_FILE_FLAG to "$PROPERTY_NAMESPACE.$KEYSTORE_FILE_FLAG",
-        KEYSTORE_PW_FLAG to "$PROPERTY_NAMESPACE.$KEYSTORE_PW_FLAG"
+        KEYSTORE_PW_FLAG to "$PROPERTY_NAMESPACE.$KEYSTORE_PW_FLAG",
+        PKCS11_CFG_FILE_FLAG to "$PROPERTY_NAMESPACE.$PKCS11_CFG_FILE_FLAG",
     )
 }
