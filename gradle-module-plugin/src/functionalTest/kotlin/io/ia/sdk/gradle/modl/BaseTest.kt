@@ -74,7 +74,7 @@ open class BaseTest {
         }
 
         // uncomment if you need a little debugging
-        //println("props:\n$props")
+        // println("props:\n$props")
         gradlePropsFl.appendText(props)
 
         return gradleProps

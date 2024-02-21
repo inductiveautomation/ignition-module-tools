@@ -28,7 +28,6 @@ import org.gradle.api.tasks.options.Option
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.io.InputStream
 import java.io.OutputStream
 import java.io.PrintStream
 import java.security.KeyStore
