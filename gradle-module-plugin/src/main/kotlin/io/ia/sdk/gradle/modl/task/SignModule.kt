@@ -362,9 +362,11 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     }
 
     private fun loadKeyStore(ks: KeyStore, ksPwd: String, ksFile: File?) {
-        // If PKCS#11 HSM (hardware key) keystore, forgo the input stream.
-        val maybeStream: InputStream? =
-            if (ks.type == PKCS11_KS_TYPE) null else ksFile?.inputStream()
-        ks.load(maybeStream, ksPwd.toCharArray())
+        ksFile?.inputStream()
+            // if PKCS#11 HSM (hardware key) keystore, forgo the input stream
+            ?.takeUnless { ks.type == PKCS11_KS_TYPE }
+            .use { maybeStream ->
+                ks.load(maybeStream, ksPwd.toCharArray())
+            }
     }
 }
