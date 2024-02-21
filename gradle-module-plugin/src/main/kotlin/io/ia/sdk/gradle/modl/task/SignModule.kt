@@ -288,10 +288,10 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
         // Mechanically that means these properties are both 1) set, 2) set
         // to something other than the SKIP value, and 3) not explicitly set
         // to null via property convention backstop logic.
+        val mutexPaths = listOf(keystorePath, pkcs11CfgPath)
         if (
-            listOf(keystorePath, pkcs11CfgPath).all { p ->
-                listOf(SKIP, null).none { v -> p.getOrNull() == v }
-            }
+            mutexPaths.map(Property<String>::getOrNull)
+                .none { it in listOf(SKIP, null) }
         ) {
             throw InvalidUserDataException(
                 "Signing failed, specify '--$KEYSTORE_FILE_FLAG' flag/" +
@@ -303,11 +303,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
         }
 
         // Converseley if neither flavor of keystore is specified, also fail.
-        if (
-            listOf(keystorePath, pkcs11CfgPath).all { p ->
-                p.getOrNull() == null
-            }
-        ) {
+        if (mutexPaths.all { it.getOrNull() == null }) {
             throw InvalidUserDataException(
                 "Signing failed, specify '--$KEYSTORE_FILE_FLAG' flag/" +
                     "'${SIGNING_PROPERTIES[KEYSTORE_FILE_FLAG]}' property in " +
