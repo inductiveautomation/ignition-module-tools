@@ -56,29 +56,26 @@ open class BaseTest {
         writeBoilerplateProps: Boolean = true
     ): Path {
         val gradleProps: Path = targetDirectory.resolve("gradle.properties")
-        gradleProps.toFile().let { propsFl ->
-            StringBuilder().let { props ->
-
-                // add a trailing EOL if necessary, then common props
-                if (
-                    propsFl.exists() &&
-                    !propsFl.readText().matches(Regex("""\R$"""))
-                ) {
-                    props.append("\n")
-                }
-                if (writeBoilerplateProps) {
-                    props.append("$SIGNING_PROPERTY_ENTRIES\n")
-                }
-
-                // this could be file-based or PKCS#11 HSM-based keystore props
-                props.append(keystoreProps)
-
-                // uncomment if you need a little debugging
-                // println("props:\n${props.toString()}")
-
-                propsFl.appendText(props.toString())
+        val gradlePropsFl: File = gradleProps.toFile()
+        val props = buildString {
+            // add a trailing EOL if necessary, then common props
+            if (
+                gradlePropsFl.exists() &&
+                !gradlePropsFl.readText().matches(Regex("""\R$"""))
+            ) {
+                append("\n")
             }
+            if (writeBoilerplateProps) {
+                append("$SIGNING_PROPERTY_ENTRIES\n")
+            }
+
+            // this could be file-based or PKCS#11 HSM-based keystore props
+            append(keystoreProps)
         }
+
+        // uncomment if you need a little debugging
+        //println("props:\n$props")
+        gradlePropsFl.appendText(props)
 
         return gradleProps
     }
