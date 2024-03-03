@@ -1,5 +1,6 @@
 package io.ia.sdk.gradle.modl.task
 
+import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -29,7 +30,9 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
     }
 
     init {
-        this.mustRunAfter(":assemble")
+        this.group = PLUGIN_TASK_GROUP
+        this.description = "Deploys the module to a running development gateway."
+        this.mustRunAfter(project.tasks.findByName("assemble"))
     }
 
     @get:Input
