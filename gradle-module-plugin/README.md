@@ -36,14 +36,14 @@ plugins {
 
 3. Configure your signing settings, either in a gradle.properties file, or as commandline flags. The required properties are defined in `Constants.kt`, and used in the `SignModule` task. You may mix and match flags and properties (and flags will override properties), as long as all required values are configured. The only requirement is that option flags _must_ follow the Gradle task to which they apply, which is `signModule`. The `keystoreFile` and `pkcs11CfgFile` settings are mutually exclusive, the former indicating a file-based keystore and the latter indicating the config file for a PKCS#11 HSM (such as a YubiKey) keystore. Use one or the other but not both. All flags/properties are as follows, with usage examples:
 
-   | Flag  | Usage                                                   | gradle.properties entry |
-   |-------|---------------------------------------------------------|-------------------------|
-   | certAlias  | gradlew signModule --certAlias=someAlias                | ignition.signing.certAlias=someAlias  |
-   | certFile  | gradlew signModule --certFile=/path/to/cert             | ignition.signing.certFile=/path/to/cert  |
-   | certPassword  | gradlew signModule --certPassword=mysecret              | ignition.signing.certFile=mysecret  |
-   | keystoreFile  | gradlew signModule --keystoreFile=/path/to/keystore     | ignition.signing.keystoreFile=/path/to/keystore  |
-   | pkcs11CfgFile  | gradlew signModule --pkcs11CfgFile=/path/to/pkcs11.cfg | ignition.signing.pkcs11CfgFile=/path/to/pkcs11.cfg  |
-   | keystorePassword  | gradlew signModule --keystorePassword=mysecret          | ignition.signing.keystoreFile=mysecret  | 
+   | Flag  | Usage                                                  | gradle.properties entry                            |
+   |-------|--------------------------------------------------------|----------------------------------------------------|
+   | certAlias  | gradlew signModule --certAlias=someAlias               | ignition.signing.certAlias=someAlias               |
+   | certFile  | gradlew signModule --certFile=/path/to/cert            | ignition.signing.certFile=/path/to/cert            |
+   | certPassword  | gradlew signModule --certPassword=certPwdOrPIN         | ignition.signing.certPassword=certPwdOrPIN         |
+   | keystoreFile  | gradlew signModule --keystoreFile=/path/to/keystore    | ignition.signing.keystoreFile=/path/to/keystore    |
+   | pkcs11CfgFile  | gradlew signModule --pkcs11CfgFile=/path/to/pkcs11.cfg | ignition.signing.pkcs11CfgFile=/path/to/pkcs11.cfg |
+   | keystorePassword  | gradlew signModule --keystorePassword=ksPwdOrPIN       | ignition.signing.keystorePassword=ksPwdOrPIN       | 
 
 4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` or `compileOnlyApi`  dependencies as they will be provided by the Ignition platform at runtime. Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file, including transitive dependencies. In general, behaviors of the _modl_ configuration follow those documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc). Test-only dependencies should NOT be marked with any `modl` configuration. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).
 
