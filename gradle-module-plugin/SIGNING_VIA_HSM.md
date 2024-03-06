@@ -1,4 +1,4 @@
-*Signing modules via PKCS#11/HSM keystores is an incubating feature. See the note about the `certFile` setting below. The initial implementation was validated against a YubiKey 5 NFC.*
+*Signing modules via PKCS#11/HSM keystores is an incubating feature. See the note about the `certFile` setting below. The initial implementation was validated against a YubiKey 5 NFC, using the `9a` (PIV Authentication) instead of the `9c` (Digital Signature) slot. This is a workaround to the [repeated PIN challenge on every signing operation inherent to that slot](https://forum.inductiveautomation.com/t/ckr-user-not-logged-in-error-when-signing-zip-file-with-sectigo-usb-etoken/58107). In a future release this plugin should be able to support slot `9c`.*
 
 # Signing Via Hardware Security Module
 It's possible to sign a module using a PKCS#11 keystore, which is usually a hardware token such as a YubiKey. (There are software PKCS#11 keystores as well, though they are more common for testing in that they do not have the physical attributes that make for secure HSMs.)
