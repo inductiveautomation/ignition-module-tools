@@ -6,7 +6,7 @@ A library for generating boilerplate folder/file structures for gradle-based Ign
 
 We've had requests to make it easier to get started with module development using Gradle. So when we started writing
 functional tests for
-the [Gradle Module Plugin](https://github.com/inductiveautomation/ignition-module-tools/tree/master/gradle-module-plugin)
+the [Gradle Module Plugin](../../gradle-module-plugin)
 and realized that we were generating module projects, we decided to pull out the functions and make them an independent
 library. The result is a somewhat unpolished but functional codebase, owing to its roots as simple testing support.
 
