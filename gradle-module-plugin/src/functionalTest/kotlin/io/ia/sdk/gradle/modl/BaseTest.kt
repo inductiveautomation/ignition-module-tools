@@ -129,7 +129,7 @@ open class BaseTest {
         Files.createDirectories(targetDir)
 
         return resources.map { resource ->
-            ClassLoader.getSystemResourceAsStream("certs/$resource").let { inputStream ->
+            ClassLoader.getSystemResourceAsStream("certs/$resource").use { inputStream ->
                 if (inputStream == null) {
                     throw Exception("Failed to read test resource 'certs/$resource")
                 }

@@ -135,6 +135,7 @@ class SignModuleTest : BaseTest() {
     }
 
     @Test
+    // @Tag("IGN-7871")
     fun `module signing failed due to missing signing configuration properties`() {
         val dirName = currentMethodName()
 
@@ -155,24 +156,11 @@ class SignModuleTest : BaseTest() {
             out,
             "file as 'ignition.signing.certFile=<value>"
         )
-
-        assertContains(out, "Required certificate password not found")
-        assertContains(out, "Specify via flag '--certPassword=<value>'")
-        assertContains(
-            out,
-            "file as 'ignition.signing.certPassword=<value>"
-        )
-
-        assertContains(out, "Required keystore password not found")
-        assertContains(out, "Specify via flag '--keystorePassword=<value>'")
-        assertContains(
-            out,
-            "file as 'ignition.signing.keystorePassword=<value>"
-        )
     }
 
     @Test
-    fun `module failed with missing keystore pw flags`() {
+    // @Tag("IGN-7871")
+    fun `module signed despite missing keystore pw flag`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
 
@@ -188,25 +176,49 @@ class SignModuleTest : BaseTest() {
             "--keystoreFile=${signResources.keystore}",
             "--certFile=${signResources.certFile}",
             "--certAlias=selfsigned",
+            // --keystorePassword is not required by :signModule task for most
+            // types of keystores, though can add an integrity check on ks load
             "--certPassword=password",
             "--stacktrace",
         )
 
         val result: BuildResult =
-            runTaskAndFail(
+            runTask(
                 projectDir.toFile(),
                 taskArgs
             )
 
-        val out = result.output
-        val expectedError = Regex(
-            """> Task :signModule FAILED\RRequired keystore password not found.  Specify via flag """ +
-                "'--keystorePassword=<value>', or in gradle.properties file as 'ignition.signing.keystorePassword=<value>'"
+        val task = result.task(":signModule")
+        assertEquals(task?.outcome, TaskOutcome.SUCCESS)
+
+        val buildDir = projectDir.resolve("build")
+        val signedFileName = signedModuleName(MODULE_NAME)
+
+        val signed = File("${buildDir.toAbsolutePath()}/$signedFileName")
+
+        // unzip and look for signatures properties file
+        val zm = ZipMap(signed)
+        val sigPropsFile = zm[SIG_PROPERTIES_FILENAME]
+        assertTrue(signed.exists(), "Expected $signed to exist")
+        assertNotNull(
+            sigPropsFile,
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
         )
-        assertContains(out, expectedError)
+
+        // and the cert file
+        val certFile = zm[CERT_PKCS7_FILENAME]
+        assertNotNull(
+            certFile,
+            "Expected $CERT_PKCS7_FILENAME in signed modl"
+        )
+
+        // If you want to dump file contents to stdout, uncomment this
+        // logZipMapFileText(SIG_PROPERTIES_FILENAME, sigPropsFile)
+        // logZipMapFileText(CERT_PKCS7_FILENAME, certFile)
     }
 
     @Test
+    // @Tag("IGN-7871")
     fun `module failed with missing cert pw flags`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -224,6 +236,7 @@ class SignModuleTest : BaseTest() {
             "--certFile=${signResources.certFile}",
             "--certAlias=selfsigned",
             "--keystorePassword=password",
+            // --certPassword is not strictly required by :signModule task
             "--stacktrace",
         )
 
@@ -233,12 +246,12 @@ class SignModuleTest : BaseTest() {
                 taskArgs
             )
 
-        val out = result.output
-        val expectedError = Regex(
-            """> Task :signModule FAILED\RRequired certificate password not found.  Specify via flag """ +
-                "'--certPassword=<value>', or in gradle.properties file as 'ignition.signing.certPassword=<value>'"
+        // Some keystores do not require a password to unlock a private key,
+        // but PKCS#12 file-based keystores do.
+        assertContains(
+            result.output,
+            "java.security.UnrecoverableKeyException: Get Key failed: null"
         )
-        assertContains(out, expectedError)
     }
 
     @Test
@@ -525,6 +538,68 @@ class SignModuleTest : BaseTest() {
             "--stacktrace",
         )
 
+        val result: BuildResult = runTask(
+            projectDir.toFile(),
+            taskArgs
+        )
+
+        val task = result.task(":signModule")
+        assertEquals(task?.outcome, TaskOutcome.SUCCESS)
+
+        val buildDir = projectDir.resolve("build")
+        val signedFileName = signedModuleName(MODULE_NAME)
+
+        val signed = File("${buildDir.toAbsolutePath()}/$signedFileName")
+
+        // unzip and look for signatures properties file
+        val zm = ZipMap(signed)
+        val sigPropsFile = zm[SIG_PROPERTIES_FILENAME]
+        assertTrue(signed.exists(), "Expected $signed to exist")
+        assertNotNull(
+            sigPropsFile,
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+        )
+
+        // and the cert file
+        val certFile = zm[CERT_PKCS7_FILENAME]
+        assertNotNull(
+            certFile,
+            "Expected $CERT_PKCS7_FILENAME in signed modl"
+        )
+
+        // If you want to dump file contents to stdout, uncomment this
+        // logZipMapFileText(SIG_PROPERTIES_FILENAME, sigPropsFile)
+        // logZipMapFileText(CERT_PKCS7_FILENAME, certFile)
+    }
+
+    // Some HSM/PKCS#11 keystores handle unlocking the keystore/private keys
+    // outside of the call stack. Simulate this, somehow, if we can figure
+    // out a good way to do so.
+    @Test
+    @Ignore
+    // @Tag("IGN-7871")
+    fun `module signed with unprotected keystore and private key`() {
+        val dirName = currentMethodName()
+        val workingDir: File = tempFolder.newFolder(dirName)
+
+        val projectDir = generateModule(workingDir)
+
+        // Generate a keystore with no password protection.
+        val signingResourcesDestination =
+            workingDir.toPath().resolve("i-was-signed")
+        val (certPath, _) = writeResourceFiles(
+            signingResourcesDestination,
+            listOf("certificate.cer")
+        )
+
+        val taskArgs = listOf(
+            ":signModule",
+            "--certAlias=modsigning",
+            "--certFile=$certPath",
+            // some sort of keystoreFile or pkcs11CfgFile
+            "--stacktrace",
+            // note no passwords at all specified
+        )
         val result: BuildResult = runTask(
             projectDir.toFile(),
             taskArgs

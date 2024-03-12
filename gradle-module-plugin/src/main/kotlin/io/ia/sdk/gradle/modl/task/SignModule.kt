@@ -147,9 +147,14 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
         }
 
     @get:Input
+    @get:Optional
     val keystorePw: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            if (skipSigning.get()) SKIP else propOrLogError(KEYSTORE_PW_FLAG, "keystore password")
+            val propKey =
+                Constants.SIGNING_PROPERTIES[KEYSTORE_PW_FLAG] as String
+
+            if (skipSigning.get()) SKIP
+            else propFromProjectProps(propKey) // can be null
         }
     )
 
@@ -203,9 +208,14 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     }
 
     @get:Input
+    @get:Optional
     val certPw: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
-            if (skipSigning.get()) SKIP else propOrLogError(CERT_PW_FLAG, "certificate password")
+            val propKey =
+                Constants.SIGNING_PROPERTIES[CERT_PW_FLAG] as String
+
+            if (skipSigning.get()) SKIP
+            else propFromProjectProps(propKey) // can be null
         }
     )
 
@@ -314,16 +324,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
         logger.debug("Signed module will be named ${signed.get().asFile.absolutePath}")
 
-        signModule(
-            keystore.getOrNull(),
-            pkcs11Cfg.getOrNull(),
-            keystorePw.get(),
-            certFile.get(),
-            certPw.get(),
-            alias.get(),
-            unsignedModule,
-            signed.get().asFile
-        )
+        signModule(unsignedModule)
         logger.info("Module built and signed at ${signed.get().asFile.absolutePath}")
     }
 
@@ -332,40 +333,42 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
      */
     @Suppress("MemberVisibilityCanBePrivate")
     @Throws(IOException::class)
-    protected fun signModule(
-        keyStoreFile: File?,
-        pkcs11CfgFile: File?,
-        keystorePassword: String,
-        cert: File,
-        certPassword: String,
-        certAlias: String,
-        unsignedModule: File,
-        outFile: File,
-    ) {
+    protected fun signModule(unsignedModule: File) {
+        val keyStoreFile: File? = keystore.getOrNull()
+        val pkcs11CfgFile: File? = pkcs11Cfg.getOrNull()
+        val keystorePassword: String? = keystorePw.getOrNull()
+        val cert: File = certFile.get()
+        val certPassword: String? = certPw.getOrNull()
+        val certAlias: String = alias.get()
+        val outFile: File = signed.get().asFile
+
         logger.debug(
             "Signing module with keystoreFile: ${keyStoreFile?.absolutePath}, " +
                 "pkcs11CfgFile: ${pkcs11CfgFile?.absolutePath}, " +
                 "keystorePassword: ${"*".repeat(20)}, " +
                 "cert: ${cert.absolutePath}, " +
-                "certPw: ${"*".repeat(20)}, " +
+                "certPassword: ${"*".repeat(20)}, " +
                 "certAlias: $certAlias"
         )
 
         val keyStore: KeyStore = getKeyStore()
         loadKeyStore(keyStore, keystorePassword, keyStoreFile)
 
-        val privateKey: PrivateKey = keyStore.getKey(certAlias, certPassword.toCharArray()) as PrivateKey
+        val privateKey: PrivateKey = keyStore.getKey(
+            certAlias,
+            certPassword?.toCharArray()
+        ) as PrivateKey
 
         ModuleSigner(privateKey, cert.inputStream())
             .signModule(PrintStream(OutputStream.nullOutputStream()), unsignedModule, outFile)
     }
 
-    private fun loadKeyStore(ks: KeyStore, ksPwd: String, ksFile: File?) {
+    private fun loadKeyStore(ks: KeyStore, ksPwd: String?, ksFile: File?) {
         ksFile?.inputStream()
             // if PKCS#11 HSM (hardware key) keystore, forgo the input stream
             ?.takeUnless { ks.type == PKCS11_KS_TYPE }
             .use { maybeStream ->
-                ks.load(maybeStream, ksPwd.toCharArray())
+                ks.load(maybeStream, ksPwd?.toCharArray())
             }
     }
 }
