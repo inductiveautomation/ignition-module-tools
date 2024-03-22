@@ -1,6 +1,6 @@
 # Ignition Module Plugin for Gradle
 
-The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality.  As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and meta-information.
+The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality. As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and meta-information.
 
 The Ignition Module Plugin for Gradle lets module developers use the [Gradle](https://www.gradle.org) build tool to create and sign functional modules (_.modl_ ) through a convenient DSL-based configuration model.
 
@@ -12,7 +12,7 @@ The easiest way to get started with this plugin is to create a new module projec
 
 To apply the plugin to an existing project, simply follow the instructions on the plugin's [Gradle Plugin Repo Page](https://plugins.gradle.org/plugin/io.ia.sdk.modl), and then configure as described below.
 
-1. Apply the plugin to a `build.gradle` or `build.gradle.kts` file. In the case of a multi-project build, apply to the root or parent project.   *Note* that you should only apply the plugin to a single parent project in a multi-scope structure (e.g., one where you have separate source directories for `gateway` and `designer` code, for instance).  If you have questions about structure, use the module generator to create well-structured examples.
+1. Apply the plugin to a `build.gradle` or `build.gradle.kts` file. In the case of a multi-project build, apply to the root or parent project. *Note* that you should only apply the plugin to a single parent project in a multi-scope structure (e.g., one where you have separate source directories for `gateway` and `designer` code, for instance). If you have questions about structure, use the module generator to create well-structured examples.
 
 For current versions of gradle, simply add to your `build.gradle.kts`:
 
@@ -32,44 +32,43 @@ plugins {
 }
 ```
 
-2. Configure your module through the `ignitionModule` configuration DSL.  See DSL properties section below for details.
+2. Configure your module through the `ignitionModule` configuration DSL. See DSL properties section below for details.
 
-3. Configure your signing settings, either in a gradle.properties file, or as commandline flags.  The required properties are defined in constants.kt, and used in the SignModule task.  You may mix and match flags and properties (and flags will override properties), as long as all required values are configured.  The only requirement is that option flags _must_ follow the gradle command to which they apply, which is the 'signModule' task in this case.   The flags/properties are as follows, with usage examples:
-   >Note: builds prior to v0.1.0-SNAPSHOT-6 used a separate property file called signing.properties.  Builds after that use gradle.properties files instead.
+3. Configure your signing settings, either in a gradle.properties file, or as commandline flags. The required properties are defined in `Constants.kt`, and used in the `SignModule` task. You may mix and match flags and properties (and flags will override properties), as long as all required values are configured. The only requirement is that option flags _must_ follow the Gradle task to which they apply, which is `signModule`. The `keystoreFile` and `pkcs11CfgFile` settings are mutually exclusive, the former indicating a file-based keystore and the latter indicating the config file for a PKCS#11 HSM (such as a YubiKey) keystore. Use one or the other but not both. All flags/properties are as follows, with usage examples:
 
-   | Flag  | Usage  | gradle.properties entry |
-   |-------|--------|-------------------------|
-   | certAlias  | gradlew signModule --certAlias=someAlias  | ignition.signing.certAlias=someAlias  |
-   | certFile  | gradlew signModule --certFile=/path/to/cert  | ignition.signing.certFile=/path/to/cert  |
-   | certPassword  | gradlew signModule --certPassword=mysecret  | ignition.signing.certFile=mysecret  |
-   | keystoreFile  | gradlew signModule --keystoreFile=/path/to/keystore  | ignition.signing.keystoreFile=/path/to/keystore  |
-   | keystorePassword  | gradlew signModule --keystorePassword=mysecret  | ignition.signing.keystoreFile=mysecret  |
+   | Flag  | Usage                                                  | gradle.properties entry                            |
+   |-------|--------------------------------------------------------|----------------------------------------------------|
+   | certAlias  | gradlew signModule --certAlias=someAlias               | ignition.signing.certAlias=someAlias               |
+   | certFile  | gradlew signModule --certFile=/path/to/cert            | ignition.signing.certFile=/path/to/cert            |
+   | certPassword  | gradlew signModule --certPassword=certPwdOrPIN         | ignition.signing.certPassword=certPwdOrPIN         |
+   | keystoreFile  | gradlew signModule --keystoreFile=/path/to/keystore    | ignition.signing.keystoreFile=/path/to/keystore    |
+   | pkcs11CfgFile  | gradlew signModule --pkcs11CfgFile=/path/to/pkcs11.cfg | ignition.signing.pkcs11CfgFile=/path/to/pkcs11.cfg |
+   | keystorePassword  | gradlew signModule --keystorePassword=ksPwdOrPIN       | ignition.signing.keystorePassword=ksPwdOrPIN       | 
+
+4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` or `compileOnlyApi`  dependencies as they will be provided by the Ignition platform at runtime. Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file, including transitive dependencies. In general, behaviors of the _modl_ configuration follow those documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc). Test-only dependencies should NOT be marked with any `modl` configuration. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).
 
 
-4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` or `compileOnlyApi`  dependencies as they will be provided by the Ignition platform at runtime.  Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file, including transitive dependencies. In general, behaviors of the _modl_ configuration follow those documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc).  Test-only dependencies should NOT be marked with any `modl` configuration. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).
-
-
-Choosing which [Configuration](https://docs.gradle.org/current/userguide/declaring_dependencies.html) to apply may have important but subtle impacts on your module, as well as your development/build environment.  In general, the following rule of thumb is a good starting point:
+Choosing which [Configuration](https://docs.gradle.org/current/userguide/declaring_dependencies.html) to apply may have important but subtle impacts on your module, as well as your development/build environment. In general, the following rule of thumb is a good starting point:
 
 | Configuration  | Usage Suggestion | Included in Module? | Includes Transitive Dependencies In Module? | Exposes Transitive Dependencies to Artifact Consumers&#735;? |
 |-------|--------|-------------------------|----------|---------|
-| compileOnly   | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'.  | No | No | No |
-| compileOnlyApi   | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'.  | No | No | No |
+| compileOnly   | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'. | No | No | No |
+| compileOnlyApi   | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'. | No | No | No |
 | api    | Project dependencies that do not explicitly get registered in the module DSL project scopes&#10013;  | No | No | Yes |
 | implementation   | Project dependencies that do not explicitly get registered in the module DSL project scopes&#10013; | No | No | No |
 | modlImplementation   | Dependencies that are used in a module project's implementation, but are not part of a public API  | Yes | Yes | No |
 | modlApi | Dependencies that are used in a module project and are exposed to dependents&#10013;&#10013;  | Yes | Yes | Yes |
 
-> &#10013; - api and implementation configurations and generally best reserved for internal/intra-project dependencies.  Meaning, if you have a module with projects A,B,C, and D, where A is only a supporting library for D (aka - it is not registered as a 'projectScope', but is merely a dependency of D), then `api` or `implementation` would be appropriate.   Choose `api` if D exposes A as part of it's Application Binary Interface (ABI).  Otherwise, choose `implementation` if A is only used internally for the implementation of D.<br>
-> &#10013;&#10013; - modlApi is a very uncommon use case, generally reserved only for modules which themselves expose an API that is to be extended by other modules.  Examples of Inductive Automation modules that use this include Opc-Ua, which exposes an API for driver module implementations, or Perspective, which exposes an API for Component Authors through the SDK.  If you do not support an SDK for your module, then you should probably use `modlImplementation`, as it will encourage better separation of concerns in your project.<br>
-> &#735; 'Artifact Consumers' refers to projects that may depend on ('consume') the library (aka - gradle subproject) you are writing, or if published to an artifact repo, consumers of the maven artifact.  Dependencies that are not part of a project's ABI should avoid being specified with `modlApi` to avoid leaking implementation details into the compile-time classpath of the consuming project.<br><br>
-> **Maven Users**: If you're familiar with Maven's dependency scopes, you might initially find Gradle's handling of dependencies to be unnecessarily convoluted.  This is a product of Gradle's powerful (but more complex) dependency management.  We suggest reading the gradle docs on [Working With Dependencies](https://docs.gradle.org/current/userguide/core_dependency_management.html), followed by reading the [Java Library Plugin](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) documentation.
+> &#10013; - api and implementation configurations and generally best reserved for internal/intra-project dependencies. Meaning, if you have a module with projects A,B,C, and D, where A is only a supporting library for D (aka - it is not registered as a 'projectScope', but is merely a dependency of D), then `api` or `implementation` would be appropriate. Choose `api` if D exposes A as part of it's Application Binary Interface (ABI). Otherwise, choose `implementation` if A is only used internally for the implementation of D.<br>
+> &#10013;&#10013; - modlApi is a very uncommon use case, generally reserved only for modules which themselves expose an API that is to be extended by other modules. Examples of Inductive Automation modules that use this include Opc-Ua, which exposes an API for driver module implementations, or Perspective, which exposes an API for Component Authors through the SDK. If you do not support an SDK for your module, then you should probably use `modlImplementation`, as it will encourage better separation of concerns in your project.<br>
+> &#735; 'Artifact Consumers' refers to projects that may depend on ('consume') the library (aka - gradle subproject) you are writing, or if published to an artifact repo, consumers of the maven artifact. Dependencies that are not part of a project's ABI should avoid being specified with `modlApi` to avoid leaking implementation details into the compile-time classpath of the consuming project.<br><br>
+> **Maven Users**: If you're familiar with Maven's dependency scopes, you might initially find Gradle's handling of dependencies to be unnecessarily convoluted. This is a product of Gradle's powerful (but more complex) dependency management. We suggest reading the gradle docs on [Working With Dependencies](https://docs.gradle.org/current/userguide/core_dependency_management.html), followed by reading the [Java Library Plugin](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) documentation.
 
 
 
 ### `ignitionModule` DSL Properties
 
-Configuration for a module occurs through the `ignitionModule` extension DSL.  See the source code `ModuleSettings.kt` for all options and descriptions.  Example configuration in a groovy buildscript:
+Configuration for a module occurs through the `ignitionModule` extension DSL. See the source code `ModuleSettings.kt` for all options and descriptions. Example configuration in a groovy buildscript:
 
 ```groovy
 ignitionModule {
@@ -83,7 +82,7 @@ ignitionModule {
      */
     fileName = "starlink-driver"
     /*
-     * Unique identifier for the module.  Reverse domain convention is recommended (e.g.: com.mycompany.charting-module)
+     * Unique identifier for the module. Reverse domain convention is recommended (e.g.: com.mycompany.charting-module)
      */
     id = "net.starlink.driver"
 
@@ -91,7 +90,7 @@ ignitionModule {
 
     moduleDescription = "A short sentence describing what it does, but not much longer than this."
     /*
-     * Minimum version of Ignition required for the module to function correctly.  This typically won't change over
+     * Minimum version of Ignition required for the module to function correctly. This typically won't change over
      * the course of a major Ignition (7.9, 8.0, etc) version, except for when the Ignition Platform adds/changes APIs
      * used by the module.
      */
@@ -117,7 +116,7 @@ ignitionModule {
     moduleDependencies = [ : ]   // syntax for initializing an empty map in groovy
 
     /*
-     * Map of fully qualified hook class to the shorthand scope.  Only one scope per hook class.
+     * Map of fully qualified hook class to the shorthand scope. Only one scope per hook class.
      *
      * Example entry: "com.myorganization.vectorizer.VectorizerDesignerHook": "D"
      */
@@ -126,16 +125,16 @@ ignitionModule {
     ]
 
     /**
-     * Optional map of arbitrary String to String entries.  These will make it into the final _buildResult.json_, but
-     * are otherwise unused and have no impact on the module itself.  These values may be useful for adding data to
-     * used by consumers of this build's output.  For instance: CI and publication systems, integrity checking, etc.
+     * Optional map of arbitrary String to String entries. These will make it into the final _buildResult.json_, but
+     * are otherwise unused and have no impact on the module itself. These values may be useful for adding data to
+     * used by consumers of this build's output. For instance: CI and publication systems, integrity checking, etc.
      */
      metaInfo.put("someKey", "Some arbitrary value useful to later use")
      metaInfo.put("publicationUrl", "1.2.3.4:8090")
 }
 ```
 
-Configuring in a kotlin buildscript is similar, except that you'll want to use the appropriate `set()` methods.  Here is an example:
+Configuring in a kotlin buildscript is similar, except that you'll want to use the appropriate `set()` methods. Here is an example:
 
 ```kotlin
 ignitionModule {
@@ -149,19 +148,19 @@ ignitionModule {
      */
     fileName.set("starlink-driver")
     /*
-     * Unique identifier for the module.  Reverse domain convention is recommended (e.g.: com.mycompany.charting-module)
+     * Unique identifier for the module. Reverse domain convention is recommended (e.g.: com.mycompany.charting-module)
      */
     id.set("net.starlink.driver")
 
     /*
-     * Version of the module.  Here being set to the same version that gradle uses, up above in this file.
+     * Version of the module. Here being set to the same version that gradle uses, up above in this file.
      */
     moduleVersion.set("${project.version}")
 
     moduleDescription.set("A short sentence describing what it does, but not much longer than this.")
 
     /*
-     * Minimum version of Ignition required for the module to function correctly.  This typically won't change over
+     * Minimum version of Ignition required for the module to function correctly. This typically won't change over
      * the course of a major Ignition (7.9, 8.0, etc) version, except for when the Ignition Platform adds/changes APIs
      * used by the module.
      */
@@ -189,8 +188,8 @@ ignitionModule {
     ))
 
     /*
-     * Map of fully qualified hook class to the shorthand scope.  Only one scope may apply to a class, and each scope
-     * must have no more than single class registered.  You may omit scope registrations if they do not apply.
+     * Map of fully qualified hook class to the shorthand scope. Only one scope may apply to a class, and each scope
+     * must have no more than single class registered. You may omit scope registrations if they do not apply.
      *
      * Example entry: "com.myorganization.vectorizer.VectorizerDesignerHook" to "D"
      */
@@ -199,7 +198,7 @@ ignitionModule {
     ))
 
     /*
-     * Optional 'documentation' settings.  Supply the files that would be desired to end up in the 'doc' dir of the
+     * Optional 'documentation' settings. Supply the files that would be desired to end up in the 'doc' dir of the
      * assembled module, and specify the path to the index.html file inside that folder. In this commented-out
      * example, the html files being collected are located in the module root project in `src/docs/`
      */
@@ -223,9 +222,9 @@ ignitionModule {
 
 
 The module plugin exposes a number of tasks that may be run on their own, and some which are bound to lifecycle tasks
-provided by Gradle's [Base Plugin](https://docs.gradle.org/current/userguide/base_plugin.html).  Some tasks apply
+provided by Gradle's [Base Plugin](https://docs.gradle.org/current/userguide/base_plugin.html). Some tasks apply
 only to the root project (the project which is applying the plugin), while others are applied to one or more
-subprojects.  The following table is a brief reference:
+subprojects. The following table is a brief reference:
 
 
 | Task  | Scope  | Description |
@@ -240,7 +239,7 @@ subprojects.  The following table is a brief reference:
 | deployModl | root project | deploys the built module file to an ignition gateway running in developer module upload mode &#735;|
 
 > &#735; to enable the developer mode, add `-Dia.developer.moduleupload=true` to the 'Java Additional Parameters' in
-> the `ignition.conf` file and restart the gateway.  **This should only be done on secure development gateways, as it
+> the `ignition.conf` file and restart the gateway. **This should only be done on secure development gateways, as it
 > opens a significant security risk on production gateways, in addition to instabilities that may result from your
 > in-development module.**
 
@@ -283,10 +282,10 @@ the result.
 
 # Pre-Release API Changes
 
-* v0.1.0-SNAPSHOT-6 - changed how credentials and files are specified for signing and publication.  The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
-* v0.1.0-SNAPSHOT-12 - added checksum generation and build report tasks.  Split repo into separate builds using gradle build composition to better isolate changes.
+* v0.1.0-SNAPSHOT-6 - changed how credentials and files are specified for signing and publication. The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
+* v0.1.0-SNAPSHOT-12 - added checksum generation and build report tasks. Split repo into separate builds using gradle build composition to better isolate changes.
 * v0.1.0-SNAPSHOT-15 - fixed dependency collection, renamed 'AssembleModuleAssets' task class and associated task
 * v0.1.0-SNAPSHOT-16 - changed modlImplementation configuration to not resolve transitive dependencies
 * v0.1.0-SNAPSHOT-17 - modlImplementation and modlApi configurations have been replaced with a single `modlDependency` configuration to simplify dependency marking and avoid confusing differences between compile-time and modl runtime environments,
-* v0.1.0-SNAPSHOT-18 - reverted to separate modlImplementation and modlApi configurations.  However, modlImplementation retains the same resolution semantics as gradle's `implementation`, while also fully resolving `modlImplementation`'s transitive dependencies for inclusion into the modl.  This change results in logical handling of dependencies in IDE/gradle environments, while also ensuring that needed dependencies are bundled in the module for use a runtime.
+* v0.1.0-SNAPSHOT-18 - reverted to separate modlImplementation and modlApi configurations. However, modlImplementation retains the same resolution semantics as gradle's `implementation`, while also fully resolving `modlImplementation`'s transitive dependencies for inclusion into the modl. This change results in logical handling of dependencies in IDE/gradle environments, while also ensuring that needed dependencies are bundled in the module for use a runtime.
 * v0.1.1-SNAPSHOT-1 - added the `skipModlSigning` ModuleSetting property to support skipping the `signModl` task and populating the `build.json`'s filename prop with the unsigned module allowing development without sharing/needing the signing keys.
