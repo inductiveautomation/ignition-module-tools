@@ -70,16 +70,22 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
 
     /**
      * List of module dependencies, which declare one or more modules you are dependent on, as well as the scope in
-     * which you depend on them, key'd on the module ID of the module depended-on, with shorthand scope value of the
-     * scope in which the module is depended.
+     * which you depend on them, keyed on the module ID of the module depended-on, with shorthand scope value of the
+     * scope in which the module is depended. Optionally, can also include whether this dependency is required as a
+     * comma separated boolean value after scope. Setting required to true will cause the module to fault on startup
+     * if the dependency is missing. Note: this flag will only be utilized on 8.3+ gateways.
      *
      * ### Examples:
      *
      * _Groovy_
      * `  moduleDependencies = [ "com.inductiveautomation.vision" : "GCD"]`
      *
+     *    moduleDependencies = [ "com.inductiveautomation.vision" : "GCD, true"]
+     *
      * _Kotlin_
      * `  moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD")`
+     *
+     *    moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD, true")
      */
     val moduleDependencies: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 

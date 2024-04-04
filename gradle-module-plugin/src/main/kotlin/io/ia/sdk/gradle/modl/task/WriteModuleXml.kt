@@ -151,9 +151,13 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     }
                 }
 
-                moduleDependencies.get().forEach { moduleId, scope ->
+                moduleDependencies.get().forEach { moduleId, item ->
                     "depends" {
-                        attribute("scope", scope)
+                        val scopeAndRequired = item.split(",")
+                        attribute("scope", scopeAndRequired[0])
+                        if (scopeAndRequired.size == 2) {
+                            attribute("required", scopeAndRequired[1].trim())
+                        }
                         -moduleId
                     }
                 }
