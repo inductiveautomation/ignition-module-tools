@@ -1,6 +1,7 @@
 package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
+import io.ia.sdk.gradle.modl.extension.RequiredModuleDependency
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.gradle.api.DefaultTask
@@ -79,8 +80,14 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
      * Map of <moduleId : scope>
      */
     @get:Input
+    @get:Optional
     val moduleDependencies: MapProperty<String, String> =
         _objects.mapProperty(String::class.java, String::class.java)
+
+    @get:Input
+    @get:Optional
+    val requiredModuleDependencies: SetProperty<RequiredModuleDependency> =
+        _objects.setProperty(RequiredModuleDependency::class.java)
 
     @get:Input
     @get:Optional
@@ -151,14 +158,20 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     }
                 }
 
-                moduleDependencies.get().forEach { moduleId, item ->
-                    "depends" {
-                        val scopeAndRequired = item.split(",")
-                        attribute("scope", scopeAndRequired[0])
-                        if (scopeAndRequired.size == 2) {
-                            attribute("required", scopeAndRequired[1].trim())
+                if (moduleDependencies.isPresent && moduleDependencies.get().isNotEmpty()) {
+                    moduleDependencies.get().forEach { moduleId, scope ->
+                        "depends" {
+                            attribute("scope", scope)
+                            -moduleId
                         }
-                        -moduleId
+                    }
+                } else if (requiredModuleDependencies.isPresent) {
+                    requiredModuleDependencies.get().forEach { dependency ->
+                        "depends" {
+                            attribute("scope", dependency.scope)
+                            if (useRequiredModuleDependencies()) attribute("required", dependency.required)
+                            -dependency.moduleId
+                        }
                     }
                 }
 
@@ -190,6 +203,13 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         }
 
         return modules.toString(PrintOptions(pretty = true, singleLineTextElements = true, useSelfClosingTags = false))
+    }
+
+    private fun useRequiredModuleDependencies(): Boolean {
+        if (!requiredIgnitionVersion.isPresent) return false
+
+        val version = requiredIgnitionVersion.get().split(".")
+        return version.size >= 2 && version[0].toInt() >= 8 && version[1].toInt() >= 3
     }
 
     private fun manifests(): List<ArtifactManifest> {

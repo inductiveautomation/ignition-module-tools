@@ -7,6 +7,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 
 const val EXTENSION_NAME = "ignitionModule"
 
@@ -71,23 +72,54 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
     /**
      * List of module dependencies, which declare one or more modules you are dependent on, as well as the scope in
      * which you depend on them, keyed on the module ID of the module depended-on, with shorthand scope value of the
-     * scope in which the module is depended. Optionally, can also include whether this dependency is required as a
-     * comma separated boolean value after scope. Setting required to true will cause the module to fault on startup
-     * if the dependency is missing. Note: this flag will only be utilized on 8.3+ gateways.
+     * scope in which the module is depended.
      *
      * ### Examples:
      *
      * _Groovy_
      * `  moduleDependencies = [ "com.inductiveautomation.vision" : "GCD"]`
      *
-     *    moduleDependencies = [ "com.inductiveautomation.vision" : "GCD, true"]
-     *
      * _Kotlin_
      * `  moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD")`
-     *
-     *    moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD, true")
      */
     val moduleDependencies: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+
+    /**
+     * New version of moduleDependencies for 8.3+ which allows for the addition of a "required" flag to be specified.
+     * Uses a builder to construct the property so the RequiredModuleDependency piece can be extrapolated away.
+     * Note: This required flag will only be put in the XML if requiredIgnitionVersion is explicitly set to 8.3+.
+     *
+     * ### Examples:
+     *
+     * _Groovy_
+     *   requiredModuleDependencies = [
+     *      moduleId("com.inductiveautomation.vision") {
+     *          it.scope = "GCD"
+     *          it.required = true
+     *      }
+     *   ]
+     *
+     * _Kotlin_
+     *   requiredModuleDependencies = setOf(
+     *      moduleId("com.inductiveautomation.vision") {
+     *          scope = "GCD"
+     *          required = true
+     *      }
+     *   )
+     */
+    val requiredModuleDependencies: SetProperty<RequiredModuleDependency> = objects.setProperty(
+        RequiredModuleDependency::class.java
+    ).convention(
+        moduleDependencies.map {
+            it.map { (moduleId, scope) -> RequiredModuleDependency(moduleId, scope, false) }
+        }
+    )
+
+    /**
+     * Helper DSL function for requiredModuleDependencies.
+     */
+    fun moduleId(moduleId: String, block: ModuleDependencyBuilder.() -> Unit): RequiredModuleDependency =
+        ModuleDependencyBuilder(moduleId).apply(block).build()
 
     /**
      * Map of Ignition Scope to fully qualified hook class to, where scope is one of "C", "D", "G" for "vision Client",
