@@ -26,9 +26,9 @@ class WriteModuleXmlTest : BaseTest() {
     fun `single module dependency marked as not required`() {
         val dirName = currentMethodName()
         val replacements = mapOf(
-            "requiredModuleDependencies = [ ]" to
+            "moduleDependencySpecs = [ ]" to
                 """
-    requiredModuleDependencies = [
+    moduleDependencySpecs = [
         moduleId("io.ia.modl") {
             it.scope = "GCD"
             it.required = false
@@ -56,9 +56,9 @@ class WriteModuleXmlTest : BaseTest() {
     fun `multiple module dependencies marked as required`() {
         val dirName = currentMethodName()
         val replacements = mapOf(
-            "requiredModuleDependencies = [ ]" to
+            "moduleDependencySpecs = [ ]" to
                 """
-    requiredModuleDependencies = [
+    moduleDependencySpecs = [
         moduleId("io.ia.modl") {
             it.scope = "GCD"
             it.required = true

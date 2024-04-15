@@ -86,13 +86,13 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
 
     /**
      * New version of moduleDependencies for 8.3+ which allows for the addition of a "required" flag to be specified.
-     * Uses a builder to construct the property so the RequiredModuleDependency piece can be extrapolated away.
+     * Uses a builder to construct the property so the ModuleDependencySpec piece can be extrapolated away.
      * Note: This required flag will only be put in the XML if requiredIgnitionVersion is explicitly set to 8.3+.
      *
      * ### Examples:
      *
      * _Groovy_
-     *   requiredModuleDependencies = [
+     *   moduleDependencySpecs = [
      *      moduleId("com.inductiveautomation.vision") {
      *          it.scope = "GCD"
      *          it.required = true
@@ -100,25 +100,25 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      *   ]
      *
      * _Kotlin_
-     *   requiredModuleDependencies = setOf(
+     *   moduleDependencySpecs = setOf(
      *      moduleId("com.inductiveautomation.vision") {
      *          scope = "GCD"
      *          required = true
      *      }
      *   )
      */
-    val requiredModuleDependencies: SetProperty<RequiredModuleDependency> = objects.setProperty(
-        RequiredModuleDependency::class.java
+    val moduleDependencySpecs: SetProperty<ModuleDependencySpec> = objects.setProperty(
+        ModuleDependencySpec::class.java
     ).convention(
         moduleDependencies.map {
-            it.map { (moduleId, scope) -> RequiredModuleDependency(moduleId, scope, false) }
+            it.map { (moduleId, scope) -> ModuleDependencySpec(moduleId, scope, false) }
         }
     )
 
     /**
-     * Helper DSL function for requiredModuleDependencies.
+     * Helper DSL function for moduleDependencySpecs.
      */
-    fun moduleId(moduleId: String, block: ModuleDependencyBuilder.() -> Unit): RequiredModuleDependency =
+    fun moduleId(moduleId: String, block: ModuleDependencyBuilder.() -> Unit): ModuleDependencySpec =
         ModuleDependencyBuilder(moduleId).apply(block).build()
 
     /**

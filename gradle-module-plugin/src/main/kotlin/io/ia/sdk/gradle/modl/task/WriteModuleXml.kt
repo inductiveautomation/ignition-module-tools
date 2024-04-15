@@ -1,7 +1,7 @@
 package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
-import io.ia.sdk.gradle.modl.extension.RequiredModuleDependency
+import io.ia.sdk.gradle.modl.extension.ModuleDependencySpec
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.gradle.api.DefaultTask
@@ -86,8 +86,8 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
 
     @get:Input
     @get:Optional
-    val requiredModuleDependencies: SetProperty<RequiredModuleDependency> =
-        _objects.setProperty(RequiredModuleDependency::class.java)
+    val moduleDependencySpecs: SetProperty<ModuleDependencySpec> =
+        _objects.setProperty(ModuleDependencySpec::class.java)
 
     @get:Input
     @get:Optional
@@ -165,11 +165,11 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                             -moduleId
                         }
                     }
-                } else if (requiredModuleDependencies.isPresent) {
-                    requiredModuleDependencies.get().forEach { dependency ->
+                } else if (moduleDependencySpecs.isPresent) {
+                    moduleDependencySpecs.get().forEach { dependency ->
                         "depends" {
                             attribute("scope", dependency.scope)
-                            if (useRequiredModuleDependencies()) attribute("required", dependency.required)
+                            if (usemoduleDependencySpecs()) attribute("required", dependency.required)
                             -dependency.moduleId
                         }
                     }
@@ -205,7 +205,7 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         return modules.toString(PrintOptions(pretty = true, singleLineTextElements = true, useSelfClosingTags = false))
     }
 
-    private fun useRequiredModuleDependencies(): Boolean {
+    private fun usemoduleDependencySpecs(): Boolean {
         if (!requiredIgnitionVersion.isPresent) return false
 
         val version = requiredIgnitionVersion.get().split(".")

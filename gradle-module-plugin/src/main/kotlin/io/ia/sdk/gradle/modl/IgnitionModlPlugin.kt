@@ -158,7 +158,7 @@ class IgnitionModlPlugin : Plugin<Project> {
             xmlTask.moduleName.set(settings.name)
             xmlTask.moduleVersion.set(settings.moduleVersion)
             xmlTask.moduleDependencies.set(settings.moduleDependencies)
-            xmlTask.requiredModuleDependencies.set(settings.requiredModuleDependencies)
+            xmlTask.moduleDependencySpecs.set(settings.moduleDependencySpecs)
             xmlTask.requiredIgnitionVersion.set(settings.requiredIgnitionVersion)
             xmlTask.requiredFrameworkVersion.set(settings.requiredFrameworkVersion)
             xmlTask.requireFromPlatform.set(settings.requireFromPlatform)

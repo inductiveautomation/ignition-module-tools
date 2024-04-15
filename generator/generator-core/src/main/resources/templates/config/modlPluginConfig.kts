@@ -51,7 +51,7 @@ ignitionModule {
      * for (G)ateway, (D)esigner, Vision (C)lient.
      *
      * Example:
-     * requiredModuleDependencies = setOf(
+     * moduleDependencySpecs = setOf(
      *    moduleId("com.inductiveautomation.reqMod") {
      *      scope = "GCD"
      *      required = true
@@ -65,7 +65,7 @@ ignitionModule {
      * This property will only add the "required" flag if {requiredIgnitionVersion} is at least 8.3
      *
      */
-    requiredModuleDependencies.set(setOf<RequiredModuleDependency>())
+    moduleDependencySpecs.set(setOf<RequiredModuleDependency>())
 
     /*
      * Map of fully qualified hook class to the shorthand scope.  Only one scope may apply to a class, and each scope
