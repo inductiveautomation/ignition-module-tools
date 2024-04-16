@@ -136,12 +136,18 @@ class WriteModuleXmlTest : BaseTest() {
 
     private fun generateXml(
         dirName: String,
-        replacements: Map<String, String> = mapOf()
+        replacements: Map<String, String> = mapOf(),
+        dumpBuildScript: Boolean = false,
     ): String {
         val projectDir = generateModule(
             tempFolder.newFolder(dirName),
             replacements,
         )
+
+        if (dumpBuildScript) {
+            println("build script:")
+            println(projectDir.resolve("build.gradle").readText())
+        }
 
         val result: BuildResult = runTask(
             projectDir.toFile(),
