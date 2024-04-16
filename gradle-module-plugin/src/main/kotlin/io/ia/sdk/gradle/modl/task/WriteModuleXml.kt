@@ -81,6 +81,7 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
      */
     @get:Input
     @get:Optional
+    @Deprecated("Use new moduleDependencySpecs")
     val moduleDependencies: MapProperty<String, String> =
         _objects.mapProperty(String::class.java, String::class.java)
 

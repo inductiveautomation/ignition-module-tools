@@ -82,6 +82,7 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      * _Kotlin_
      * `  moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD")`
      */
+    @Deprecated("Use new moduleDependencySpecs")
     val moduleDependencies: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 
     /**
