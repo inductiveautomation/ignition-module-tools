@@ -79,6 +79,10 @@ class WriteModuleXmlTest : BaseTest() {
             oneLineXml,
             """<depends scope="GCD" required="true">io.ia.modl</depends>"""
         )
+        assertContains(
+            oneLineXml,
+            """<depends scope="G" required="true">io.ia.otherModl</depends>"""
+        )
         assertEquals(
             Regex(DEPENDS).findAll(oneLineXml).toList().size,
             2
@@ -89,9 +93,10 @@ class WriteModuleXmlTest : BaseTest() {
     // @Tag("IGN-9137")
     fun `legacy module dependencies not marked at all for requiredness`() {
         val dirName = currentMethodName()
+
         val replacements = mapOf(
             "moduleDependencies = [ : ]" to
-                "moduleDependencies = [ \"io.ia.modl\" : \"GCD\" ]"
+                "moduleDependencies = ['io.ia.modl': 'GCD']"
         )
 
         val oneLineXml = generateXml(dirName, replacements)
@@ -140,7 +145,10 @@ class WriteModuleXmlTest : BaseTest() {
 
         val result: BuildResult = runTask(
             projectDir.toFile(),
-            listOf("writeModuleXml")
+            listOf(
+                "writeModuleXml",
+                "--stacktrace",
+            )
         )
 
         val task = result.task(":writeModuleXml")
