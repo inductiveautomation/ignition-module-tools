@@ -85,6 +85,11 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     val moduleDependencies: MapProperty<String, String> =
         _objects.mapProperty(String::class.java, String::class.java)
 
+    /**
+     * Structured replacement for [moduleDependencies], including moduleId,
+     * scope, and whether the gateway should tolerate whether each dependency
+     * loads or not prior to loading the current module.
+     */
     @get:Input
     @get:Optional
     val moduleDependencySpecs: SetProperty<ModuleDependencySpec> =
@@ -171,7 +176,7 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                         "depends" {
                             attribute("scope", dependency.scope)
                             if (usemoduleDependencySpecs()) attribute("required", dependency.required)
-                            -dependency.moduleId
+                            -dependency.name
                         }
                     }
                 }

@@ -110,7 +110,7 @@ ignitionModule {
      *
      * Example Value:
      * moduleDependencies = [
-           "com.inductiveautomation.opcua": "G"
+     *     "com.inductiveautomation.opcua": "G"
      * ]
      */
     moduleDependencies = [ : ]   // syntax for initializing an empty map in groovy

@@ -51,12 +51,13 @@ ignitionModule {
      * for (G)ateway, (D)esigner, Vision (C)lient.
      *
      * Example:
-     * moduleDependencySpecs = setOf(
-     *    moduleId("com.inductiveautomation.reqMod") {
-     *      scope = "GCD"
-     *      required = true
-     *    }
-     * )
+     *   moduleDependencySpecs {
+     *      register("com.inductiveautomation.vision") {
+     *          scope = "GCD"
+     *          required = true
+     *      }
+     *      // register("com.another.mod") { ...
+     *   }
      *
      * If any of module's required module dependencies are not present, the
      * gateway will fault on loading the module.
@@ -65,7 +66,7 @@ ignitionModule {
      * This property will only add the "required" flag if {requiredIgnitionVersion} is at least 8.3
      *
      */
-    moduleDependencySpecs.set(setOf<RequiredModuleDependency>())
+    moduleDependencySpecs { }
 
     /*
      * Map of fully qualified hook class to the shorthand scope.  Only one scope may apply to a class, and each scope

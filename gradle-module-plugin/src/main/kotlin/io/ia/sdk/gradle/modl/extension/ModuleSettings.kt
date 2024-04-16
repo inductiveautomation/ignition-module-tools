@@ -3,11 +3,12 @@ package io.ia.sdk.gradle.modl.extension
 import io.ia.sdk.gradle.modl.task.HashAlgorithm
 import io.ia.sdk.gradle.modl.task.ZipModule
 import io.ia.sdk.gradle.modl.util.capitalize
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.SetProperty
+import org.gradle.api.tasks.Input
 
 const val EXTENSION_NAME = "ignitionModule"
 
@@ -20,7 +21,7 @@ const val EXTENSION_NAME = "ignitionModule"
  *        reflected in the module.xml file that is generated and placed in the root of your assembled module by the plugin
  *     2. It identifies the project or subprojects that are to be included by your
  */
-open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactory) {
+abstract class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactory) {
 
     /**
      * The 'name' of your module as is displayed in the Ignition Gateway configuration page when the module is installed.
@@ -77,7 +78,7 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      * ### Examples:
      *
      * _Groovy_
-     * `  moduleDependencies = [ "com.inductiveautomation.vision" : "GCD"]`
+     * `  moduleDependencies = ["com.inductiveautomation.vision": "GCD"]`
      *
      * _Kotlin_
      * `  moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD")`
@@ -93,34 +94,26 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
      * ### Examples:
      *
      * _Groovy_
-     *   moduleDependencySpecs = [
-     *      moduleId("com.inductiveautomation.vision") {
-     *          it.scope = "GCD"
-     *          it.required = true
-     *      }
-     *   ]
-     *
-     * _Kotlin_
-     *   moduleDependencySpecs = setOf(
-     *      moduleId("com.inductiveautomation.vision") {
+     *   moduleDependencySpecs {
+     *      register("com.inductiveautomation.vision") {
      *          scope = "GCD"
      *          required = true
      *      }
-     *   )
+     *      // register("com.another.mod") { ...
+     *   }
+     *
+     * _Kotlin_
+     *   moduleDependencySpecs {
+     *      register("com.inductiveautomation.vision") {
+     *          scope = "GCD"
+     *          required = true
+     *      }
+     *      // register("com.another.mod") { ...
+     *   }
      */
-    val moduleDependencySpecs: SetProperty<ModuleDependencySpec> = objects.setProperty(
-        ModuleDependencySpec::class.java
-    ).convention(
-        moduleDependencies.map {
-            it.map { (moduleId, scope) -> ModuleDependencySpec(moduleId, scope, false) }
-        }
-    )
-
-    /**
-     * Helper DSL function for moduleDependencySpecs.
-     */
-    fun moduleId(moduleId: String, block: ModuleDependencyBuilder.() -> Unit): ModuleDependencySpec =
-        ModuleDependencyBuilder(moduleId).apply(block).build()
+    @get:Input
+    val moduleDependencySpecs: NamedDomainObjectContainer<ModuleDependencySpec> =
+        objects.domainObjectContainer(ModuleDependencySpec::class.java)
 
     /**
      * Map of Ignition Scope to fully qualified hook class to, where scope is one of "C", "D", "G" for "vision Client",

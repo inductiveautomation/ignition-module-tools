@@ -26,14 +26,14 @@ class WriteModuleXmlTest : BaseTest() {
     fun `single module dependency marked as not required`() {
         val dirName = currentMethodName()
         val replacements = mapOf(
-            "moduleDependencySpecs = [ ]" to
+            "moduleDependencySpecs { }" to
                 """
-    moduleDependencySpecs = [
-        moduleId("io.ia.modl") {
-            it.scope = "GCD"
-            it.required = false
+    moduleDependencySpecs {
+        register("io.ia.modl") {
+            scope = "GCD"
+            required = false
         }
-    ]
+    }
                 """,
             "requiredIgnitionVersion = \"8.0.10\"" to
                 "requiredIgnitionVersion = \"8.3.0\""
@@ -56,24 +56,75 @@ class WriteModuleXmlTest : BaseTest() {
     fun `multiple module dependencies marked as required`() {
         val dirName = currentMethodName()
         val replacements = mapOf(
-            "moduleDependencySpecs = [ ]" to
+            "moduleDependencySpecs { }" to
                 """
-    moduleDependencySpecs = [
-        moduleId("io.ia.modl") {
-            it.scope = "GCD"
-            it.required = true
-        },
-        moduleId("io.ia.otherModl") {
-            it.scope = "G"
-            it.required = true
+    moduleDependencySpecs {
+        register("io.ia.modl") {
+            scope = "GCD"
+            required = true
         }
-    ]
+        register("io.ia.otherModl") {
+            scope = "G"
+            required = true
+        }
+    }
                 """,
             "requiredIgnitionVersion = \"8.0.10\"" to
                 "requiredIgnitionVersion = \"8.3.0\""
         )
 
         val oneLineXml = generateXml(dirName, replacements)
+
+        assertContains(
+            oneLineXml,
+            """<depends scope="GCD" required="true">io.ia.modl</depends>"""
+        )
+        assertContains(
+            oneLineXml,
+            """<depends scope="G" required="true">io.ia.otherModl</depends>"""
+        )
+        assertEquals(
+            Regex(DEPENDS).findAll(oneLineXml).toList().size,
+            2
+        )
+    }
+
+    @Test
+    // @Tag("IGN-9137")
+    fun `module dependencies via compact, eager DSL`() {
+        val dirName = currentMethodName()
+
+        // This allows for streamlined, magical build scripts but there is a
+        // slight performance hit as the ModuleDependencySpecs are eagerly
+        // created during build script configuration as opposed to registered
+        // for lazy configuration only on demand. With `register` as in other
+        // tests here and per our guidance in the doc that _should_ only be
+        // when `writeModuleXml` task is fired. One can imagine use cases where
+        // that task is not fired and this eager instance creation is an
+        // unnecessary waste of CPU cycles.
+        val replacements = mapOf(
+            "moduleDependencySpecs { }" to
+                """
+    moduleDependencySpecs {
+        "io.ia.modl" {
+            scope = "GCD"
+            required = true
+        }
+        "io.ia.otherModl" {
+            scope = "G"
+            required = true
+        }
+    }
+                """,
+            "requiredIgnitionVersion = \"8.0.10\"" to
+                "requiredIgnitionVersion = \"8.3.0\""
+        )
+
+        val oneLineXml = generateXml(
+            dirName,
+            replacements,
+            // true,
+        )
 
         assertContains(
             oneLineXml,

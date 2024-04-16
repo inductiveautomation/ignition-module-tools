@@ -1,21 +1,13 @@
 package io.ia.sdk.gradle.modl.extension
 
+import org.gradle.api.Named
+import org.gradle.api.tasks.Input
 import java.io.Serializable
 
-class ModuleDependencySpec(
-    val moduleId: String,
-    val scope: String,
-    val required: Boolean
-) : Serializable
-
-@DslMarker
-annotation class ResourceDsl
-
-@ResourceDsl
-class ModuleDependencyBuilder(var moduleId: String) {
-
+abstract class ModuleDependencySpec : Named, Serializable {
+    @get:Input
     var scope: String = ""
-    var required: Boolean = false
 
-    fun build(): ModuleDependencySpec = ModuleDependencySpec(moduleId, scope, required)
+    @get:Input
+    var required: Boolean = false
 }
