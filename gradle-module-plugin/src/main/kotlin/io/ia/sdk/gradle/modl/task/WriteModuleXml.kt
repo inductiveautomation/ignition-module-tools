@@ -164,19 +164,19 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     }
                 }
 
-                if (moduleDependencies.isPresent && moduleDependencies.get().isNotEmpty()) {
-                    moduleDependencies.get().forEach { moduleId, scope ->
-                        "depends" {
-                            attribute("scope", scope)
-                            -moduleId
-                        }
-                    }
-                } else if (moduleDependencySpecs.isPresent) {
+                if (moduleDependencySpecs.isPresent && moduleDependencySpecs.get().isNotEmpty()) {
                     moduleDependencySpecs.get().forEach { dependency ->
                         "depends" {
                             attribute("scope", dependency.scope)
                             if (usemoduleDependencySpecs()) attribute("required", dependency.required)
                             -dependency.name
+                        }
+                    }
+                } else if (moduleDependencies.isPresent) {
+                    moduleDependencies.get().forEach { moduleId, scope ->
+                        "depends" {
+                            attribute("scope", scope)
+                            -moduleId
                         }
                     }
                 }
@@ -214,8 +214,10 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     private fun usemoduleDependencySpecs(): Boolean {
         if (!requiredIgnitionVersion.isPresent) return false
 
-        val version = requiredIgnitionVersion.get().split(".")
-        return version.size >= 2 && version[0].toInt() >= 8 && version[1].toInt() >= 3
+        val version = requiredIgnitionVersion.get().split(".").map { it.toInt() }
+        if (version[0] >= 9) { return true }
+        if (version[0] == 8 && version[1] >= 3) { return true }
+        return false
     }
 
     private fun manifests(): List<ArtifactManifest> {
