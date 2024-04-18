@@ -1,6 +1,7 @@
 package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
+import io.ia.sdk.gradle.modl.extension.ModuleDependencySpec
 import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.gradle.api.DefaultTask
@@ -79,8 +80,20 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
      * Map of <moduleId : scope>
      */
     @get:Input
+    @get:Optional
+    @Deprecated("Use new moduleDependencySpecs")
     val moduleDependencies: MapProperty<String, String> =
         _objects.mapProperty(String::class.java, String::class.java)
+
+    /**
+     * Structured replacement for [moduleDependencies], including moduleId,
+     * scope, and whether the gateway should tolerate whether each dependency
+     * loads or not prior to loading the current module.
+     */
+    @get:Input
+    @get:Optional
+    val moduleDependencySpecs: SetProperty<ModuleDependencySpec> =
+        _objects.setProperty(ModuleDependencySpec::class.java)
 
     @get:Input
     @get:Optional
@@ -151,10 +164,20 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     }
                 }
 
-                moduleDependencies.get().forEach { moduleId, scope ->
-                    "depends" {
-                        attribute("scope", scope)
-                        -moduleId
+                if (moduleDependencySpecs.isPresent && moduleDependencySpecs.get().isNotEmpty()) {
+                    moduleDependencySpecs.get().forEach { dependency ->
+                        "depends" {
+                            attribute("scope", dependency.scope)
+                            if (usemoduleDependencySpecs()) attribute("required", dependency.required)
+                            -dependency.name
+                        }
+                    }
+                } else if (moduleDependencies.isPresent) {
+                    moduleDependencies.get().forEach { moduleId, scope ->
+                        "depends" {
+                            attribute("scope", scope)
+                            -moduleId
+                        }
                     }
                 }
 
@@ -186,6 +209,15 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         }
 
         return modules.toString(PrintOptions(pretty = true, singleLineTextElements = true, useSelfClosingTags = false))
+    }
+
+    private fun usemoduleDependencySpecs(): Boolean {
+        if (!requiredIgnitionVersion.isPresent) return false
+
+        val version = requiredIgnitionVersion.get().split(".").map { it.toInt() }
+        if (version[0] >= 9) { return true }
+        if (version[0] == 8 && version[1] >= 3) { return true }
+        return false
     }
 
     private fun manifests(): List<ArtifactManifest> {

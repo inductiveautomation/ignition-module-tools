@@ -3,10 +3,12 @@ package io.ia.sdk.gradle.modl.extension
 import io.ia.sdk.gradle.modl.task.HashAlgorithm
 import io.ia.sdk.gradle.modl.task.ZipModule
 import io.ia.sdk.gradle.modl.util.capitalize
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 
 const val EXTENSION_NAME = "ignitionModule"
 
@@ -19,7 +21,7 @@ const val EXTENSION_NAME = "ignitionModule"
  *        reflected in the module.xml file that is generated and placed in the root of your assembled module by the plugin
  *     2. It identifies the project or subprojects that are to be included by your
  */
-open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactory) {
+abstract class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactory) {
 
     /**
      * The 'name' of your module as is displayed in the Ignition Gateway configuration page when the module is installed.
@@ -70,18 +72,48 @@ open class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFactor
 
     /**
      * List of module dependencies, which declare one or more modules you are dependent on, as well as the scope in
-     * which you depend on them, key'd on the module ID of the module depended-on, with shorthand scope value of the
+     * which you depend on them, keyed on the module ID of the module depended-on, with shorthand scope value of the
      * scope in which the module is depended.
      *
      * ### Examples:
      *
      * _Groovy_
-     * `  moduleDependencies = [ "com.inductiveautomation.vision" : "GCD"]`
+     * `  moduleDependencies = ["com.inductiveautomation.vision": "GCD"]`
      *
      * _Kotlin_
      * `  moduleDependencies = mapOf("com.inductiveautomation.vision" to "GCD")`
      */
+    @Deprecated("Use new moduleDependencySpecs")
     val moduleDependencies: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+
+    /**
+     * New version of moduleDependencies for 8.3+ which allows for the addition of a "required" flag to be specified.
+     * Uses a builder to construct the property so the ModuleDependencySpec piece can be extrapolated away.
+     * Note: This required flag will only be put in the XML if requiredIgnitionVersion is explicitly set to 8.3+.
+     *
+     * ### Examples:
+     *
+     * _Groovy_
+     *   moduleDependencySpecs {
+     *      register("com.inductiveautomation.vision") {
+     *          scope = "GCD"
+     *          required = true
+     *      }
+     *      // register("com.another.mod") { ...
+     *   }
+     *
+     * _Kotlin_
+     *   moduleDependencySpecs {
+     *      register("com.inductiveautomation.vision") {
+     *          scope = "GCD"
+     *          required = true
+     *      }
+     *      // register("com.another.mod") { ...
+     *   }
+     */
+    @get:Input
+    val moduleDependencySpecs: NamedDomainObjectContainer<ModuleDependencySpec> =
+        objects.domainObjectContainer(ModuleDependencySpec::class.java)
 
     /**
      * Map of Ignition Scope to fully qualified hook class to, where scope is one of "C", "D", "G" for "vision Client",

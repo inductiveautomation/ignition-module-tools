@@ -38,11 +38,33 @@ ignitionModule {
      *
      * Example Value:
      * moduleDependencies = [
-           "com.inductiveautomation.vision": "CD",
-           "com.inductiveautomation.opcua": "G"
+     *     "com.inductiveautomation.vision": "CD",
+     *     "com.inductiveautomation.opcua": "G"
      * ]
      */
     moduleDependencies = [ : ]
+
+    /*
+     * Add required module dependencies here, following the examples, with scope being one or more of G, C or D,
+     * for (G)ateway, (D)esigner, Vision (C)lient.
+     *
+     * Example:
+     *   moduleDependencySpecs {
+     *      register("com.inductiveautomation.vision") {
+     *          scope = "GCD"
+     *          required = true
+     *      }
+     *      // register("com.another.mod") { ...
+     *   }
+     *
+     * If any of module's required module dependencies are not present, the
+     * gateway will fault on loading the module.
+     *
+     * NOTE: For modules targeting Ignition 8.3 and later. Use `moduleDependencies` for 8.1 and earlier.
+     * This property will only add the "required" flag if {requiredIgnitionVersion} is at least 8.3
+     *
+     */
+    moduleDependencySpecs { }
 
     /*
      * Map of fully qualified hook class to the shorthand scope.  Only one scope per hook class.

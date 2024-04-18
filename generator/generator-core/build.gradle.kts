@@ -47,10 +47,7 @@ tasks {
     named<KotlinCompile>("compileTestKotlin") {
         // don't try compiling resources that somehow end up in the test compilation path when we add the integration
         // test suite
-        sourceSets {
-            exclude("**/resources/**/*.groovy")
-            exclude("**/resources/**/*.kts")
-        }
+        exclude("**/resources/**/*.kts")
     }
 }
 
