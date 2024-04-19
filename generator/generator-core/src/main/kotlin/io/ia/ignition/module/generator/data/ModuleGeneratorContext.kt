@@ -47,8 +47,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     init {
         // initialize the values that will be injected into the template resource files
         replacements[MODULE_NAME.key] = config.moduleName
-        replacements[MODULE_FILENAME.key] =
-            "${config.moduleName.replace(" ", "-")}.modl"
+        replacements[MODULE_FILENAME.key] = config.moduleName.replace(" ", "-")
         replacements[MODULE_ID.key] = "${config.packageName}.$classPrefix"
         replacements[MODULE_CLASSNAME.key] = classPrefix
         replacements[PACKAGE_ROOT.key] = config.packageName
