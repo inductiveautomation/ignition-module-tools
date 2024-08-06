@@ -194,16 +194,28 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     }
                 }
 
-                manifests().groupBy { it.scope }
-                    .forEach { (scope, manifests) ->
-                        manifests.flatMap { it.artifacts }
-                            .distinctBy { it.jarName }
-                            .forEach { artifact ->
-                                "jar" {
-                                    attribute("scope", scope)
-                                    -artifact.jarName
-                                }
-                            }
+                manifests()
+                    .flatMap { it.artifacts }
+                    .groupBy { it.jarName }
+                    .mapValues { (_, artifacts) ->
+                        // Combine all scopes for the artifact
+                        artifacts
+                            .flatMap { manifests().filter { manifest -> manifest.artifacts.contains(it) } }
+                            .flatMap { it.scope.toList() }
+                            .toSet()
+                            .joinToString("")
+                    }
+                    .toList()
+                    .sortedWith(
+                        compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
+                            .thenBy { (_, scope) -> scope }
+                            .thenBy { (jarName, _) -> jarName }
+                    )
+                    .forEach { (jarName, scope) ->
+                        "jar" {
+                            attribute("scope", scope)
+                            -jarName
+                        }
                     }
             }
         }

@@ -3,6 +3,8 @@ package io.ia.sdk.gradle.modl.task
 import io.ia.ignition.module.generator.ModuleGenerator
 import io.ia.ignition.module.generator.api.GeneratorConfigBuilder
 import io.ia.ignition.module.generator.api.GradleDsl
+import io.ia.ignition.module.generator.api.ProjectScope
+import io.ia.ignition.module.generator.util.replacePlaceholders
 import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.util.collapseXmlToOneLine
 import org.gradle.testkit.runner.BuildResult
@@ -19,6 +21,7 @@ class WriteModuleXmlTest : BaseTest() {
         const val MODULE_NAME = "ModuleXmlTest"
         const val PACKAGE_NAME = "module.xml.test"
         const val DEPENDS = "<depends"
+        const val JAR = "<jar"
     }
 
     @Test
@@ -162,6 +165,32 @@ class WriteModuleXmlTest : BaseTest() {
         )
     }
 
+    @Test
+    fun `jars are included, de-duplicated, and sorted`() {
+        val dirName = currentMethodName()
+        val dependencies = mapOf(
+            "CDG" to "modlApi 'com.inductiveautomation.ignition:ia-gson:2.10.1'"
+        )
+        val oneLineXml = generateXml(dirName, emptyMap(), dependencies)
+
+        assertContains(
+            oneLineXml,
+            collapseXmlToOneLine(
+                """
+        |<jar scope="CDG">common-0.0.1-SNAPSHOT.jar</jar>
+        |<jar scope="CDG">ia-gson-2.10.1.jar</jar>
+        |<jar scope="CD">client-0.0.1-SNAPSHOT.jar</jar>
+        |<jar scope="D">designer-0.0.1-SNAPSHOT.jar</jar>
+        |<jar scope="G">gateway-0.0.1-SNAPSHOT.jar</jar>
+                """.replaceIndentByMargin("\t\t")
+            )
+        )
+        assertEquals(
+            Regex(JAR).findAll(oneLineXml).toList().size,
+            5
+        )
+    }
+
     private fun generateModule(
         projDir: File,
         replacements: Map<String, String> = mapOf(),
@@ -188,12 +217,25 @@ class WriteModuleXmlTest : BaseTest() {
     private fun generateXml(
         dirName: String,
         replacements: Map<String, String> = mapOf(),
+        dependencies: Map<String, String> = mapOf(),
         dumpBuildScript: Boolean = false,
     ): String {
         val projectDir = generateModule(
             tempFolder.newFolder(dirName),
             replacements,
         )
+
+        dependencies.forEach { (scopes, dependency) ->
+            ProjectScope.scopesFromShorthand(scopes).forEach { scope ->
+                val dependenciesString = """
+                    dependencies {
+                        $dependency
+                """.trimIndent()
+                projectDir.resolve("${scope.folderName}/build.gradle").replacePlaceholders(
+                    mapOf("dependencies {" to dependenciesString)
+                )
+            }
+        }
 
         if (dumpBuildScript) {
             println("build script:")
