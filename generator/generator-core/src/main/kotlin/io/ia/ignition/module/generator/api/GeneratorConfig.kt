@@ -116,7 +116,7 @@ data class GeneratorConfig constructor(
      * generated, as it is assumed the plugin will be established via 'includeBuild' in settings.gradle
      * pluginManagement.
      */
-    val modulePluginVersion: String = "0.2.0",
+    val modulePluginVersion: String = "0.4.0-SNAPSHOT",
 
     /**
      * If signing the module should be required, set to false.  Set to true by default to allow building the
