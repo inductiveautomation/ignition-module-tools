@@ -59,10 +59,10 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
     // the signed modl file
     @get:OutputFile
-    val signed: Provider<RegularFile> = unsigned.map {
+    val signed: Provider<RegularFile> = unsigned.flatMap {
         val unsignedFileName = it.asFile.name
         val signedName = unsignedFileName.replace(".unsigned", "")
-        project.layout.buildDirectory.file(signedName).get()
+        project.layout.buildDirectory.file(signedName)
     }
 
     @get:Input
