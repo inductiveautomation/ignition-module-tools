@@ -194,29 +194,12 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     }
                 }
 
-                manifests()
-                    .flatMap { it.artifacts }
-                    .groupBy { it.jarName }
-                    .mapValues { (_, artifacts) ->
-                        // Combine all scopes for the artifact
-                        artifacts
-                            .flatMap { manifests().filter { manifest -> manifest.artifacts.contains(it) } }
-                            .flatMap { it.scope.toList() }
-                            .toSet()
-                            .joinToString("")
+                manifests().forEach { (jarName, scope) ->
+                    "jar" {
+                        attribute("scope", scope)
+                        -jarName
                     }
-                    .toList()
-                    .sortedWith(
-                        compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
-                            .thenBy { (_, scope) -> scope }
-                            .thenBy { (jarName, _) -> jarName }
-                    )
-                    .forEach { (jarName, scope) ->
-                        "jar" {
-                            attribute("scope", scope)
-                            -jarName
-                        }
-                    }
+                }
             }
         }
 
@@ -232,12 +215,34 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         return false
     }
 
-    private fun manifests(): List<ArtifactManifest> {
-
-        return artifactManifests.get().map { manifest ->
+    // Manifests' artifacts, collect + sort by distinct scopes to de-dup them
+    private fun manifests(): List<Pair<String,String>> =
+        artifactManifests.get().map { manifest ->
             artifactManifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
+        }.let { manifests ->
+            manifests
+                .flatMap { mani -> mani.artifacts }
+                .groupBy { arti -> arti.jarName }
+                .map { (jar, artifacts) ->
+                    Pair(
+                        jar,
+                        // Combine all scopes for the artifact
+                        artifacts.fold(mutableSetOf<Char>()) { scope, arti ->
+                            scope.apply {
+                                addAll(
+                                    manifests
+                                        .filter { mani -> arti in mani.artifacts }
+                                        .flatMap { mani -> mani.scope.toList() }
+                                )
+                            }
+                        }.joinToString("")
+                    )
+                }.sortedWith(
+                    compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
+                        .thenBy { (_, scope) -> scope }
+                        .thenBy { (jar, _) -> jar }
+                )
         }
-    }
 
     fun writeXml(outputFile: File, moduleXml: String) {
         outputFile.writeText(moduleXml)
