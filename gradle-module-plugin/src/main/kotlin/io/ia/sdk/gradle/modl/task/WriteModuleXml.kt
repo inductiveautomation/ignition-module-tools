@@ -227,14 +227,12 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                     Pair(
                         jar,
                         // Combine all scopes for the artifact
-                        artifacts.fold(mutableSetOf<Char>()) { scope, arti ->
-                            scope.apply {
-                                addAll(
-                                    manifests
-                                        .filter { mani -> arti in mani.artifacts }
-                                        .flatMap { mani -> mani.scope.toList() }
-                                )
-                            }
+                        artifacts.fold(setOf<Char>()) { scope, arti ->
+                            scope.union(
+                                manifests
+                                    .filter { mani -> arti in mani.artifacts }
+                                    .flatMap { mani -> mani.scope.toList() }
+                            )
                         }.joinToString("")
                     )
                 }.sortedWith(
