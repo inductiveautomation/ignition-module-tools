@@ -2,7 +2,6 @@ package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.extension.ModuleDependencySpec
-import io.ia.sdk.gradle.modl.model.ArtifactManifest
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
@@ -216,7 +215,7 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     }
 
     // Manifests' artifacts, collect + sort by distinct scopes to de-dup them
-    private fun manifests(): List<Pair<String,String>> =
+    private fun manifests(): List<Pair<String, String>> =
         artifactManifests.get().map { manifest ->
             artifactManifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
         }.let { manifests ->

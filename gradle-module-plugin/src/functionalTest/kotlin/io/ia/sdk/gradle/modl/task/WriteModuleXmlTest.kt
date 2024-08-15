@@ -168,17 +168,17 @@ class WriteModuleXmlTest : BaseTest() {
     // @Tag ("IGN-10612")
     fun `jars are included, de-duplicated, and sorted`() {
         val dirName = currentMethodName()
-        val dependencies = mapOf<String,String>(
+        val dependencies = mapOf<String, String>(
             // JLA-1.5 pulls in commons-math3-3.5 as transitive dep
-            "G"   to "modlApi 'pl.edu.icm:JLargeArrays:1.5'",
-            "D"   to "modlApi 'org.duckdb:duckdb_jdbc:0.9.2'",
+            "G" to "modlApi 'pl.edu.icm:JLargeArrays:1.5'",
+            "D" to "modlApi 'org.duckdb:duckdb_jdbc:0.9.2'",
             // C[lient] implies D[esigner], so here C -> CD
-            "C"   to "modlApi 'jline:jline:2.12'",
+            "C" to "modlApi 'jline:jline:2.12'",
             // Again, here CG -> CDG
-            "CG"  to "modlApi 'javassist:javassist:3.12.1.GA'",
+            "CG" to "modlApi 'javassist:javassist:3.12.1.GA'",
             // Pulls in commons-pool-1.5.4 as transitive dep
-            "DG"  to "modlApi 'commons-dbcp:commons-dbcp:1.4'",
-            "CD"  to "modlApi 'args4j:args4j:2.0.8'",
+            "DG" to "modlApi 'commons-dbcp:commons-dbcp:1.4'",
+            "CD" to "modlApi 'args4j:args4j:2.0.8'",
             "CDG" to "modlApi 'com.inductiveautomation.ignition:ia-gson:2.10.1'",
         )
 
