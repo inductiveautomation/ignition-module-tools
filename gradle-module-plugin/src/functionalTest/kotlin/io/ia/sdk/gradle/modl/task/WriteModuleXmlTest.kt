@@ -21,7 +21,6 @@ class WriteModuleXmlTest : BaseTest() {
         const val MODULE_NAME = "ModuleXmlTest"
         const val PACKAGE_NAME = "module.xml.test"
         const val DEPENDS = "<depends"
-        const val JAR = "<jar"
     }
 
     @Test
@@ -166,28 +165,47 @@ class WriteModuleXmlTest : BaseTest() {
     }
 
     @Test
+    // @Tag ("IGN-10612")
     fun `jars are included, de-duplicated, and sorted`() {
         val dirName = currentMethodName()
-        val dependencies = mapOf(
-            "CDG" to "modlApi 'com.inductiveautomation.ignition:ia-gson:2.10.1'"
+        val dependencies = mapOf<String,String>(
+            // JLA-1.5 pulls in commons-math3-3.5 as transitive dep
+            "G"   to "modlApi 'pl.edu.icm:JLargeArrays:1.5'",
+            "D"   to "modlApi 'org.duckdb:duckdb_jdbc:0.9.2'",
+            // C[lient] implies D[esigner], so here C -> CD
+            "C"   to "modlApi 'jline:jline:2.12'",
+            // Again, here CG -> CDG
+            "CG"  to "modlApi 'javassist:javassist:3.12.1.GA'",
+            // Pulls in commons-pool-1.5.4 as transitive dep
+            "DG"  to "modlApi 'commons-dbcp:commons-dbcp:1.4'",
+            "CD"  to "modlApi 'args4j:args4j:2.0.8'",
+            "CDG" to "modlApi 'com.inductiveautomation.ignition:ia-gson:2.10.1'",
         )
+
         val oneLineXml = generateXml(dirName, emptyMap(), dependencies)
 
-        assertContains(
-            oneLineXml,
-            collapseXmlToOneLine(
-                """
-        |<jar scope="CDG">common-0.0.1-SNAPSHOT.jar</jar>
-        |<jar scope="CDG">ia-gson-2.10.1.jar</jar>
-        |<jar scope="CD">client-0.0.1-SNAPSHOT.jar</jar>
-        |<jar scope="D">designer-0.0.1-SNAPSHOT.jar</jar>
-        |<jar scope="G">gateway-0.0.1-SNAPSHOT.jar</jar>
-                """.replaceIndentByMargin("\t\t")
-            )
-        )
+        // Split to list on the whitespace between nodes, extract <jar/>s.
+        val jars =
+            oneLineXml.split(Regex("""(?<=>)\s+(?=<)"""))
+                .filter { node -> node.startsWith("<jar") }
+
         assertEquals(
-            Regex(JAR).findAll(oneLineXml).toList().size,
-            5
+            jars,
+            listOf(
+                """<jar scope="CDG">common-0.0.1-SNAPSHOT.jar</jar>""",
+                """<jar scope="CDG">ia-gson-2.10.1.jar</jar>""",
+                """<jar scope="CDG">javassist-3.12.1.GA.jar</jar>""",
+                """<jar scope="CD">args4j-2.0.8.jar</jar>""",
+                """<jar scope="CD">client-0.0.1-SNAPSHOT.jar</jar>""",
+                """<jar scope="CD">jline-2.12.jar</jar>""",
+                """<jar scope="DG">commons-dbcp-1.4.jar</jar>""",
+                """<jar scope="DG">commons-pool-1.5.4.jar</jar>""",
+                """<jar scope="D">designer-0.0.1-SNAPSHOT.jar</jar>""",
+                """<jar scope="D">duckdb_jdbc-0.9.2.jar</jar>""",
+                """<jar scope="G">JLargeArrays-1.5.jar</jar>""",
+                """<jar scope="G">commons-math3-3.5.jar</jar>""",
+                """<jar scope="G">gateway-0.0.1-SNAPSHOT.jar</jar>""",
+            )
         )
     }
 
