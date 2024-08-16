@@ -223,17 +223,15 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
                 .flatMap { mani -> mani.artifacts }
                 .groupBy { arti -> arti.jarName }
                 .map { (jar, artifacts) ->
-                    Pair(
-                        jar,
-                        // Combine all scopes for the artifact
-                        artifacts.fold(setOf<Char>()) { scope, arti ->
-                            scope.union(
-                                manifests
-                                    .filter { mani -> arti in mani.artifacts }
-                                    .flatMap { mani -> mani.scope.toList() }
-                            )
-                        }.joinToString("")
-                    )
+                    val combinedScope = artifacts.fold(setOf<Char>()) { scope, arti ->
+                        scope.union(
+                            manifests
+                                .filter { mani -> arti in mani.artifacts }
+                                .flatMap { mani -> mani.scope.toList() }
+                        )
+                    }.joinToString("")
+
+                    jar to combinedScope
                 }.sortedWith(
                     compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
                         .thenBy { (_, scope) -> scope }
