@@ -16,3 +16,16 @@ fun nameToDirName(moduleName: String): String {
 // tags together in one long line by knocking out indentation and newlines.
 fun collapseXmlToOneLine(xml: String): String =
     xml.replace(Regex("""^\s+"""), "").replace(Regex("""\R"""), "")
+
+// Likewise, for when it's useful to break XML nodes out to a list of node
+// names. With optional inclusive filter.
+fun splitXmlNodesToList(
+    xml: String,
+    nodeFilter: List<String> = listOf<String>(),
+): List<String> =
+    xml.split(Regex("""(?<=>)\s+(?=<)"""))
+        .filter { n ->
+            // if no filter, include; else look for BOL with matching tag
+            nodeFilter.isEmpty() ||
+                nodeFilter.any { nf -> n.startsWith("<$nf") }
+        }

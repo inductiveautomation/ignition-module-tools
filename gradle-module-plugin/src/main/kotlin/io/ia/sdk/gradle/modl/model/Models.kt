@@ -28,10 +28,11 @@ enum class IgnitionScope(val code: String) {
     GATEWAY_DESIGNER("DG"),
     GATEWAY_DESIGNER_VISION_CLIENT("CDG"),
     GATEWAY_VISION_CLIENT("CG"),
+    ALL("A"),
     NONE("");
 
     companion object {
-        private val VALID_SCOPES = Regex("^[GCD]+\$")
+        private val VALID_SCOPES = Regex("^[AGCD]+\$")
 
         /**
          * Applies simplistic validation to the string and returns the corresponding scope if it can be determined.
@@ -60,8 +61,20 @@ enum class IgnitionScope(val code: String) {
                 "CDG" -> GATEWAY_DESIGNER_VISION_CLIENT
                 "DG" -> GATEWAY_DESIGNER
                 "CG" -> GATEWAY_VISION_CLIENT
+                "A" -> ALL
                 else -> throw Exception("Could not determine IgnitionScope for shorthand '$code'")
             }
         }
+
+        /**
+         * Performs 'CDG'-to-'A' transform when applicable.
+         */
+        @JvmStatic
+        @Throws(ModuleConfigException::class)
+        fun promoteToAllWhenImplied(scopes: String): IgnitionScope =
+            forShorthand(scopes).let { scope ->
+                if (scope == GATEWAY_DESIGNER_VISION_CLIENT)
+                    ALL else scope
+            }
     }
 }
