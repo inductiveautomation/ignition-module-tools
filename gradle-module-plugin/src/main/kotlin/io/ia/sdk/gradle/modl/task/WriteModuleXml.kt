@@ -2,6 +2,8 @@ package io.ia.sdk.gradle.modl.task
 
 import io.ia.sdk.gradle.modl.PLUGIN_TASK_GROUP
 import io.ia.sdk.gradle.modl.extension.ModuleDependencySpec
+import io.ia.sdk.gradle.modl.model.ArtifactManifest
+import io.ia.sdk.gradle.modl.model.IgnitionScope
 import io.ia.sdk.gradle.modl.model.artifactManifestFromJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFile
@@ -14,6 +16,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import org.redundent.kotlin.xml.PrintOptions
 import org.redundent.kotlin.xml.xml
 import java.io.File
@@ -97,6 +100,23 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     @get:Input
     @get:Optional
     val docIndexPath: Property<String> = _objects.property(String::class.java)
+
+    /**
+     * Whether to fold and sort duplicate jars dependencies when the same appear
+     * in more than one scope.
+     *
+     * Also converts implicit all scope string 'CDG' to 'A' and sorts jars by
+     * scope string.
+     *
+     * Default is `false`.
+     */
+    @get:Input
+    @get:Optional
+    @Option(
+        description = "Folds jars from multiple scopes into a single jar entry."
+    )
+    val foldJars: Property<Boolean> = _objects.property(Boolean::class.java)
+        .convention(false)
 
     @OutputFile
     fun getModuleXmlFile(): File {
@@ -214,30 +234,69 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         return false
     }
 
-    // Manifests' artifacts, collect + sort by distinct scopes to de-dup them
+    // Manifests' artifacts
     private fun manifests(): List<Pair<String, String>> =
         artifactManifests.get().map { manifest ->
             artifactManifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
         }.let { manifests ->
-            manifests
-                .flatMap { mani -> mani.artifacts }
-                .groupBy { arti -> arti.jarName }
-                .map { (jar, artifacts) ->
-                    val combinedScope = artifacts.fold(setOf<Char>()) { scope, arti ->
-                        scope.union(
-                            manifests
-                                .filter { mani -> arti in mani.artifacts }
-                                .flatMap { mani -> mani.scope.toList() }
-                        )
-                    }.joinToString("")
-
-                    jar to combinedScope
-                }.sortedWith(
-                    compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
-                        .thenBy { (_, scope) -> scope }
-                        .thenBy { (jar, _) -> jar }
-                )
+            if (foldJars.get())
+            // more compact or else legacy dup-prone
+                deduplicatedJars(manifests) else rawScopedJars(manifests)
         }
+
+    // Collapse duplicate artifacts in different scopes to single scope string.
+    //
+    // IGN-10168 is backlogged to handle at least some of this upstream,
+    // probably in or near `collectModlDependencies`.
+    private fun deduplicatedJars(
+        manifests: List<ArtifactManifest>
+    ): List<Pair<String, String>> =
+        manifests
+            .flatMap { mani -> mani.artifacts }
+            .groupBy { arti -> arti.jarName }
+            .map { (jar, artifacts) ->
+                val combinedScope = artifacts.fold(setOf<Char>()) { scope, arti ->
+                    scope.union(
+                        manifests
+                            .filter { mani -> arti in mani.artifacts }
+                            .flatMap { mani -> mani.scope.toList() }
+                    )
+                }.joinToString("")
+                    .let { scope ->
+                        // CDG > A formalized b/c we'll want it for IGN-10168
+                        IgnitionScope.promoteToAllWhenImplied(scope).code
+                    }
+
+                jar to combinedScope
+            }.sortedWith(
+                compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
+                    .thenBy { (_, scope) -> scope }
+                    .thenBy { (jar, _) -> jar }
+            )
+
+    // Leave duplicate artifacts largely as-is, even if present in 2+ scopes.
+    // This is legacy behavior.
+    private fun rawScopedJars(
+        manifests: List<ArtifactManifest>
+    ): List<Pair<String, String>> =
+        manifests
+            .groupBy { mani -> mani.scope }
+            .map { (scope, manis) ->
+                val distinctJars =
+                    manis
+                        .flatMap { mani -> mani.artifacts }
+                        .fold(mutableSetOf<String>()) { jars, arti ->
+                            jars.apply { add(arti.jarName) }
+                        }
+
+                scope to distinctJars
+            }.fold(mutableListOf<Pair<String, String>>()) { lst, (scope, jars) ->
+                lst.apply {
+                    addAll(
+                        jars.map { jar -> jar to scope }
+                    )
+                }
+            }
 
     fun writeXml(outputFile: File, moduleXml: String) {
         outputFile.writeText(moduleXml)
