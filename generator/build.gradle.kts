@@ -22,7 +22,7 @@ plugins {
 }
 
 allprojects {
-    project.version = "0.4.0-SNAPSHOT"
+    project.version = "0.4.0"
 }
 
 tasks {

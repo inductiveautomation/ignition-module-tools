@@ -19,7 +19,7 @@ import java.util.concurrent.Callable
 
 @Command(
     name = "ignition-module-gen",
-    version = ["0.4.0-SNAPSHOT"],
+    version = ["0.4.0"],
     description = ["Generates an Ignition module skeleton according to provided arguments."],
     subcommands = [HelpCommand::class],
     mixinStandardHelpOptions = true
@@ -160,7 +160,7 @@ class ModuleGeneratorCli : Callable<Int> {
             configBuilder.debugPluginConfig(true)
             configBuilder.rootPluginConfig("""id("io.ia.sdk.modl")""")
         } else {
-            configBuilder.rootPluginConfig("""id("io.ia.sdk.modl") version("0.4.0-SNAPSHOT")""")
+            configBuilder.rootPluginConfig("""id("io.ia.sdk.modl") version("0.4.0")""")
         }
 
         val config = configBuilder.build()
