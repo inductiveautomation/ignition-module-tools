@@ -25,7 +25,7 @@ ignitionModule {
      * the course of a major Ignition (7.9, 8.0, etc) version, except for when the Ignition Platform adds/changes APIs
      * used by the module.
      */
-    requiredIgnitionVersion.set("8.1.11")
+    requiredIgnitionVersion.set(rootProject.ext.sdk_version)
     /*
      *  This is a map of String: String, where the 'key' represents the fully qualified path to the project
      *  (using gradle path syntax), and the value is the shorthand Scope string.
