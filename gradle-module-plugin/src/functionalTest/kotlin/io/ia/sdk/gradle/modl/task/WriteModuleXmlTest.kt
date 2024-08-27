@@ -38,7 +38,7 @@ class WriteModuleXmlTest : BaseTest() {
         }
     }
                 """,
-            "requiredIgnitionVersion = \"8.0.10\"" to
+            "requiredIgnitionVersion = rootProject.ext.sdk_version" to
                 "requiredIgnitionVersion = \"8.3.0\""
         )
 
@@ -72,7 +72,7 @@ class WriteModuleXmlTest : BaseTest() {
         }
     }
                 """,
-            "requiredIgnitionVersion = \"8.0.10\"" to
+            "requiredIgnitionVersion = rootProject.ext.sdk_version" to
                 "requiredIgnitionVersion = \"8.3.0\""
         )
 
@@ -119,7 +119,7 @@ class WriteModuleXmlTest : BaseTest() {
         }
     }
                 """,
-            "requiredIgnitionVersion = \"8.0.10\"" to
+            "requiredIgnitionVersion = rootProject.ext.sdk_version" to
                 "requiredIgnitionVersion = \"8.3.0\""
         )
 
