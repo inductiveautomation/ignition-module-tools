@@ -13,6 +13,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
@@ -142,6 +143,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         project.sync { copySpec ->
             copySpec.from(artifacts.map { it.jarFile })
             copySpec.into(artifactOutputDir.get())
+            copySpec.duplicatesStrategy = DuplicatesStrategy.WARN
         }
     }
 }
