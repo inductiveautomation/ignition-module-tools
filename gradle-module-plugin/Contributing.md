@@ -10,8 +10,8 @@ change you wish to make with the project maintainers via issue or the IA forums.
 
 1. Ensure any local files or dependencies are removed before pushing
 2. Verify that new functionality is supported through new test cases when applicable
-2. Update the README.md with details of changes to tasks, interfaces or behavior, including new environment 
+3. Update the README.md with details of changes to tasks, interfaces or behavior, including new environment 
    variables, properties, useful file locations, etc.
-3. Make sure that the changes in the PR conform to the code formatting by running `./gradlew check` in the appropriate project
+4. Make sure that the changes in the PR conform to the code formatting by running `./gradlew check` in the appropriate project
 
 
