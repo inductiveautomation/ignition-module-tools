@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.kotlinXmlBuilder)
     api(libs.moduleSigner)
     testImplementation(libs.kotlinTestJunit)
+    testImplementation(libs.junit.jupiter.api)
     testImplementation("io.ia.sdk.tools.module.gen:generator-core")
 }
 
