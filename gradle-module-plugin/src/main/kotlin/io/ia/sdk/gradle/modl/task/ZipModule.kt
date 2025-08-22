@@ -13,6 +13,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskExecutionException
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -46,10 +48,45 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
         val unsignedFile = unsignedModule.get()
         val contentDir = content.get().asFile
 
+        checkDuplicateJars(contentDir)
+
         project.logger.info("Zipping '${contentDir.absolutePath}' into ' ${unsignedFile.asFile.absolutePath}'")
         project.ant.invokeMethod(
             "zip",
             mapOf("basedir" to contentDir, "destfile" to unsignedFile)
         )
+    }
+
+    /**
+     * Try to detect jars in contentDir with the same name but have multiple
+     * versions existed.  Fail the build when it's found.
+     **/
+    fun checkDuplicateJars(contentDir: File) {
+        project.logger.info("Parsing file name in: ${contentDir.absolutePath}")
+
+        val fileMap = mutableMapOf<String, String>()
+        val regex = "^(.+?)-(\\d+.*)(?:\\.jar)".toRegex()
+
+        contentDir.walk().filter { it.isFile }.forEach { file ->
+            val matchResult = regex.find(file.name) // Match all the jar files
+
+            if (matchResult != null) {
+                val name = matchResult.groupValues[1]
+                val version = matchResult.groupValues[2]
+
+                if (fileMap.containsKey(name)) {
+                    throw TaskExecutionException(
+                        this,
+                        IllegalArgumentException(
+                            """Jar with '$name' has multiple versions presented in ${contentDir.absolutePath}
+                            Please ensure only one version exist (preferably the highest) and update lib.version.toml file if needed.
+                            """.trimIndent()
+                        )
+                    )
+                } else {
+                    fileMap[name] = version
+                }
+            }
+        }
     }
 }
