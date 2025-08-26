@@ -7,55 +7,61 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
+import kotlin.io.path.createTempDirectory
+import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
+import kotlin.test.Test
+import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 import java.io.File
 
 class ZipModuleTests : BaseTest() {
 
-    @TempDir
-    lateinit var testProjectDir: File
+    private lateinit var tempDir: File
     private lateinit var project: Project
     private lateinit var task: ZipModule
 
-    @BeforeEach
+    @BeforeTest
     fun setup() {
-        project = ProjectBuilder.builder().withProjectDir(testProjectDir).build() as DefaultProject
+        tempDir = createTempDirectory().toFile()
+        project = ProjectBuilder.builder().withProjectDir(tempDir).build() as DefaultProject
         task = project.tasks.create("testTask", ZipModule::class.java)
 
-        // Set up the task properties with the test directory
-        task.content.set(project.objects.directoryProperty().fileValue(File(testProjectDir, "content")))
-        task.unsignedModule.set(project.objects.fileProperty().fileValue(File(testProjectDir, "output.modl")))
+        // Set up the task properties with the temp directory
+        task.content.set(project.objects.directoryProperty().fileValue(File(tempDir, "content")))
+        task.unsignedModule.set(project.objects.fileProperty().fileValue(File(tempDir, "output.modl")))
+    }
+
+    @AfterTest
+    fun cleanup() {
+        tempDir.deleteRecursively()
     }
 
     @Test
     fun `task succeeds when no duplicate jars exist`() {
         // Arrange
-        val contentDir = File(testProjectDir, "content").apply { mkdirs() }
+        val contentDir = task.content.asFile.get().apply { mkdirs() }
         File(contentDir, "my-lib-1.0.jar").createNewFile()
         File(contentDir, "another-lib-2.0.jar").createNewFile()
 
-        // Act & Assert: The task should not throw an exception
+        // Act: The task should not throw an exception
         task.execute()
     }
 
     @Test
     fun `task fails when duplicate jars with different versions exist`() {
         // Arrange
-        val contentDir = File(testProjectDir, "content").apply { mkdirs() }
+        val contentDir = task.content.asFile.get().apply { mkdirs() }
         File(contentDir, "my-lib-1.0.jar").createNewFile()
         File(contentDir, "my-lib-2.0.jar").createNewFile() // This is the duplicate
 
-        // Act & Assert: The task should throw a TaskExecutionException
-        val exception = assertThrows(TaskExecutionException::class.java) {
+        // Act & Assert: The task should throw a IllegalArgumentException
+        val exception = assertFailsWith<IllegalArgumentException>{
             task.execute()
         }
 
         // Verify the exception message
-        val expectedMessage = "Jar with 'my-lib' has multiple versions presented"
+        val expectedMessage = "Library 'my-lib' exists in multiple versions"
         assertTrue(exception.message!!.contains(expectedMessage))
     }
 

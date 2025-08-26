@@ -20,7 +20,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.4.1"
+version = "0.5.0-SNAPSHOT"
 
 configurations {
     val functionalTestImplementation by registering {
@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.kotlinXmlBuilder)
     api(libs.moduleSigner)
     testImplementation(libs.kotlinTestJunit)
-    testImplementation(libs.junit.jupiter.api)
     testImplementation("io.ia.sdk.tools.module.gen:generator-core")
 }
 
