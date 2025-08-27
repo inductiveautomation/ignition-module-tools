@@ -5,7 +5,6 @@ import io.ia.sdk.gradle.modl.BaseTest
 import io.ia.sdk.gradle.modl.util.unsignedModuleName
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.testfixtures.ProjectBuilder
 import kotlin.io.path.createTempDirectory
 import kotlin.test.BeforeTest
