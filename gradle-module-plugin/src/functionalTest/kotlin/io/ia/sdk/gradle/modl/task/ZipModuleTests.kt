@@ -6,13 +6,13 @@ import io.ia.sdk.gradle.modl.util.unsignedModuleName
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.testfixtures.ProjectBuilder
-import kotlin.io.path.createTempDirectory
-import kotlin.test.BeforeTest
-import kotlin.test.AfterTest
-import kotlin.test.Test
-import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 import java.io.File
+import kotlin.io.path.createTempDirectory
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class ZipModuleTests : BaseTest() {
 
@@ -55,7 +55,7 @@ class ZipModuleTests : BaseTest() {
         File(contentDir, "my-lib-2.0.jar").createNewFile() // This is the duplicate
 
         // Act & Assert: The task should throw a IllegalArgumentException
-        val exception = assertFailsWith<IllegalArgumentException>{
+        val exception = assertFailsWith<IllegalArgumentException> {
             task.execute()
         }
 

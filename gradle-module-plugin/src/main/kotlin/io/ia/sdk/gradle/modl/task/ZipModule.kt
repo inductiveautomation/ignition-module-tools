@@ -74,7 +74,8 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
 
                 if (fileSet.contains(name)) {
                     throw IllegalArgumentException(
-                            "Library '$name' exists in multiple versions in ${contentDir.absolutePath}")
+                        "Library '$name' exists in multiple versions in ${contentDir.absolutePath}"
+                    )
                 } else {
                     fileSet.add(name)
                 }
