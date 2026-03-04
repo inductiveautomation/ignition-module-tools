@@ -104,7 +104,7 @@ class IntegrationTests {
             TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4")),
             TestConfig("The Greatness", "le.pant", "CD", dir("v5")),
             TestConfig("A Goodness", "come.va", "C", dir("v6")),
-            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7"))
+            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7")),
         ).forEach {
             val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
@@ -112,12 +112,14 @@ class IntegrationTests {
                 .parentDir(it.dir)
                 .scopes(it.scope)
                 .buildscriptDsl(GradleDsl.GROOVY)
+                .debugPluginConfig(true)
                 .build()
 
             val projectRootDir: Path = ModuleGenerator.generate(config)
 
             val processOutput = "build".runCommand(projectRootDir)
-            assertTrue(processOutput.contains("BUILD SUCCESSFUL"))
+            println("OUTPUT:\n$processOutput")
+            assertTrue(processOutput.contains("BUILD SUCCESSFUL"), "Build failed for ${it.moduleName} (${it.scope}):\n$processOutput")
         }
     }
 
@@ -130,7 +132,7 @@ class IntegrationTests {
             TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4_kts")),
             TestConfig("The Greatness", "le.pant", "CD", dir("v5_kts")),
             TestConfig("A Goodness", "come.va", "C", dir("v6_kts")),
-            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7_kts"))
+            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7_kts")),
         ).forEach {
             val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
@@ -138,13 +140,14 @@ class IntegrationTests {
                 .parentDir(it.dir)
                 .scopes(it.scope)
                 .buildscriptDsl(GradleDsl.KOTLIN)
+                .debugPluginConfig(true)
                 .build()
 
             val projectRootDir: Path = ModuleGenerator.generate(config)
 
             val processOutput = "build".runCommand(projectRootDir)
             println("OUTPUT:\n$processOutput")
-            assertTrue(processOutput.contains("BUILD SUCCESSFUL"))
+            assertTrue(processOutput.contains("BUILD SUCCESSFUL"), "Build failed for ${it.moduleName} (${it.scope}):\n$processOutput")
         }
     }
 }

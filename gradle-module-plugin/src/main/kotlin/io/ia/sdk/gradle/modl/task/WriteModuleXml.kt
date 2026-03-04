@@ -10,6 +10,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -30,8 +31,10 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     }
 
     init {
+        this.description =
+            "Writes the module.xml file for the module, using the settings applied to the " +
+                "'ignitionModule' block of the build script."
         this.group = PLUGIN_TASK_GROUP
-        this.description = "Writes the module.xml based on values derived from plugin configuration"
     }
 
     @get:Input
@@ -113,27 +116,19 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     @get:Input
     @get:Optional
     @Option(
-        description = "Folds jars from multiple scopes into a single jar entry."
+        description = "Folds jars from multiple scopes into a single jar entry.",
     )
     val foldJars: Property<Boolean> = _objects.property(Boolean::class.java)
         .convention(false)
 
-    @OutputFile
-    fun getModuleXmlFile(): File {
-        return project.file("${project.buildDir}/moduleContent/module.xml")
-    }
-
-    init {
-        this.description = "Writes the module.xml file for the module, using the settings applied to the " +
-            "'ignitionModule' block of the build script."
-        this.group = "Ignition Module"
-    }
+    @get:OutputFile
+    val moduleXmlFile: Provider<RegularFile> =
+        project.layout.buildDirectory.file("moduleContent/module.xml")
 
     @TaskAction
     fun execute() {
-
         val xml = buildXml()
-        val fileToWrite = getModuleXmlFile()
+        val fileToWrite = moduleXmlFile.get().asFile
         project.logger.debug("Beginning to write to '${fileToWrite.absolutePath}' with content:\n$xml")
 
         writeXml(fileToWrite, xml)

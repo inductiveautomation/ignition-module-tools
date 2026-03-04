@@ -6,7 +6,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import java.io.BufferedReader
@@ -48,7 +48,7 @@ open class Deploy @javax.inject.Inject constructor(objects: ObjectFactory) : Def
         module.set(project.file(path))
     }
 
-    @get:Nested
+    @get:Internal
     val targetUrl: String by lazy {
         "${hostGateway.get()}/$SERVLET_PATH"
     }

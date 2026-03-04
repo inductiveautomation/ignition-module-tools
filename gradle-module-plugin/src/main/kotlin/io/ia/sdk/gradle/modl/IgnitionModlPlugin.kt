@@ -299,10 +299,15 @@ class IgnitionModlPlugin : Plugin<Project> {
             p.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
         val modlImplementation = p.configurations.create(MODULE_IMPLEMENTATION_CONFIGURATION) {
-            it.isCanBeResolved = true
+            it.isCanBeResolved = false
             it.isTransitive = false
-            it.isCanBeConsumed = true
-            implementationConf?.extendsFrom(it)
+            it.isCanBeConsumed = false
+        }
+
+        // Use withDependencies for lazy dependency addition - Gradle 9 compatible.
+        // extendsFrom causes issues when the parent configuration has already been consumed as a variant.
+        implementationConf?.withDependencies { deps ->
+            deps.addAll(modlImplementation.dependencies)
         }
 
         // The configuration that is used to resolve the runtime dependencies from modlImplementation. Used in the
@@ -317,8 +322,12 @@ class IgnitionModlPlugin : Plugin<Project> {
         val modlApi = p.configurations.create(MODULE_API_CONFIGURATION) {
             it.isCanBeResolved = true
             it.isTransitive = true
-            it.isCanBeConsumed = true
-            apiConf?.extendsFrom(it)
+            it.isCanBeConsumed = false
+        }
+
+        // Use withDependencies for lazy dependency addition - Gradle 9 compatible.
+        apiConf?.withDependencies { deps ->
+            deps.addAll(modlApi.dependencies)
         }
 
         return listOf(modlImplementation, modlApi)
