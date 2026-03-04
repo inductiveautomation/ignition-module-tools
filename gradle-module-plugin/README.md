@@ -19,7 +19,7 @@ For current versions of gradle, simply add to your `build.gradle.kts`:
 ```kotlin
 // build.gradle.kts
 plugins {
-  id("io.ia.sdk.modl") version("0.4.0")
+  id("io.ia.sdk.modl") version("0.6.0")
 }
 ```
 
@@ -28,7 +28,7 @@ Or for Groovy DSL buildscripts:
 ```groovy
 // build.gradle
 plugins {
-    id 'io.ia.sdk.modl' version '0.4.0'
+    id 'io.ia.sdk.modl' version '0.6.0'
 }
 ```
 
@@ -261,8 +261,8 @@ subprojects. The following table is a brief reference:
 | writeModuleXml  | root project  | Writes the module.xml file to the staging directory  |
 | zipModule  | root project | Compresses the staged module contents into an unsigned zip archive with a .modl file extension  |
 | checksumModl  | root project  | Generates a checksum for the signed module, and writes the result to a json file  |
-| moduleAssemblyReport  | root project | Writes a json file containing meta information about the module's assembly  |
-| signModl | root project | signs the unsigned modl using credentials/certs noted above
+| modlReport  | root project | Writes a json file containing meta information about the module's assembly  |
+| signModule | root project | signs the unsigned modl using credentials/certs noted above
 | deployModl | root project | deploys the built module file to an ignition gateway running in developer module upload mode &#735;|
 
 > &#735; to enable the developer mode, add `-Dia.developer.moduleupload=true` to the 'Java Additional Parameters' in

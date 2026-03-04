@@ -160,7 +160,7 @@ class ModuleGeneratorCli : Callable<Int> {
             configBuilder.debugPluginConfig(true)
             configBuilder.rootPluginConfig("""id("io.ia.sdk.modl")""")
         } else {
-            configBuilder.rootPluginConfig("""id("io.ia.sdk.modl") version("0.4.0")""")
+            configBuilder.rootPluginConfig("""id("io.ia.sdk.modl") version("0.6.0")""")
         }
 
         val config = configBuilder.build()

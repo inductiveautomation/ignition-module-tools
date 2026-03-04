@@ -143,8 +143,10 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 when (config.projectLanguage) {
                     JAVA -> "\n    id(\"java-library\")"
                     KOTLIN -> if (config.buildDsl == GradleDsl.KOTLIN) {
-                        "`java-library`\n    kotlin(\"jvm\") version(\"1.6.21\")"
-                    } else "id(\"java-library\")\n    id(\"org.jetbrains.kotlin.jvm\") version \"1.6.21\""
+                        "`java-library`\n    kotlin(\"jvm\") version(\"2.3.10\")"
+                    } else {
+                        "id(\"java-library\")\n    id(\"org.jetbrains.kotlin.jvm\") version \"2.3.10\""
+                    }
                     else -> ""
                 }
             }

@@ -17,7 +17,7 @@ Contains three subprojects.  See the linked readmes for details
 
 ## Requirements
 
-The only requirement is an appropriate JDK (JDK 11 as of writing) available on the system path.
+The only requirement is an appropriate JDK (JDK 25 as of writing) available on the system path.
 
 # How to Build
 
