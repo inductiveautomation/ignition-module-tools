@@ -9,7 +9,6 @@ import io.ia.sdk.gradle.modl.extension.ModuleSettings
 import io.ia.sdk.gradle.modl.task.AssembleModuleStructure
 import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
-import io.ia.sdk.gradle.modl.task.Deploy
 import io.ia.sdk.gradle.modl.task.ModuleBuildReport
 import io.ia.sdk.gradle.modl.task.SignModule
 import io.ia.sdk.gradle.modl.task.WriteModuleXml
@@ -265,18 +264,6 @@ class IgnitionModlPlugin : Plugin<Project> {
                     }
                 }
             }
-        }
-
-        root.tasks.register(Deploy.ID, Deploy::class.java) {
-            it.module.convention(
-                settings.skipModlSigning.flatMap { useUnsigned ->
-                    if (useUnsigned) {
-                        zip.flatMap { it.unsignedModule }
-                    } else {
-                        sign.flatMap { it.signed }
-                    }
-                }
-            )
         }
 
         // root project can be a module artifact contributor, so we'll apply the tasks to root as well (may opt out)

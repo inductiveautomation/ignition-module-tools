@@ -11,6 +11,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven {
         url = uri("https://nexus.inductiveautomation.com/repository/public")
     }
@@ -18,7 +19,7 @@ repositories {
 }
 
 group = "io.ia.sdk"
-version = "0.6.0-SNAPSHOT"
+version = "1.0.0-SNAPSHOT"
 
 
 testing {
