@@ -15,12 +15,14 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
 /**
  * Task which applies to the root gradle project (aka, the project applying the plugin) and collects the assets
  * created by one or more [CollectModlDependencies] tasks.
  */
+@DisableCachingByDefault(because = "AssembleModuleStructure is not deterministic currently")
 open class AssembleModuleStructure @javax.inject.Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     companion object {
@@ -49,6 +51,7 @@ open class AssembleModuleStructure @javax.inject.Inject constructor(objects: Obj
      */
     @get:Optional
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val docFiles: ConfigurableFileCollection = objects.fileCollection()
 
     @get:Optional

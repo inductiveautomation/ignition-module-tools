@@ -19,10 +19,12 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.FileNotFoundException
 import java.io.Serializable
 import javax.inject.Inject
 
+@DisableCachingByDefault
 open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: ProjectLayout) : DefaultTask() {
     companion object {
         const val ID = "checksumModl"

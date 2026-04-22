@@ -23,8 +23,11 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -38,6 +41,7 @@ import javax.inject.Inject
 /**
  * Signs the module file, using credentials provided by the task running.
  */
+@DisableCachingByDefault
 open class SignModule @Inject constructor(_providers: ProviderFactory, _objects: ObjectFactory) : DefaultTask() {
     companion object {
         const val ID = "signModule"
@@ -52,6 +56,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
     // the unsigned .modl file
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val unsigned: RegularFileProperty = _objects.fileProperty()
 
     @get:Input
@@ -122,6 +127,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
     @get:InputFile
     @get:Optional
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     val keystore: Provider<File> = keystorePath.zip(allowMultiprojectFileResolution) { path, allow ->
         var target = project.file(path)
         if (!target.exists() && allow && project != project.rootProject) {
@@ -133,6 +139,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
     @get:InputFile
     @get:Optional
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     val pkcs11Cfg: Provider<File> =
         pkcs11CfgPath.zip(allowMultiprojectFileResolution) { path, allow ->
             var target = project.file(path)
@@ -182,6 +189,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
      *  if supplying a `-P` arg at the commandline, or if using gradle.properties files in default locations.
      */
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     val certFile: Provider<File> = certFilePath.zip(allowMultiprojectFileResolution) { cert, allow ->
         var target = project.file(cert)
 

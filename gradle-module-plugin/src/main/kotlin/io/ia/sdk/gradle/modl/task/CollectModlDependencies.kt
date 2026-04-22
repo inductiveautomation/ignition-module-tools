@@ -19,13 +19,17 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.work.DisableCachingByDefault
 import java.io.FileNotFoundException
 import javax.inject.Inject
 
@@ -36,6 +40,7 @@ import javax.inject.Inject
  * This task should be registered to each project associated with the module, if that project applies the java-library
  * gradle plugin (e.g. - if it produces jar artifacts)
  */
+@DisableCachingByDefault(because = "CollectModlDependencies currently uses project.sync")
 open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
     companion object {
         const val ID = "collectModlDependencies"
@@ -69,16 +74,15 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
     }
 
     @InputFiles
-    fun getModlApiDeps(): Configuration {
-        return project.configurations.getByName(MODULE_API_CONFIGURATION)
-    }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    fun getModlApiDeps(): Configuration = project.configurations.getByName(MODULE_API_CONFIGURATION)
 
     @InputFiles
-    fun getModlImplementationDeps(): Configuration {
-        return project.configurations.getByName(MODULE_IMPLEMENTATION_ELEMENTS)
-    }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    fun getModlImplementationDeps(): Configuration = project.configurations.getByName(MODULE_IMPLEMENTATION_ELEMENTS)
 
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     fun getJar(): Provider<RegularFile> {
         // type casting to get at .archiveFile instead of internal-ish DefaultTask.outputs.files
         return (project.tasks.getByName("jar") as Jar).archiveFile

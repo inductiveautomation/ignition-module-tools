@@ -11,7 +11,7 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
+//    mavenLocal() Uncomment for local testing
     maven {
         url = uri("https://nexus.inductiveautomation.com/repository/public")
     }
