@@ -19,7 +19,7 @@ For current versions of gradle, simply add to your `build.gradle.kts`:
 ```kotlin
 // build.gradle.kts
 plugins {
-  id("io.ia.sdk.modl") version("0.4.0")
+  id("io.ia.sdk.modl") version("0.5.0")
 }
 ```
 
