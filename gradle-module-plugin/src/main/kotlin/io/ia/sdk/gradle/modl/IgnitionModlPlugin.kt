@@ -11,6 +11,7 @@ import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
 import io.ia.sdk.gradle.modl.task.ModuleBuildReport
 import io.ia.sdk.gradle.modl.task.SignModule
+import io.ia.sdk.gradle.modl.task.WriteDevDescriptor
 import io.ia.sdk.gradle.modl.task.WriteModuleXml
 import io.ia.sdk.gradle.modl.task.ZipModule
 import io.ia.sdk.gradle.modl.task.ZipModule.Companion.UNSIGNED_EXTENSION
@@ -166,6 +167,19 @@ class IgnitionModlPlugin : Plugin<Project> {
 
             // xml task depends on having module structure
             xmlTask.dependsOn(assembleModuleStructure)
+        }
+
+        // task that generates a dev module descriptor for IDE classloader isolation
+        root.tasks.register(
+            WriteDevDescriptor.ID,
+            WriteDevDescriptor::class.java
+        ) { devTask: WriteDevDescriptor ->
+            devTask.moduleId.set(settings.id)
+            devTask.moduleName.set(settings.name)
+            devTask.moduleVersion.set(settings.moduleVersion)
+            devTask.freeModule.set(settings.freeModule)
+            devTask.hookClasses.set(settings.hooks)
+            devTask.projectScopes.set(settings.projectScopes)
         }
 
         // task that zips up the folder of module content

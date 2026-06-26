@@ -286,6 +286,76 @@ module xml, copy files into the appropriate structure, zip the folder into an un
 the result.
 
 
+# IDE Development with Dev Module Descriptors
+
+The `writeDevModuleDescriptor` task generates a JSON descriptor that allows a dev Ignition gateway to load your module directly from Gradle build outputs — class directories and dependency JARs — instead of requiring a full `.modl` build. This provides:
+
+- **Classloader isolation** matching production behavior (each module gets its own `ModuleClassLoader`)
+- **HotSwap support** for method-body changes via JDWP
+- **No .modl build required** — no compile+zip+sign cycle for code changes
+
+## Gateway Configuration
+
+Your dev gateway needs these JVM flags in `ignition.conf` (or wrapper config):
+
+```
+# Required: allow unsigned modules (dev descriptors bypass module signing)
+-Dignition.allowunsignedmodules=true
+
+# Required: point gateway at dev descriptor directory
+-Dignition.dev.moduleDir=user-lib/modules/dev
+
+# Recommended: enable remote debugging for breakpoints + HotSwap
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+```
+
+> **Note:** These flags only activate on **dev builds** of Ignition (`isDev()` must return true). The dev module loading path is completely inert on production gateways.
+
+## Generating the Descriptor
+
+```bash
+./gradlew writeDevModuleDescriptor
+```
+
+This produces `build/dev/{moduleId}.json`. Copy this file to your gateway's `user-lib/modules/dev/` directory:
+
+```bash
+mkdir -p /path/to/ignition/user-lib/modules/dev
+cp build/dev/*.json /path/to/ignition/user-lib/modules/dev/
+```
+
+Then restart the gateway.
+
+## Development Workflow
+
+1. Run `./gradlew writeDevModuleDescriptor` and copy the descriptor (first time, or after dependency changes)
+2. Start/restart the gateway
+3. In IntelliJ: **Run → Attach to Process** (or create a **Remote JVM Debug** config on port 5005)
+4. Make code changes
+5. **Build → Recompile** (Ctrl+Shift+F9 / Cmd+Shift+F9) — HotSwap applies method-body changes immediately
+6. Test in the browser — changes are live
+
+Repeat steps 4-6 without restarting. Only restart the gateway when:
+- Module dependencies change (added/removed/version bumped)
+- Module metadata changes (hooks, module dependencies)
+- Structural class changes that HotSwap can't handle (new methods, new fields)
+
+## Prerequisites
+
+- The dev gateway must be running a **dev build** of Ignition
+- Your module must be compiled first (`./gradlew build` or IDEA compile)
+- The `build/artifacts/` directory must be populated by `collectModlDependencies` (runs as part of normal `build`)
+
+## Descriptor Format
+
+The descriptor is a JSON file containing:
+- Module metadata (id, name, version, hooks, dependencies)
+- Per-scope class output directories (includes `build/classes/java/main`, `build/classes/kotlin/main`, `build/resources/main`, and `out/production/classes` if IDEA output exists)
+- Per-scope third-party dependency JARs (from `build/artifacts/`, populated by `collectModlDependencies`)
+
+The gateway creates a `ModuleClassLoader` per module from these paths, achieving the same classloader isolation as production `.modl` loading.
+
+
 # Pre-Release API Changes
 
 * v0.1.0-SNAPSHOT-6 - changed how credentials and files are specified for signing and publication. The keys are the same, but properties are now expected to exist in a gradle.properties file, or to be specified as runtime flags as described in the Usage section above.
