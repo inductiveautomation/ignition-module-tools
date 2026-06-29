@@ -11,7 +11,7 @@ data class FileArtifact(val id: String, val jarFile: File)
 data class Artifact(val id: String, val jarName: String) : Serializable {
     constructor(fileArtifact: FileArtifact) : this(
         fileArtifact.id,
-        fileArtifact.jarFile.name
+        fileArtifact.jarFile.name,
     )
 }
 
@@ -19,7 +19,7 @@ data class ArtifactManifest(
     val projectPath: String,
     val projectName: String,
     val scope: String,
-    val artifacts: List<Artifact>
+    val artifacts: List<Artifact>,
 ) : Serializable
 
 val MOSHI: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
@@ -36,7 +36,7 @@ fun ArtifactManifest.toJson(): String {
 
 data class ChecksumResult(
     val checksum: String,
-    val algorithm: String
+    val algorithm: String,
 )
 
 val checksumAdapter: JsonAdapter<ChecksumResult> = MOSHI.adapter(ChecksumResult::class.java)
@@ -44,16 +44,12 @@ val checksumAdapter: JsonAdapter<ChecksumResult> = MOSHI.adapter(ChecksumResult:
 /**
  * Creates instance of [ChecksumResult] from json string.
  */
-fun jsonToChecksumResult(json: String): ChecksumResult {
-    return checksumAdapter.fromJson(json) as ChecksumResult
-}
+fun jsonToChecksumResult(json: String): ChecksumResult = checksumAdapter.fromJson(json) as ChecksumResult
 
 /**
  * Creates JSON string of the checksum result.
  */
-fun ChecksumResult.toJson(): String {
-    return checksumAdapter.toJson(this)
-}
+fun ChecksumResult.toJson(): String = checksumAdapter.toJson(this)
 
 data class AssemblyManifest(
     val moduleId: String,
@@ -64,15 +60,11 @@ data class AssemblyManifest(
     val fileName: String,
     val fileSize: Long,
     val artifacts: Map<String, ArtifactManifest>, // project path to manifest
-    val metaInfo: Map<String, String>
+    val metaInfo: Map<String, String>,
 )
 
 val adapter = MOSHI.adapter(AssemblyManifest::class.java).indent("    ")
 
-fun AssemblyManifest.toJson(): String {
-    return adapter.toJson(this)
-}
+fun AssemblyManifest.toJson(): String = adapter.toJson(this)
 
-fun assemblyManifestFromJson(json: String): AssemblyManifest {
-    return adapter.fromJson(json) as AssemblyManifest
-}
+fun assemblyManifestFromJson(json: String): AssemblyManifest = adapter.fromJson(json) as AssemblyManifest

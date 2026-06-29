@@ -19,7 +19,6 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -90,7 +89,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     @get:OutputDirectory
     val artifactOutputDir: DirectoryProperty = objects.directoryProperty().convention(
-        layout.buildDirectory.dir(ARTIFACT_DIR)
+        layout.buildDirectory.dir(ARTIFACT_DIR),
     )
 
     @get:OutputFile
@@ -112,20 +111,18 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
     }
 
-    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> {
-        return config.incoming.artifactView {}
-            .artifacts
-            .artifacts
-            .filterIsInstance<ResolvedArtifactResult>()
-            .map {
-                val file = it.file
-                val id = it.id
-                FileArtifact(id.displayName, file)
-            }.apply {
-                logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
-                this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
-            }
-    }
+    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> = config.incoming.artifactView {}
+        .artifacts
+        .artifacts
+        .filterIsInstance<ResolvedArtifactResult>()
+        .map {
+            val file = it.file
+            val id = it.id
+            FileArtifact(id.displayName, file)
+        }.apply {
+            logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
+            this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
+        }
 
     /**
      * Builds a list of FileArtifacts, including the main output of the jar task for this project.  The files

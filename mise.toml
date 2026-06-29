@@ -1,0 +1,21 @@
+#
+# Updating versions here will trigger a new `mise trust` requirement for users. After changing a
+# version, run `mise install` to install the new tools.
+#
+# This is an entirely OPTIONAL tool for devs, so we should not put actual build tooling versions in
+# here, this is just for the underlying language tooling required to get a build up and running
+#
+
+[tools."http:java"]
+# Proxy java from nexus
+version = "25.0.2.1"
+url = "https://nexus.ia.local/repository/runtimes/com/azul/jdk-{% if os() == 'macos' %}mac{% if arch() == 'arm64' %}-aarch64{% endif %}{% elif os() == 'windows' %}win{% else %}nix{% endif %}/{{version}}/jdk-{% if os() == 'macos' %}mac{% if arch() == 'arm64' %}-aarch64{% endif %}{% elif os() == 'windows' %}win{% else %}nix{% endif %}-{{version}}.{% if os() == 'windows' %}zip{% else %}tar.gz{% endif %}"
+
+[settings]
+# require https
+paranoid = true
+
+# disable telemetry
+use_versions_host_track = false
+
+

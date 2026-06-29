@@ -47,7 +47,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         if (project.plugins.hasPlugin(this.javaClass)) {
             throw Exception(
                 "Project ${project.path} already has Ignition Module Plugin applied.  Plugin should only" +
-                    " be applied to the 'parent' project, one plugin application per module created."
+                    " be applied to the 'parent' project, one plugin application per module created.",
             )
         }
 
@@ -61,7 +61,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         // create the extension object used to configure the plugin in the user's buildscripts
         val settings = project.extensions.create(
             EXTENSION_NAME,
-            ModuleSettings::class.java
+            ModuleSettings::class.java,
         )
 
         project.afterEvaluate {
@@ -114,11 +114,11 @@ class IgnitionModlPlugin : Plugin<Project> {
         // circular dependency
         if (this.appliedPluginProject != artifactContributor) {
             artifactContributor.logger.debug(
-                "Setting ${this.appliedPluginProject.path}:assemble.dependsOn('${artifactContributor.path}:assemble')"
+                "Setting ${this.appliedPluginProject.path}:assemble.dependsOn('${artifactContributor.path}:assemble')",
             )
 
             this.appliedPluginProject.tasks.findByName("assemble")?.dependsOn(
-                "${artifactContributor.path}:assemble"
+                "${artifactContributor.path}:assemble",
             )
         } else {
             artifactContributor.logger.debug("Skipping dependency from ${artifactContributor.path}:assemble on self...")
@@ -136,7 +136,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         // task that gathers dependencies and assets into a folder that will ultimately become the .modl contents
         val assembleModuleStructure = root.tasks.register(
             AssembleModuleStructure.ID,
-            AssembleModuleStructure::class.java
+            AssembleModuleStructure::class.java,
         ) {
             it.moduleContentDir.set(root.layout.buildDirectory.dir("moduleContent"))
             it.license.set(settings.license)
@@ -146,7 +146,7 @@ class IgnitionModlPlugin : Plugin<Project> {
 
         val writeModuleXml = root.tasks.register(
             WriteModuleXml.ID,
-            WriteModuleXml::class.java
+            WriteModuleXml::class.java,
         ) { xmlTask: WriteModuleXml ->
 
             // bind configuration settings values to the task input properties for incremental build support
@@ -171,7 +171,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         // task that zips up the folder of module content
         val zip = root.tasks.register(
             ZipModule.ID,
-            ZipModule::class.java
+            ZipModule::class.java,
         ) { zipTask: ZipModule ->
             zipTask.content.set(assembleModuleStructure.flatMap { it.moduleContentDir })
             zipTask.moduleName.set(settings.name)
@@ -183,7 +183,7 @@ class IgnitionModlPlugin : Plugin<Project> {
                         "$it.$UNSIGNED_EXTENSION"
                     }
                     root.layout.buildDirectory.file(fileName)
-                }
+                },
             )
 
             // need xml file written before we zip anything
@@ -198,7 +198,7 @@ class IgnitionModlPlugin : Plugin<Project> {
                 settings.skipModlSigning.get().also { useUnsigned ->
                     if (useUnsigned) {
                         root.logger.warn(
-                            "useUnsignedModule specified in Module Settings. Module Signing will be skipped"
+                            "useUnsignedModule specified in Module Settings. Module Signing will be skipped",
                         )
                     }
                 }.not()
@@ -214,7 +214,7 @@ class IgnitionModlPlugin : Plugin<Project> {
                     } else {
                         sign.flatMap { it.signed }
                     }
-                }
+                },
             )
             checksum.dependsOn(sign, zip)
         }
@@ -228,7 +228,7 @@ class IgnitionModlPlugin : Plugin<Project> {
                     } else {
                         sign.flatMap { it.signed }
                     }
-                }
+                },
             )
             report.moduleId.set(settings.id)
             report.moduleName.set(settings.name)
@@ -245,7 +245,7 @@ class IgnitionModlPlugin : Plugin<Project> {
                 p.tasks.withType(CollectModlDependencies::class.java) { t ->
                     p.logger.info(
                         "Binding module aggregation tasks for '${root.path}:" +
-                            "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'"
+                            "${CollectModlDependencies.ID}' to depend on outputs from '${p.path}'",
                     )
 
                     // bind artifact collection task output to xml writing task input
@@ -326,16 +326,15 @@ class IgnitionModlPlugin : Plugin<Project> {
     private fun createDependencyCollectionTasks(
         p: Project,
         rootModuleProject: Project,
-        settings: ModuleSettings
+        settings: ModuleSettings,
     ): List<TaskProvider<out Task>> {
-
         p.logger.info("Setting up Java tasks on ${p.path}")
 
         val assemble = p.tasks.findByName("assemble")
 
         val collectModlDependencies: TaskProvider<CollectModlDependencies> = p.tasks.register(
             CollectModlDependencies.ID,
-            CollectModlDependencies::class.java
+            CollectModlDependencies::class.java,
         ) {
             assemble?.dependsOn(it)
             it.projectScopes.set(settings.projectScopes)

@@ -37,7 +37,7 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
     init {
         this.description =
             "Writes the module.xml file for the module, using the settings applied to the " +
-                "'ignitionModule' block of the build script."
+            "'ignitionModule' block of the build script."
         this.group = PLUGIN_TASK_GROUP
     }
 
@@ -229,74 +229,78 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         if (!requiredIgnitionVersion.isPresent) return false
 
         val version = requiredIgnitionVersion.get().split(".").map { it.toInt() }
-        if (version[0] >= 9) { return true }
-        if (version[0] == 8 && version[1] >= 3) { return true }
+        if (version[0] >= 9) {
+            return true
+        }
+        if (version[0] == 8 && version[1] >= 3) {
+            return true
+        }
         return false
     }
 
     // Manifests' artifacts
-    private fun manifests(): List<Pair<String, String>> =
-        artifactManifests.get().map { manifest ->
-            artifactManifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
-        }.let { manifests ->
-            if (foldJars.get())
+    private fun manifests(): List<Pair<String, String>> = artifactManifests.get().map { manifest ->
+        artifactManifestFromJson(manifest.asFile.readText(Charsets.UTF_8))
+    }.let { manifests ->
+        if (foldJars.get()) {
             // more compact or else legacy dup-prone
-                deduplicatedJars(manifests) else rawScopedJars(manifests)
+            deduplicatedJars(manifests)
+        } else {
+            rawScopedJars(manifests)
         }
+    }
 
     // Collapse duplicate artifacts in different scopes to single scope string.
     //
     // IGN-10168 is backlogged to handle at least some of this upstream,
     // probably in or near `collectModlDependencies`.
     private fun deduplicatedJars(
-        manifests: List<ArtifactManifest>
-    ): List<Pair<String, String>> =
-        manifests
-            .flatMap { mani -> mani.artifacts }
-            .groupBy { arti -> arti.jarName }
-            .map { (jar, artifacts) ->
-                val combinedScope = artifacts.fold(setOf<Char>()) { scope, arti ->
-                    scope.union(
-                        manifests
-                            .filter { mani -> arti in mani.artifacts }
-                            .flatMap { mani -> mani.scope.toList() }
-                    )
-                }.joinToString("")
-                    .let { scope ->
-                        // CDG > A formalized b/c we'll want it for IGN-10168
-                        IgnitionScope.promoteToAllWhenImplied(scope).code
-                    }
+        manifests: List<ArtifactManifest>,
+    ): List<Pair<String, String>> = manifests
+        .flatMap { mani -> mani.artifacts }
+        .groupBy { arti -> arti.jarName }
+        .map { (jar, artifacts) ->
+            val combinedScope = artifacts.fold(setOf<Char>()) { scope, arti ->
+                scope.union(
+                    manifests
+                        .filter { mani -> arti in mani.artifacts }
+                        .flatMap { mani -> mani.scope.toList() },
+                )
+            }.joinToString("")
+                .let { scope ->
+                    // CDG > A formalized b/c we'll want it for IGN-10168
+                    IgnitionScope.promoteToAllWhenImplied(scope).code
+                }
 
-                jar to combinedScope
-            }.sortedWith(
-                compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
-                    .thenBy { (_, scope) -> scope }
-                    .thenBy { (jar, _) -> jar }
-            )
+            jar to combinedScope
+        }.sortedWith(
+            compareByDescending<Pair<String, String>> { (_, scope) -> scope.length }
+                .thenBy { (_, scope) -> scope }
+                .thenBy { (jar, _) -> jar },
+        )
 
     // Leave duplicate artifacts largely as-is, even if present in 2+ scopes.
     // This is legacy behavior.
     private fun rawScopedJars(
-        manifests: List<ArtifactManifest>
-    ): List<Pair<String, String>> =
-        manifests
-            .groupBy { mani -> mani.scope }
-            .map { (scope, manis) ->
-                val distinctJars =
-                    manis
-                        .flatMap { mani -> mani.artifacts }
-                        .fold(mutableSetOf<String>()) { jars, arti ->
-                            jars.apply { add(arti.jarName) }
-                        }
+        manifests: List<ArtifactManifest>,
+    ): List<Pair<String, String>> = manifests
+        .groupBy { mani -> mani.scope }
+        .map { (scope, manis) ->
+            val distinctJars =
+                manis
+                    .flatMap { mani -> mani.artifacts }
+                    .fold(mutableSetOf<String>()) { jars, arti ->
+                        jars.apply { add(arti.jarName) }
+                    }
 
-                scope to distinctJars
-            }.fold(mutableListOf<Pair<String, String>>()) { lst, (scope, jars) ->
-                lst.apply {
-                    addAll(
-                        jars.map { jar -> jar to scope }
-                    )
-                }
+            scope to distinctJars
+        }.fold(mutableListOf<Pair<String, String>>()) { lst, (scope, jars) ->
+            lst.apply {
+                addAll(
+                    jars.map { jar -> jar to scope },
+                )
             }
+        }
 
     fun writeXml(outputFile: File, moduleXml: String) {
         outputFile.writeText(moduleXml)

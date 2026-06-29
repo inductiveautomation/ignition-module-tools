@@ -36,7 +36,7 @@ class ModuleBuildReportTest : BaseTest() {
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
-                """.trimIndent()
+                """.trimIndent(),
             )
             .build()
 
@@ -64,7 +64,7 @@ class ModuleBuildReportTest : BaseTest() {
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
-                """.trimIndent()
+                """.trimIndent(),
             )
             .build()
 
@@ -97,7 +97,7 @@ class ModuleBuildReportTest : BaseTest() {
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
-                """.trimIndent()
+                """.trimIndent(),
             )
             .customReplacements(replacement)
             .build()
@@ -130,7 +130,7 @@ class ModuleBuildReportTest : BaseTest() {
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
-                """.trimIndent()
+                """.trimIndent(),
             )
             .build()
 

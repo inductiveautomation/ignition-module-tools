@@ -43,7 +43,7 @@ open class AssembleModuleStructure @javax.inject.Inject constructor(objects: Obj
 
     @get:Input
     val duplicateStrategy: Property<DuplicatesStrategy> = objects.property(DuplicatesStrategy::class.java).convention(
-        DuplicatesStrategy.WARN
+        DuplicatesStrategy.WARN,
     )
 
     /**
@@ -103,12 +103,14 @@ open class AssembleModuleStructure @javax.inject.Inject constructor(objects: Obj
                 if (!File(moduleDocRoot, indexPath).exists()) {
                     throw Exception("$indexPath not found in $moduleDocRoot, check module documentation configuration.")
                 }
-            } else throw Exception(
-                """
+            } else {
+                throw Exception(
+                    """
                 Documentation files were declared, but documentationIndexPath was not set.  Check ignitionModule 
                  configuration.
-                """.trimIndent()
-            )
+                    """.trimIndent(),
+                )
+            }
         }
     }
 }

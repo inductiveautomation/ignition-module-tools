@@ -54,7 +54,7 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
         project.logger.info("Zipping '${contentDir.absolutePath}' into ' ${unsignedFile.asFile.absolutePath}'")
         project.ant.invokeMethod(
             "zip",
-            mapOf("basedir" to contentDir, "destfile" to unsignedFile)
+            mapOf("basedir" to contentDir, "destfile" to unsignedFile),
         )
     }
 
@@ -76,7 +76,7 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
 
                 if (fileSet.contains(name)) {
                     throw IllegalArgumentException(
-                        "Library '$name' exists in multiple versions in ${contentDir.absolutePath}"
+                        "Library '$name' exists in multiple versions in ${contentDir.absolutePath}",
                     )
                 } else {
                     fileSet.add(name)

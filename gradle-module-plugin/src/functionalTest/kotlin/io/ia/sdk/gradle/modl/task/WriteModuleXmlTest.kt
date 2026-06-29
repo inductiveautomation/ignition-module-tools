@@ -24,8 +24,8 @@ class WriteModuleXmlTest : BaseTest() {
         const val DEPENDS = "<depends"
     }
 
-    @Test
     // @Tag("IGN-9137")
+    @Test
     fun `single module dependency marked as not required`() {
         val dirName = currentMethodName()
         val replacements = mapOf(
@@ -39,14 +39,14 @@ class WriteModuleXmlTest : BaseTest() {
     }
                 """,
             "requiredIgnitionVersion = rootProject.ext.sdk_version" to
-                "requiredIgnitionVersion = \"8.3.0\""
+                "requiredIgnitionVersion = \"8.3.0\"",
         )
 
         val oneLineXml = generateXml(dirName, replacements)
 
         assertContains(
             oneLineXml,
-            """<depends scope="GCD" required="false">io.ia.modl</depends>"""
+            """<depends scope="GCD" required="false">io.ia.modl</depends>""",
         )
         assertEquals(
             1,
@@ -54,8 +54,8 @@ class WriteModuleXmlTest : BaseTest() {
         )
     }
 
-    @Test
     // @Tag("IGN-9137")
+    @Test
     fun `multiple module dependencies marked as required`() {
         val dirName = currentMethodName()
         val replacements = mapOf(
@@ -73,18 +73,18 @@ class WriteModuleXmlTest : BaseTest() {
     }
                 """,
             "requiredIgnitionVersion = rootProject.ext.sdk_version" to
-                "requiredIgnitionVersion = \"8.3.0\""
+                "requiredIgnitionVersion = \"8.3.0\"",
         )
 
         val oneLineXml = generateXml(dirName, replacements)
 
         assertContains(
             oneLineXml,
-            """<depends scope="GCD" required="true">io.ia.modl</depends>"""
+            """<depends scope="GCD" required="true">io.ia.modl</depends>""",
         )
         assertContains(
             oneLineXml,
-            """<depends scope="G" required="true">io.ia.otherModl</depends>"""
+            """<depends scope="G" required="true">io.ia.otherModl</depends>""",
         )
         assertEquals(
             2,
@@ -92,8 +92,8 @@ class WriteModuleXmlTest : BaseTest() {
         )
     }
 
-    @Test
     // @Tag("IGN-9137")
+    @Test
     fun `module dependencies via compact, eager DSL`() {
         val dirName = currentMethodName()
 
@@ -120,7 +120,7 @@ class WriteModuleXmlTest : BaseTest() {
     }
                 """,
             "requiredIgnitionVersion = rootProject.ext.sdk_version" to
-                "requiredIgnitionVersion = \"8.3.0\""
+                "requiredIgnitionVersion = \"8.3.0\"",
         )
 
         val oneLineXml = generateXml(
@@ -130,11 +130,11 @@ class WriteModuleXmlTest : BaseTest() {
 
         assertContains(
             oneLineXml,
-            """<depends scope="GCD" required="true">io.ia.modl</depends>"""
+            """<depends scope="GCD" required="true">io.ia.modl</depends>""",
         )
         assertContains(
             oneLineXml,
-            """<depends scope="G" required="true">io.ia.otherModl</depends>"""
+            """<depends scope="G" required="true">io.ia.otherModl</depends>""",
         )
         assertEquals(
             2,
@@ -142,21 +142,21 @@ class WriteModuleXmlTest : BaseTest() {
         )
     }
 
-    @Test
     // @Tag("IGN-9137")
+    @Test
     fun `legacy module dependencies not marked at all for requiredness`() {
         val dirName = currentMethodName()
 
         val replacements = mapOf(
             "moduleDependencies = [ : ]" to
-                "moduleDependencies = ['io.ia.modl': 'GCD']"
+                "moduleDependencies = ['io.ia.modl': 'GCD']",
         )
 
         val oneLineXml = generateXml(dirName, replacements)
 
         assertContains(
             oneLineXml,
-            """<depends scope="GCD">io.ia.modl</depends>"""
+            """<depends scope="GCD">io.ia.modl</depends>""",
         )
         assertEquals(
             1,
@@ -164,8 +164,8 @@ class WriteModuleXmlTest : BaseTest() {
         )
     }
 
-    @Test
     // @Tag ("IGN-10612")
+    @Test
     fun `jars are de-duplicated and sorted with --foldJars option`() {
         val dirName = currentMethodName()
         val dependencies = mapOf<String, String>(
@@ -217,8 +217,8 @@ class WriteModuleXmlTest : BaseTest() {
         )
     }
 
-    @Test
     // @Tag ("IGN-10612")
+    @Test
     fun `jars are written largely as-is by default`() {
         val dirName = currentMethodName()
         val dependencies = mapOf<String, String>(
@@ -290,7 +290,7 @@ class WriteModuleXmlTest : BaseTest() {
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
-                """.trimIndent()
+                """.trimIndent(),
             )
             .build()
 
@@ -316,7 +316,7 @@ class WriteModuleXmlTest : BaseTest() {
                         $dependency
                 """.trimIndent()
                 projectDir.resolve("${scope.folderName}/build.gradle").replacePlaceholders(
-                    mapOf("dependencies {" to dependenciesString)
+                    mapOf("dependencies {" to dependenciesString),
                 )
             }
         }
@@ -345,7 +345,7 @@ class WriteModuleXmlTest : BaseTest() {
         // We could do real XML parsing here but this is just a test,
         // quick-and-dirty should be fine.
         return collapseXmlToOneLine(
-            projectDir.resolve("build/moduleContent/module.xml").readText()
+            projectDir.resolve("build/moduleContent/module.xml").readText(),
         )
     }
 }

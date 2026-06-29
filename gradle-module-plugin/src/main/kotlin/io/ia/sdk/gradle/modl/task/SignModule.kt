@@ -78,15 +78,18 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
                 val propKey =
                     Constants.SIGNING_PROPERTIES[KEYSTORE_FILE_FLAG] as String
 
-                if (skipSigning.get()) SKIP
-                else propFromProjectProps(propKey) // can be null
-            }
+                if (skipSigning.get()) {
+                    SKIP
+                } else {
+                    propFromProjectProps(propKey) // can be null
+                }
+            },
         )
 
     @Option(
         option = KEYSTORE_FILE_FLAG,
         description =
-        "Path to the keystore used for signing.  Resolves in the same manner as gradle's project.file('<path>')"
+        "Path to the keystore used for signing.  Resolves in the same manner as gradle's project.file('<path>')",
     )
     fun setKeystorePath(path: String) {
         keystorePath.set(path)
@@ -100,16 +103,19 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
                 val propKey =
                     Constants.SIGNING_PROPERTIES[PKCS11_CFG_FILE_FLAG] as String
 
-                if (skipSigning.get()) SKIP
-                else propFromProjectProps(propKey) // can be null
-            }
+                if (skipSigning.get()) {
+                    SKIP
+                } else {
+                    propFromProjectProps(propKey) // can be null
+                }
+            },
         )
 
     @Option(
         option = PKCS11_CFG_FILE_FLAG,
         description =
         "Path PKCS#11 HSM config file used for signing. " +
-            "Resolves in the same manner as gradle's project.file('<path>')"
+            "Resolves in the same manner as gradle's project.file('<path>')",
     )
     fun setPKCS11Path(path: String) {
         pkcs11CfgPath.set(path)
@@ -146,7 +152,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
             if (!target.exists() && allow && project != project.rootProject) {
                 logger.info(
                     "Failed to resolve PKCS#11 config file at $target, " +
-                        "attempting root project resolution."
+                        "attempting root project resolution.",
                 )
                 target = project.rootProject.file(path)
             }
@@ -160,9 +166,12 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
             val propKey =
                 Constants.SIGNING_PROPERTIES[KEYSTORE_PW_FLAG] as String
 
-            if (skipSigning.get()) SKIP
-            else propFromProjectProps(propKey) // can be null
-        }
+            if (skipSigning.get()) {
+                SKIP
+            } else {
+                propFromProjectProps(propKey) // can be null
+            }
+        },
     )
 
     @Option(option = KEYSTORE_PW_FLAG, description = "The password for the keystore used in signing.")
@@ -175,7 +184,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     val certFilePath: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
             if (skipSigning.get()) SKIP else propOrLogError(CERT_FILE_FLAG, "certificate file location")
-        }
+        },
     )
 
     @Option(option = CERT_FILE_FLAG, description = "Path to the certificate file used for signing modules")
@@ -207,7 +216,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
     val alias: Property<String> = _objects.property(String::class.java).convention(
         _providers.provider {
             if (skipSigning.get()) SKIP else propOrLogError(ALIAS_FLAG, "certificate alias")
-        }
+        },
     )
 
     @Option(option = ALIAS_FLAG, description = "Alias for the CA cert in the provided keystore")
@@ -222,9 +231,12 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
             val propKey =
                 Constants.SIGNING_PROPERTIES[CERT_PW_FLAG] as String
 
-            if (skipSigning.get()) SKIP
-            else propFromProjectProps(propKey) // can be null
-        }
+            if (skipSigning.get()) {
+                SKIP
+            } else {
+                propFromProjectProps(propKey) // can be null
+            }
+        },
     )
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -234,14 +246,13 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
         if (propValue == null) {
             logger.error(
                 "Required $itemName not found.  Specify via flag '--$flag=<value>', or in gradle.properties" +
-                    " file as '$propKey=<value>'"
+                    " file as '$propKey=<value>'",
             )
         }
         return propValue.toString()
     }
 
-    private fun propFromProjectProps(propKey: String): String? =
-        project.properties[propKey] as String?
+    private fun propFromProjectProps(propKey: String): String? = project.properties[propKey] as String?
 
     @Option(option = CERT_PW_FLAG, description = "The password for the certificate used in signing.")
     fun setCertPw(pw: String) {
@@ -271,13 +282,13 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
         // PKCS#11 HSM (hardware key)-based keystore
         if (pkcs11Cfg.isPresent) {
             project.logger.debug(
-                "PKCS#11 config specified, using KeyStore instance type 'PKCS11'"
+                "PKCS#11 config specified, using KeyStore instance type 'PKCS11'",
             )
             val cfgFile = pkcs11Cfg.get()
             val cfgPath = cfgFile.absolutePath
             if (!cfgFile.exists()) {
                 throw FileNotFoundException(
-                    "PKCS#11 configuration file [$cfgPath] does not exist."
+                    "PKCS#11 configuration file [$cfgPath] does not exist.",
                 )
             }
 
@@ -315,7 +326,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
                     "'${SIGNING_PROPERTIES[KEYSTORE_FILE_FLAG]}' property in " +
                     "gradle.properties or '--$PKCS11_CFG_FILE_FLAG' flag/" +
                     "'${SIGNING_PROPERTIES[PKCS11_CFG_FILE_FLAG]}' property in " +
-                    "gradle.properties but not both."
+                    "gradle.properties but not both.",
             )
         }
 
@@ -326,7 +337,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
                     "'${SIGNING_PROPERTIES[KEYSTORE_FILE_FLAG]}' property in " +
                     "gradle.properties or '--$PKCS11_CFG_FILE_FLAG' flag/" +
                     "'${SIGNING_PROPERTIES[PKCS11_CFG_FILE_FLAG]}' property in " +
-                    "gradle.properties."
+                    "gradle.properties.",
             )
         }
 
@@ -356,7 +367,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
                 "keystorePassword: ${"*".repeat(20)}, " +
                 "cert: ${cert.absolutePath}, " +
                 "certPassword: ${"*".repeat(20)}, " +
-                "certAlias: $certAlias"
+                "certAlias: $certAlias",
         )
 
         val keyStore: KeyStore = getKeyStore()
@@ -364,7 +375,7 @@ open class SignModule @Inject constructor(_providers: ProviderFactory, _objects:
 
         val privateKey: PrivateKey = keyStore.getKey(
             certAlias,
-            certPassword?.toCharArray()
+            certPassword?.toCharArray(),
         ) as PrivateKey
 
         ModuleSigner(privateKey, cert.inputStream())
