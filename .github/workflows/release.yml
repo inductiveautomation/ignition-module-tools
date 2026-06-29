@@ -8,7 +8,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - "8.3"
 
 jobs:
   build:
