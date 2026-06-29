@@ -6,7 +6,7 @@ plugins {
 }
 
 allprojects {
-    project.version = "0.4.0"
+    project.version = "1.0.0"
 }
 
 tasks {

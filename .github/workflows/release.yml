@@ -8,7 +8,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - "8.3"
 
 jobs:
   build:
@@ -34,6 +34,6 @@ jobs:
       - name: Gradle Module Plugin Build Task
         working-directory: ./gradle-module-plugin
         run: ./gradlew build --stacktrace --info
-      - name: Publish Plugins
-        working-directory: ./gradle-module-plugin
-        run: ./gradlew publishPlugins -Pgradle.publish.key=${{secrets.PLUGIN_PUBLISHING_KEY}} -Pgradle.publish.secret=${{secrets.PLUGIN_PUBLISHING_SECRET}}
+#      - name: Publish Plugins
+#        working-directory: ./gradle-module-plugin
+#        run: ./gradlew publishPlugins -Pgradle.publish.key=${{secrets.PLUGIN_PUBLISHING_KEY}} -Pgradle.publish.secret=${{secrets.PLUGIN_PUBLISHING_SECRET}}
