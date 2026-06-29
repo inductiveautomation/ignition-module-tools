@@ -20,9 +20,7 @@ class ModuleGeneratorTest {
 
     data class TestConfig(val moduleName: String, val packageName: String, val scope: String, val dir: Path)
 
-    private fun dir(folderName: String): Path {
-        return tempFolder.newFolder(folderName).toPath()
-    }
+    private fun dir(folderName: String): Path = tempFolder.newFolder(folderName).toPath()
 
     @Test
     fun `module generator runs with valid config without error`() {
@@ -33,7 +31,7 @@ class ModuleGeneratorTest {
             TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4")),
             TestConfig("The Greatness", "le.pant", "CD", dir("v5")),
             TestConfig("A Goodness", "come.va", "C", dir("v6")),
-            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7"))
+            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7")),
         ).forEach {
             val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
@@ -56,7 +54,7 @@ class ModuleGeneratorTest {
                 null != projectRootDir &&
                     Files.exists(projectRootDir) &&
                     Files.isDirectory(projectRootDir),
-                "projectRootDir exists as directory"
+                "projectRootDir exists as directory",
             )
         }
     }

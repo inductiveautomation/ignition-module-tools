@@ -24,44 +24,38 @@ import javax.lang.model.SourceVersion
  *      Started With A Space
  *     Contains F&nky Illegal Characters
  */
-fun validateModuleName(name: String): ValidationResult {
-    return when {
-        name.endsWith("Module") ->
-            ValidationResult(false, "The module name $name ends with the suffix \"Module\".")
-        !name.matches(Regex("^[a-zA-Z][a-zA-Z0-9 ]*")) ->
-            ValidationResult(false, "The module name $name contains illegal characters or does not start with a letter.")
-        else -> {
-            var message = "The module name $name is valid."
-            if (name.length > 32) {
-                message += " The module name is excessively long, consider renaming."
-            }
-            ValidationResult(true, message)
+fun validateModuleName(name: String): ValidationResult = when {
+    name.endsWith("Module") ->
+        ValidationResult(false, "The module name $name ends with the suffix \"Module\".")
+    !name.matches(Regex("^[a-zA-Z][a-zA-Z0-9 ]*")) ->
+        ValidationResult(false, "The module name $name contains illegal characters or does not start with a letter.")
+    else -> {
+        var message = "The module name $name is valid."
+        if (name.length > 32) {
+            message += " The module name is excessively long, consider renaming."
         }
+        ValidationResult(true, message)
     }
 }
 
 /**
  * Validates the package path. Checks if the path is a valid qualified path
  */
-fun validatePackagePath(packagePath: String): ValidationResult {
-    return if (!SourceVersion.isName(packagePath)) {
-        ValidationResult(false, "The package path $packagePath is not a valid path.")
-    } else {
-        ValidationResult(true, "The package path $packagePath is valid.")
-    }
+fun validatePackagePath(packagePath: String): ValidationResult = if (!SourceVersion.isName(packagePath)) {
+    ValidationResult(false, "The package path $packagePath is not a valid path.")
+} else {
+    ValidationResult(true, "The package path $packagePath is valid.")
 }
 
 /**
  * Validates the parent directory path.
  * Checks whether the path exists, is a directory, and if the directory is writable.
  */
-fun validateParentDirPath(path: Path): ValidationResult {
-    return when {
-        !Files.exists(path) -> ValidationResult(false, "The parent path $path does not exist.")
-        !Files.isDirectory(path) -> ValidationResult(false, "The parent path $path is not a directory.")
-        !Files.isWritable(path) -> ValidationResult(false, "The parent path $path is not writeable.")
-        else -> ValidationResult(true, "The parent path $path is validated.")
-    }
+fun validateParentDirPath(path: Path): ValidationResult = when {
+    !Files.exists(path) -> ValidationResult(false, "The parent path $path does not exist.")
+    !Files.isDirectory(path) -> ValidationResult(false, "The parent path $path is not a directory.")
+    !Files.isWritable(path) -> ValidationResult(false, "The parent path $path is not writeable.")
+    else -> ValidationResult(true, "The parent path $path is validated.")
 }
 
 /**

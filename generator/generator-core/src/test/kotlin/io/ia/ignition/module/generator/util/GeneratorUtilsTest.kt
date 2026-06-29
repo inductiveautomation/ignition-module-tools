@@ -24,7 +24,6 @@ class GeneratorUtilsTest {
 
         // check tests for valid structure and content
         ProjectScope.values().forEach {
-
             val subProjectRootDir = rootTestDir.resolve(it.folderName)
             val created = createSourceDirs(subProjectRootDir, testPackagePath, JAVA)
 
@@ -44,19 +43,18 @@ class GeneratorUtilsTest {
             "some functionality" to "SomeFunctionality",
             "Do The 123 Things" to "DoThe123Things",
             "I do cool stuff" to "IDoCoolStuff",
-            "More Test Strings" to "MoreTestStrings"
+            "More Test Strings" to "MoreTestStrings",
         )
 
         logger.debug("Executing ")
         validModuleNamesToExpectedClassFormat.forEach {
-
             val generatedClassName = it.key.toClassFriendlyName()
             logger.debug("Generated classname for ${it.key} was $generatedClassName")
 
             assertEquals(
                 generatedClassName,
                 it.value,
-                "Generated classname from module name matched expected value"
+                "Generated classname from module name matched expected value",
             )
         }
     }

@@ -20,7 +20,8 @@ data class SubProjectSettings(
     val buildscriptLanguage: GradleDsl,
     val projectLanguage: SourceFileType,
     val scope: ProjectScope,
-    val dependencies: String = "" // optional dependencies injected into build file
+    // optional dependencies injected into build file
+    val dependencies: String = "",
 )
 
 fun buildSubProjectSettings(context: GeneratorContext, scope: ProjectScope): SubProjectSettings {
@@ -36,8 +37,12 @@ fun buildSubProjectSettings(context: GeneratorContext, scope: ProjectScope): Sub
     val packagePath = context.config.packageName.toPackagePath(scope)
 
     return SubProjectSettings(
-        moduleRootDir, subProjectDir, packagePath, context.config.buildDsl,
-        context.config.projectLanguage, scope
+        moduleRootDir,
+        subProjectDir,
+        packagePath,
+        context.config.buildDsl,
+        context.config.projectLanguage,
+        scope,
     )
 }
 
@@ -89,7 +94,6 @@ fun writeHookFile(hookDir: Path, context: GeneratorContext, scope: ProjectScope)
  * @return [Path] pointing to the src/main/package/name/scope source directory, where a hook file is commonly located
  */
 fun createSourceDirs(parentDir: Path, scopeTerminatedPackagePath: String, language: SourceFileType = JAVA): Path {
-
     // make the main and test sourceset folders, e.g.  <parentDir>/src/main
     val srcMain = Paths.get(parentDir.toAbsolutePath().toString(), "src", "main")
     val srcTest = Paths.get(parentDir.toAbsolutePath().toString(), "src", "test")

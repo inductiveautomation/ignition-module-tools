@@ -46,21 +46,19 @@ fun Path.replacePlaceholders(replacements: Map<String, String> = emptyMap()): Pa
     return this
 }
 
-fun File.replacePlaceholders(replacements: Map<String, String> = emptyMap()): String {
-    return this.readText().let { ctnt ->
-        ctnt.lines().map { line ->
-            var updatedLine = line
+fun File.replacePlaceholders(replacements: Map<String, String> = emptyMap()): String = this.readText().let { ctnt ->
+    ctnt.lines().map { line ->
+        var updatedLine = line
 
-            replacements.forEach { (key, value) ->
-                if (line.contains(key)) {
-                    updatedLine = line.replace(key, value)
-                }
+        replacements.forEach { (key, value) ->
+            if (line.contains(key)) {
+                updatedLine = line.replace(key, value)
             }
-            updatedLine
-        }.joinToString("\n")
-    }.also {
-        this@replacePlaceholders.writeText(it)
-    }
+        }
+        updatedLine
+    }.joinToString("\n")
+}.also {
+    this@replacePlaceholders.writeText(it)
 }
 
 fun InputStream.writeToFileWithReplacements(file: File, replacements: Map<String, String> = emptyMap()) {
@@ -93,7 +91,6 @@ fun InputStream.writeToFileWithReplacements(file: File, replacements: Map<String
  */
 fun File.createAndFillFromResource(resourcePath: String, replacements: Map<String, String> = emptyMap()): File {
     if (!this.exists()) {
-
         if (!this.parentFile.exists()) {
             this.parentFile.mkdirs()
         }
@@ -121,9 +118,7 @@ fun File.createAndFillFromResource(resourcePath: String, replacements: Map<Strin
  * @see File.createAndFillFromResource
  * @return the Path object that was filled
  */
-fun Path.createAndFillFromResource(resourcePath: String, replacements: Map<String, String> = emptyMap()): Path {
-    return this.toFile().createAndFillFromResource(resourcePath, replacements).toPath()
-}
+fun Path.createAndFillFromResource(resourcePath: String, replacements: Map<String, String> = emptyMap()): Path = this.toFile().createAndFillFromResource(resourcePath, replacements).toPath()
 
 fun Path.copyFromResource(resourcePath: String): Path {
     if (!this.toFile().parentFile.exists()) {
@@ -159,6 +154,4 @@ fun Path.appendFromResource(resourcePath: String, replacements: Map<String, Stri
     return this
 }
 
-fun String.capitalize(): String {
-    return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-}
+fun String.capitalize(): String = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }

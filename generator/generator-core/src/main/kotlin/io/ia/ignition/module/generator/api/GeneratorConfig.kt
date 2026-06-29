@@ -123,6 +123,6 @@ data class GeneratorConfig constructor(
      * generated module without needing to establish signing certificate configuration.  Should be set to 'false'
      * in the generated project when building modules intended for production use.
      */
-    val skipModuleSigning: Boolean = true
+    val skipModuleSigning: Boolean = true,
 
 )

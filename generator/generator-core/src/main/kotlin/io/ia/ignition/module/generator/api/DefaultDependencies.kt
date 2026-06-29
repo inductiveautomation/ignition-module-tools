@@ -16,28 +16,26 @@ object DefaultDependencies {
         ProjectScope.CLIENT to setOf(
             "com.inductiveautomation.ignitionsdk:client-api:$SDK_VERSION_PLACEHOLDER",
             "com.inductiveautomation.ignitionsdk:vision-client-api:$SDK_VERSION_PLACEHOLDER",
-            "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER"
+            "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER",
         ),
         ProjectScope.COMMON to setOf(
-            "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER"
+            "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER",
         ),
         ProjectScope.DESIGNER to setOf(
             "com.inductiveautomation.ignitionsdk:designer-api:$SDK_VERSION_PLACEHOLDER",
-            "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER"
+            "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER",
         ),
         ProjectScope.GATEWAY to setOf(
             "com.inductiveautomation.ignitionsdk:ignition-common:$SDK_VERSION_PLACEHOLDER",
-            "com.inductiveautomation.ignitionsdk:gateway-api:$SDK_VERSION_PLACEHOLDER"
-        )
+            "com.inductiveautomation.ignitionsdk:gateway-api:$SDK_VERSION_PLACEHOLDER",
+        ),
     )
 
     fun Set<String>.toDependencyFormat(
         dsl: GradleDsl,
-        configuration: String = "compileOnly"
-    ): String {
-        return map { artifact ->
-            val version = dsl.artifactSdkVersion()
-            "$configuration(\"${artifact.replace(SDK_VERSION_PLACEHOLDER.toString(), version)}\")"
-        }.joinToString(separator = "\n    ")
-    }
+        configuration: String = "compileOnly",
+    ): String = map { artifact ->
+        val version = dsl.artifactSdkVersion()
+        "$configuration(\"${artifact.replace(SDK_VERSION_PLACEHOLDER.toString(), version)}\")"
+    }.joinToString(separator = "\n    ")
 }

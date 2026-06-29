@@ -51,9 +51,7 @@ interface GeneratorContext {
      * [Gradle Feature Lifecycle](https://docs.gradle.org/current/userguide/feature_lifecycle.html) for additional
      * details.
      */
-    fun getFeaturePreviews(): Set<String> {
-        return emptySet<String>()
-    }
+    fun getFeaturePreviews(): Set<String> = emptySet<String>()
 
     /**
      * Returns the resource path for the boilerplate stub implementation of an Ignition hook class, or in the case of

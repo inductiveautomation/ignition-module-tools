@@ -61,7 +61,7 @@ object ModuleGenerator {
             validateModuleName(config.moduleName),
             validatePackagePath(config.packageName),
             validateParentDirPath(config.parentDir),
-            validateScope(config.scopes)
+            validateScope(config.scopes),
         ).filter { !it.validated }
 
         if (errors.isNotEmpty()) {
@@ -159,7 +159,9 @@ object ModuleGenerator {
             // should only be one scope in a single dir project
             val projectScope = if (scopes.size > 1) {
                 throw Exception("A single directory project can only have one scope, but was configured with $scopeString")
-            } else scopes.first()
+            } else {
+                scopes.first()
+            }
 
             val dependencies =
                 DefaultDependencies.ARTIFACTS[projectScope]?.toDependencyFormat(context.config.buildDsl) ?: ""
@@ -169,7 +171,7 @@ object ModuleGenerator {
                 |dependencies {
                 |    $dependencies
                 |}
-                """.trimMargin()
+                """.trimMargin(),
             )
         }
 
@@ -188,7 +190,7 @@ object ModuleGenerator {
         // write settings.gradle
         settingsFile.createAndFillFromResource(
             "templates/${context.settingsFilename()}",
-            context.getTemplateReplacements()
+            context.getTemplateReplacements(),
         )
     }
 }

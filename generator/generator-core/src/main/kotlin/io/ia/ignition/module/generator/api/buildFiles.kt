@@ -5,7 +5,7 @@ enum class BuildFileType {
     SETTINGS,
     PROPERTY,
     VERSION_CATALOG,
-    MISC
+    MISC,
 }
 
 /**

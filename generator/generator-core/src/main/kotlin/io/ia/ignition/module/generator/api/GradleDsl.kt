@@ -2,27 +2,22 @@ package io.ia.ignition.module.generator.api
 
 enum class GradleDsl {
     GROOVY,
-    KOTLIN;
+    KOTLIN,
+    ;
 
-    fun buildScriptFilename(): String {
-        return when (this) {
-            GROOVY -> "build.gradle"
-            KOTLIN -> "build.gradle.kts"
-        }
+    fun buildScriptFilename(): String = when (this) {
+        GROOVY -> "build.gradle"
+        KOTLIN -> "build.gradle.kts"
     }
 
-    fun settingsFilename(): String {
-        return when (this) {
-            GROOVY -> "settings.gradle"
-            KOTLIN -> "templates/settings.gradle.kts"
-        }
+    fun settingsFilename(): String = when (this) {
+        GROOVY -> "settings.gradle"
+        KOTLIN -> "templates/settings.gradle.kts"
     }
 
-    fun mapAssociator(): String {
-        return when (this) {
-            GROOVY -> ":"
-            KOTLIN -> "to"
-        }
+    fun mapAssociator(): String = when (this) {
+        GROOVY -> ":"
+        KOTLIN -> "to"
     }
 
     /**
@@ -40,18 +35,14 @@ enum class GradleDsl {
      * Returns the string that resolves the sdk version to use for the Ignition sdk dependencies.  Assumes
      * the version has been defined as an 'extra project property' with the key of `sdk_version`.
      */
-    fun artifactSdkVersion(): String {
-        return when (this) {
-            GROOVY -> "${'$'}sdk_version"
-            KOTLIN -> "${'$'}{rootProject.extra[\"sdk_version\"]}"
-        }
+    fun artifactSdkVersion(): String = when (this) {
+        GROOVY -> "${'$'}sdk_version"
+        KOTLIN -> "${'$'}{rootProject.extra[\"sdk_version\"]}"
     }
 
-    fun skipSigningConfig(enable: Boolean = true): String {
-        return when (this) {
-            KOTLIN -> "skipModlSigning.set($enable)"
-            GROOVY -> "skipModlSigning = $enable"
-        }
+    fun skipSigningConfig(enable: Boolean = true): String = when (this) {
+        KOTLIN -> "skipModlSigning.set($enable)"
+        GROOVY -> "skipModlSigning = $enable"
     }
 
     fun dependencyBlock(): String {

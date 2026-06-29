@@ -73,7 +73,7 @@ class GeneratorConfigBuilder {
             customReplacements = this.customReplacements,
             useRootProjectWhenSingleScope = useRootForSingleProjectScope,
             modulePluginVersion = modulePluginVersion,
-            skipModuleSigning = allowUnsignedModules
+            skipModuleSigning = allowUnsignedModules,
         )
     }
 }

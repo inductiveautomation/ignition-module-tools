@@ -22,7 +22,7 @@ import java.util.concurrent.Callable
     version = ["1.0.0"],
     description = ["Generates an Ignition module skeleton according to provided arguments."],
     subcommands = [HelpCommand::class],
-    mixinStandardHelpOptions = true
+    mixinStandardHelpOptions = true,
 )
 class ModuleGeneratorCli : Callable<Int> {
 
@@ -37,7 +37,7 @@ class ModuleGeneratorCli : Callable<Int> {
      */
     @Option(
         names = ["-d", "--directory"],
-        description = ["Absolute path to directory where new project should be created. Default's to cli working dir."]
+        description = ["Absolute path to directory where new project should be created. Default's to cli working dir."],
     )
     var directory: String? = File("").absolutePath
 
@@ -46,7 +46,7 @@ class ModuleGeneratorCli : Callable<Int> {
      */
     @Option(
         names = ["-n", "--name"],
-        description = ["Spoken name of the module, not ending in 'module'"]
+        description = ["Spoken name of the module, not ending in 'module'"],
     )
     var moduleName: String? = null
 
@@ -62,14 +62,12 @@ class ModuleGeneratorCli : Callable<Int> {
     @Option(names = ["--buildscriptDsl"], description = ["Language to use for buildscripts, either 'groovy' or 'kotlin'"])
     var buildscriptDsl: String? = null
 
-    private fun prompt(userPrompt: String): String {
-        return if (System.console() != null) {
-            System.console().readLine(userPrompt)
-        } else {
-            print(userPrompt)
-            readLine().let {
-                if (it.isNullOrEmpty()) "" else it
-            }
+    private fun prompt(userPrompt: String): String = if (System.console() != null) {
+        System.console().readLine(userPrompt)
+    } else {
+        print(userPrompt)
+        readLine().let {
+            if (it.isNullOrEmpty()) "" else it
         }
     }
 
@@ -86,7 +84,7 @@ class ModuleGeneratorCli : Callable<Int> {
                 |Please provide some information so we can generate your skeleton module.
                 |Press 'Enter' to use default if a default is stated as available.
                 |"""
-                    .trimMargin("|")
+                    .trimMargin("|"),
             )
         }
 
@@ -174,9 +172,7 @@ class ModuleGeneratorCli : Callable<Int> {
         return 0
     }
 
-    override fun toString(): String {
-        return "Config { name: $moduleName, dir: $directory, scope: $scope, package: $packageRoot }"
-    }
+    override fun toString(): String = "Config { name: $moduleName, dir: $directory, scope: $scope, package: $packageRoot }"
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(ModuleGeneratorCli::class.java)

@@ -18,12 +18,11 @@ class IntegrationTests {
 
     data class TestConfig(val moduleName: String, val packageName: String, val scope: String, val dir: Path)
 
-    private fun dir(folderName: String): Path {
-        return tempFolder.newFolder(folderName).toPath()
-    }
+    private fun dir(folderName: String): Path = tempFolder.newFolder(folderName).toPath()
 
     private enum class OS {
-        NIXLIKE, WIN;
+        NIXLIKE,
+        WIN,
     }
 
     private fun os(): OS {
@@ -38,17 +37,15 @@ class IntegrationTests {
         }
     }
 
-    fun command(taskConfig: String): Set<String> {
-        return when (os()) {
-            OS.WIN -> setOf("cmd.exe", "/c", "gradlew.bat $taskConfig")
-            OS.NIXLIKE -> setOf("sh", "-c", "./gradlew $taskConfig")
-        }
+    fun command(taskConfig: String): Set<String> = when (os()) {
+        OS.WIN -> setOf("cmd.exe", "/c", "gradlew.bat $taskConfig")
+        OS.NIXLIKE -> setOf("sh", "-c", "./gradlew $taskConfig")
     }
 
     private fun applyExecPermissions(file: Path) {
         val perms: MutableSet<PosixFilePermission> = Files.readAttributes(
             file,
-            PosixFileAttributes::class.java
+            PosixFileAttributes::class.java,
         ).permissions()
 
         perms.add(PosixFilePermission.OWNER_WRITE)
