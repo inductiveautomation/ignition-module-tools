@@ -24,15 +24,18 @@ jobs:
           distribution: 'zulu'
           java-version: '25'
           architecture: x64
+      - name: Grant execute permission for module plugin gradlew
+        working-directory: ./gradle-module-plugin
+        run: chmod +x gradlew
+      - name: Publish plugin to mavenLocal
+        working-directory: ./gradle-module-plugin
+        run: ./gradlew publishToMavenLocal
       - name: Grant execute permission for generator gradlew
         working-directory: ./generator
         run: chmod +x gradlew
       - name: Gradle Generator Build Task
         working-directory: ./generator
         run: ./gradlew build --stacktrace --info
-      - name: Grant execute permission for module plugin gradlew
-        working-directory: ./gradle-module-plugin
-        run: chmod +x gradlew
       - name: Gradle Module Plugin Build Task
         working-directory: ./gradle-module-plugin
         run: ./gradlew build --stacktrace --info

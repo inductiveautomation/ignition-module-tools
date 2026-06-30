@@ -110,6 +110,7 @@ class IntegrationTests {
                 .scopes(it.scope)
                 .buildscriptDsl(GradleDsl.GROOVY)
                 .debugPluginConfig(true)
+                .allowUnsignedModules(true)
                 .build()
 
             val projectRootDir: Path = ModuleGenerator.generate(config)
@@ -138,6 +139,7 @@ class IntegrationTests {
                 .scopes(it.scope)
                 .buildscriptDsl(GradleDsl.KOTLIN)
                 .debugPluginConfig(true)
+                .allowUnsignedModules(true)
                 .build()
 
             val projectRootDir: Path = ModuleGenerator.generate(config)

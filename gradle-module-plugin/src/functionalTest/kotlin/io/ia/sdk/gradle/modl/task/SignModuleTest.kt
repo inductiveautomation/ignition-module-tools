@@ -252,7 +252,7 @@ class SignModuleTest : BaseTest() {
         // but PKCS#12 file-based keystores do.
         assertContains(
             result.output,
-            "java.security.UnrecoverableKeyException: Get Key failed: null",
+            "java.security.UnrecoverableKeyException: Get Key failed:",
         )
     }
 

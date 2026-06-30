@@ -8,7 +8,7 @@ fun nameToDirName(moduleName: String): String = moduleName.split(" ").joinToStri
 
 // For when you don't need full-blown XML parsing just to test. Smoosh all
 // tags together in one long line by knocking out indentation and newlines.
-fun collapseXmlToOneLine(xml: String): String = xml.replace(Regex("""^\s+""", RegexOption.MULTILINE), "").replace(Regex("""\R"""), "")
+fun collapseXmlToOneLine(xml: String): String = xml.replace(Regex("""^\s+"""), "").replace(Regex("""\R"""), "")
 
 // Likewise, for when it's useful to break XML nodes out to a list of node
 // names. With optional inclusive filter.
