@@ -3,15 +3,16 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
 name: Release
-#  if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - "8.3"
 
 jobs:
   build:
+    if: github.event.pull_request.merged == true
 
     runs-on: ubuntu-latest
 
