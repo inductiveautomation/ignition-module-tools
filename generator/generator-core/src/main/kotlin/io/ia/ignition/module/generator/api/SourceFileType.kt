@@ -4,23 +4,20 @@ enum class SourceFileType {
     JAVA,
     KOTLIN,
     PROPERTIES,
-    TOML;
+    TOML,
+    ;
 
-    fun sourceCodeFileExtension(): String {
-        return when (this) {
-            JAVA -> "java"
-            KOTLIN -> "kt"
-            TOML -> "toml"
-            PROPERTIES -> "properties"
-        }
+    fun sourceCodeFileExtension(): String = when (this) {
+        JAVA -> "java"
+        KOTLIN -> "kt"
+        TOML -> "toml"
+        PROPERTIES -> "properties"
     }
 
-    fun commonName(): String {
-        return when (this) {
-            JAVA -> JAVA.name.lowercase()
-            KOTLIN -> KOTLIN.name.lowercase()
-            TOML -> TOML.name.lowercase()
-            PROPERTIES -> "properties file"
-        }
+    fun commonName(): String = when (this) {
+        JAVA -> JAVA.name.lowercase()
+        KOTLIN -> KOTLIN.name.lowercase()
+        TOML -> TOML.name.lowercase()
+        PROPERTIES -> "properties file"
     }
 }

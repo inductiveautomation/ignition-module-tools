@@ -24,8 +24,11 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.work.DisableCachingByDefault
 import java.io.FileNotFoundException
 import javax.inject.Inject
 
@@ -36,6 +39,7 @@ import javax.inject.Inject
  * This task should be registered to each project associated with the module, if that project applies the java-library
  * gradle plugin (e.g. - if it produces jar artifacts)
  */
+@DisableCachingByDefault(because = "CollectModlDependencies currently uses project.sync")
 open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : DefaultTask() {
     companion object {
         const val ID = "collectModlDependencies"
@@ -69,16 +73,15 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
     }
 
     @InputFiles
-    fun getModlApiDeps(): Configuration {
-        return project.configurations.getByName(MODULE_API_CONFIGURATION)
-    }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    fun getModlApiDeps(): Configuration = project.configurations.getByName(MODULE_API_CONFIGURATION)
 
     @InputFiles
-    fun getModlImplementationDeps(): Configuration {
-        return project.configurations.getByName(MODULE_IMPLEMENTATION_ELEMENTS)
-    }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    fun getModlImplementationDeps(): Configuration = project.configurations.getByName(MODULE_IMPLEMENTATION_ELEMENTS)
 
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     fun getJar(): Provider<RegularFile> {
         // type casting to get at .archiveFile instead of internal-ish DefaultTask.outputs.files
         return (project.tasks.getByName("jar") as Jar).archiveFile
@@ -86,7 +89,7 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
 
     @get:OutputDirectory
     val artifactOutputDir: DirectoryProperty = objects.directoryProperty().convention(
-        layout.buildDirectory.dir(ARTIFACT_DIR)
+        layout.buildDirectory.dir(ARTIFACT_DIR),
     )
 
     @get:OutputFile
@@ -108,20 +111,18 @@ open class CollectModlDependencies @Inject constructor(objects: ObjectFactory, l
         manifestFile.writeText(manifestContent, Charsets.UTF_8)
     }
 
-    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> {
-        return config.incoming.artifactView {}
-            .artifacts
-            .artifacts
-            .filterIsInstance<ResolvedArtifactResult>()
-            .map {
-                val file = it.file
-                val id = it.id
-                FileArtifact(id.displayName, file)
-            }.apply {
-                logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
-                this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
-            }
-    }
+    private fun buildArtifactsFromArtifactView(config: Configuration): List<FileArtifact> = config.incoming.artifactView {}
+        .artifacts
+        .artifacts
+        .filterIsInstance<ResolvedArtifactResult>()
+        .map {
+            val file = it.file
+            val id = it.id
+            FileArtifact(id.displayName, file)
+        }.apply {
+            logger.info("Resolved the following artifacts as dependencies of ${project.path} '${config.name}':")
+            this.forEach { logger.info("    ${it.id} - ${it.jarFile}") }
+        }
 
     /**
      * Builds a list of FileArtifacts, including the main output of the jar task for this project.  The files

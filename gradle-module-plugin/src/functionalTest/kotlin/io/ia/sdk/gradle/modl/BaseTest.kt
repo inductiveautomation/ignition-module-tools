@@ -14,7 +14,7 @@ data class SigningResources(
     val keystore: Path?,
     val certFile: Path?,
     val pkcs11Cfg: Path?,
-    val signPropFile: Path?
+    val signPropFile: Path?,
 )
 
 open class BaseTest {
@@ -53,7 +53,7 @@ open class BaseTest {
     protected fun writeSigningCredentials(
         targetDirectory: Path,
         keystoreProps: String,
-        writeBoilerplateProps: Boolean = true
+        writeBoilerplateProps: Boolean = true,
     ): Path {
         val gradleProps: Path = targetDirectory.resolve("gradle.properties")
         val gradlePropsFl: File = gradleProps.toFile()
@@ -80,21 +80,21 @@ open class BaseTest {
         return gradleProps
     }
 
-    fun moduleDirName(moduleName: String): String {
-        return moduleName.replace(" ", "-").lowercase()
-    }
+    fun moduleDirName(moduleName: String): String = moduleName.replace(" ", "-").lowercase()
 
     // file-based keystore
     protected fun prepareSigningTestResources(targetDirectory: Path, withPropFile: Boolean = true): SigningResources {
         val paths = writeResourceFiles(
             targetDirectory,
-            listOf("certificate.pem", "keystore.jks")
+            listOf("certificate.pem", "keystore.jks"),
         )
 
         val propFile =
-            if (withPropFile)
+            if (withPropFile) {
                 writeSigningCredentials(targetDirectory, KEYSTORE_PROPERTY_ENTRIES)
-            else null
+            } else {
+                null
+            }
         return SigningResources(
             certFile = paths[0] as Path,
             keystore = paths[1] as Path,
@@ -106,17 +106,19 @@ open class BaseTest {
     // PKCS#11 HSM-based keystore
     protected fun preparePKCS11SigningTestResources(
         targetDirectory: Path,
-        withPropFile: Boolean = true
+        withPropFile: Boolean = true,
     ): SigningResources {
         val paths = writeResourceFiles(
             targetDirectory,
-            listOf("certificate.pem", "pkcs11.cfg")
+            listOf("certificate.pem", "pkcs11.cfg"),
         )
 
         val propFile =
-            if (withPropFile)
+            if (withPropFile) {
                 writeSigningCredentials(targetDirectory, PKCS11_PROPERTY_ENTRIES)
-            else null
+            } else {
+                null
+            }
         return SigningResources(
             certFile = paths[0] as Path,
             keystore = null,
@@ -145,7 +147,7 @@ open class BaseTest {
         val testDir = listOf(
             name.replace(" ", "_"),
             scope,
-            pkg.replace(".", "_")
+            pkg.replace(".", "_"),
         ).joinToString("")
 
         return GeneratorConfigBuilder()
@@ -156,24 +158,21 @@ open class BaseTest {
             .build()
     }
 
-    open fun runTask(projectDir: File, taskArgs: List<String>): BuildResult =
-        setupRunner(projectDir, taskArgs).build()
+    open fun runTask(projectDir: File, taskArgs: List<String>): BuildResult = setupRunner(projectDir, taskArgs).build()
 
-    open fun runTask(projectDir: File, task: String): BuildResult =
-        setupRunner(projectDir, listOf(task)).build()
+    open fun runTask(projectDir: File, task: String): BuildResult = setupRunner(projectDir, listOf(task)).build()
 
     open fun runTaskAndFail(
         projectDir: File,
-        taskArgs: List<String>
+        taskArgs: List<String>,
     ): BuildResult = setupRunner(projectDir, taskArgs).buildAndFail()
 
     private fun setupRunner(
         projectDir: File,
-        taskArgs: List<String>
-    ): GradleRunner =
-        GradleRunner.create()
-            .forwardOutput()
-            .withPluginClasspath()
-            .withArguments(taskArgs)
-            .withProjectDir(projectDir)
+        taskArgs: List<String>,
+    ): GradleRunner = GradleRunner.create()
+        .forwardOutput()
+        .withPluginClasspath()
+        .withArguments(taskArgs)
+        .withProjectDir(projectDir)
 }

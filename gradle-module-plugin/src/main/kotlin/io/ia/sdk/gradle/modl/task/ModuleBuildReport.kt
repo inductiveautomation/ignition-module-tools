@@ -24,11 +24,13 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
+@DisableCachingByDefault(because = "ModuleBuildReport is not deterministic")
 open class ModuleBuildReport @Inject constructor(
     objects: ObjectFactory,
-    layout: ProjectLayout
+    layout: ProjectLayout,
 ) : DefaultTask() {
 
     companion object {
@@ -47,7 +49,7 @@ open class ModuleBuildReport @Inject constructor(
      */
     @get:OutputFile
     val report: RegularFileProperty = objects.fileProperty().convention(
-        layout.buildDirectory.file(reportFileName)
+        layout.buildDirectory.file(reportFileName),
     )
 
     /**
@@ -104,7 +106,7 @@ open class ModuleBuildReport @Inject constructor(
     @get:Internal
     val childManifests: MapProperty<String, RegularFile> = objects.mapProperty(
         String::class.java,
-        RegularFile::class.java
+        RegularFile::class.java,
     )
 
     /**
@@ -130,7 +132,9 @@ open class ModuleBuildReport @Inject constructor(
         // build manifest
         val checksum = if (checksumJson.isPresent && checksumJson.get().asFile.exists()) {
             checksumJson.get().asFile
-        } else throw Exception("Checksum file did not exist at ${checksumJson.get().asFile}")
+        } else {
+            throw Exception("Checksum file did not exist at ${checksumJson.get().asFile}")
+        }
 
         val checksumResult: ChecksumResult = jsonToChecksumResult(checksum.readText())
 
@@ -145,7 +149,7 @@ open class ModuleBuildReport @Inject constructor(
             modlFile.get().asFile.name,
             fileSize,
             childManifestJson.get(),
-            metaInfo.get()
+            metaInfo.get(),
         )
 
         if (report.get().asFile.exists()) {

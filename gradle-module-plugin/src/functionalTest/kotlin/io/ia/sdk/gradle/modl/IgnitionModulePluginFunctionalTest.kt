@@ -42,7 +42,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-            """.trimMargin("|")
+            """.trimMargin("|"),
         )
 
         val result: BuildResult = runTask(projectDir, "tasks")
@@ -72,7 +72,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = version
             |
             |}
-            """.trimMargin("|")
+            """.trimMargin("|"),
         )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
@@ -106,7 +106,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
             |    moduleVersion = project.version
             |
             |}
-            """.trimMargin("|")
+            """.trimMargin("|"),
         )
 
         prepareSigningTestResources(projectDir.toPath().resolve(nameToDirName(projectName)))
@@ -200,7 +200,7 @@ open class IgnitionModulePluginFunctionalTest : BaseTest() {
                     } else {
                         line
                     }
-                }.joinToString(System.lineSeparator())
+                }.joinToString(System.lineSeparator()),
             )
         }
 

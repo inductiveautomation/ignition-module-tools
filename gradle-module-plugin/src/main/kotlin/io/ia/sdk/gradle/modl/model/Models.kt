@@ -15,9 +15,7 @@ data class ModuleDependency(val moduleId: String, val scopes: List<IgnitionScope
 open class ProjectScopeContainer(private val scope: IgnitionScope, private val factory: ObjectFactory) {
     private var projects: ListProperty<Project> = this.factory.listProperty(Project::class.java)
 
-    public fun getScope(): IgnitionScope {
-        return this.scope
-    }
+    public fun getScope(): IgnitionScope = this.scope
 }
 
 enum class IgnitionScope(val code: String) {
@@ -29,7 +27,8 @@ enum class IgnitionScope(val code: String) {
     GATEWAY_DESIGNER_VISION_CLIENT("CDG"),
     GATEWAY_VISION_CLIENT("CG"),
     ALL("A"),
-    NONE("");
+    NONE(""),
+    ;
 
     companion object {
         private val VALID_SCOPES = Regex("^[AGCD]+\$")
@@ -49,7 +48,7 @@ enum class IgnitionScope(val code: String) {
             if (!capped.matches(VALID_SCOPES)) {
                 throw ModuleConfigException(
                     "'$code' is not a valid Ignition scope value, should be a string of " +
-                        "one or more of G, C, or D (without repeats)."
+                        "one or more of G, C, or D (without repeats).",
                 )
             }
 
@@ -71,10 +70,12 @@ enum class IgnitionScope(val code: String) {
          */
         @JvmStatic
         @Throws(ModuleConfigException::class)
-        fun promoteToAllWhenImplied(scopes: String): IgnitionScope =
-            forShorthand(scopes).let { scope ->
-                if (scope == GATEWAY_DESIGNER_VISION_CLIENT)
-                    ALL else scope
+        fun promoteToAllWhenImplied(scopes: String): IgnitionScope = forShorthand(scopes).let { scope ->
+            if (scope == GATEWAY_DESIGNER_VISION_CLIENT) {
+                ALL
+            } else {
+                scope
             }
+        }
     }
 }

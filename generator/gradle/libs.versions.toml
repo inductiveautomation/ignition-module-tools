@@ -1,5 +1,6 @@
 [versions]
-kotlin = "1.7.10"
+kotlin = "2.3.10"
+coroutines = "1.10.1"
 picoCli = "4.6.3"
 slf4j = "1.7.36"
 
@@ -10,6 +11,7 @@ kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotli
 kotlinTestJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 picoCli = { module = "info.picocli:picocli", version.ref = "picoCli"}
 picoCliCodegen = { module = "info.picocli:picocli-codegen", version.ref = "picoCli"}
+coroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4jSimple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 

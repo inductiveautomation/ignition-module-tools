@@ -5,8 +5,10 @@ enum class ProjectScope(val folderName: String) {
     DESIGNER("designer"),
     GATEWAY("gateway"),
     COMMON("common"),
+
     // not an ignition scope, but represents the root build gradle project scope
-    ROOT("");
+    ROOT(""),
+    ;
 
     companion object {
 
@@ -16,18 +18,16 @@ enum class ProjectScope(val folderName: String) {
          * the resulting list.  Use [effectiveScopesFromShorthand] if needing the effective project scopes given a
          * shorthand string.
          */
-        fun scopesFromShorthand(scopes: String): List<ProjectScope> {
-            return scopes.uppercase()
-                .map {
-                    when (it) {
-                        'C' -> CLIENT
-                        'D' -> DESIGNER
-                        'G' -> GATEWAY
-                        else -> null
-                    }
+        fun scopesFromShorthand(scopes: String): List<ProjectScope> = scopes.uppercase()
+            .map {
+                when (it) {
+                    'C' -> CLIENT
+                    'D' -> DESIGNER
+                    'G' -> GATEWAY
+                    else -> null
                 }
-                .filterNotNull()
-        }
+            }
+            .filterNotNull()
 
         /**
          * Returns a list of valid ProjectScope elements according the the string.  Lower case letters treated as

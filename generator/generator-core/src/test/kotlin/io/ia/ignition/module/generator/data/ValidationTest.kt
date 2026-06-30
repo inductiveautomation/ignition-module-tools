@@ -11,17 +11,16 @@ class ValidationTest {
             "Great Service Provider",
             "OMRON",
             "Great SCOTT",
-            "awesome functionality"
+            "awesome functionality",
         )
     }
 
     @Test
     fun `valid module names pass validation`() {
-
         validNames.forEach {
             assertEquals(
                 ValidationResult(true, "The module name $it is valid."),
-                validateModuleName(it)
+                validateModuleName(it),
             )
         }
     }
@@ -33,9 +32,9 @@ class ValidationTest {
             ValidationResult(
                 true,
                 "The module name $moduleName is valid. The module name is excessively long," +
-                    " consider renaming."
+                    " consider renaming.",
             ),
-            validateModuleName(moduleName)
+            validateModuleName(moduleName),
         )
     }
 
@@ -44,7 +43,7 @@ class ValidationTest {
         val moduleName = "Bad Module"
         assertEquals(
             ValidationResult(false, "The module name Bad Module ends with the suffix \"Module\"."),
-            validateModuleName(moduleName)
+            validateModuleName(moduleName),
         )
     }
 
@@ -54,9 +53,9 @@ class ValidationTest {
         assertEquals(
             ValidationResult(
                 false,
-                "The module name $moduleName contains illegal characters or does not start with a letter."
+                "The module name $moduleName contains illegal characters or does not start with a letter.",
             ),
-            validateModuleName(moduleName)
+            validateModuleName(moduleName),
         )
     }
 
@@ -66,9 +65,9 @@ class ValidationTest {
         assertEquals(
             ValidationResult(
                 false,
-                "The module name $moduleName contains illegal characters or does not start with a letter."
+                "The module name $moduleName contains illegal characters or does not start with a letter.",
             ),
-            validateModuleName(moduleName)
+            validateModuleName(moduleName),
         )
     }
 
@@ -77,7 +76,7 @@ class ValidationTest {
         val packagePath = "my.awesome.module"
         assertEquals(
             ValidationResult(true, "The package path $packagePath is valid."),
-            validatePackagePath(packagePath)
+            validatePackagePath(packagePath),
         )
     }
 
@@ -86,11 +85,11 @@ class ValidationTest {
         listOf(
             "contains.keyword.int.true.path",
             "contains@bad-separators",
-            "too...many..separators"
+            "too...many..separators",
         ).forEach {
             assertEquals(
                 ValidationResult(false, "The package path $it is not a valid path."),
-                validatePackagePath(it)
+                validatePackagePath(it),
             )
         }
     }
@@ -101,7 +100,7 @@ class ValidationTest {
 
         assertEquals(
             ValidationResult(true, "We found G, C, D"),
-            validateScope(scope)
+            validateScope(scope),
         )
     }
 
@@ -111,17 +110,16 @@ class ValidationTest {
 
         assertEquals(
             ValidationResult(true, "We found G, C, D, but additional unrecognized characters were found and ignored in the scope parameter(s) A, B."),
-            validateScope(scope)
+            validateScope(scope),
         )
     }
 
     @Test
     fun `invalid scope values`() {
-
         listOf("_XYZ", "", "123", "#", "{}").forEach {
             assertEquals(
                 ValidationResult(false, "No valid scopes were found in $it."),
-                validateScope(it)
+                validateScope(it),
             )
         }
     }

@@ -24,3 +24,5 @@ generator-cli/out/
 generator-cli/build/
 
 gh_key
+
+mise.toml

@@ -26,7 +26,7 @@ class GeneratorConfigBuilder {
     private var debugPluginConfig: Boolean = false
     private var rootPluginConfig: String = ""
     private var useRootForSingleProjectScope: Boolean = false
-    private var modulePluginVersion: String = "0.5.0"
+    private var modulePluginVersion: String = "1.0.0"
     private var allowUnsignedModules: Boolean = false
 
     // builder methods
@@ -73,7 +73,7 @@ class GeneratorConfigBuilder {
             customReplacements = this.customReplacements,
             useRootProjectWhenSingleScope = useRootForSingleProjectScope,
             modulePluginVersion = modulePluginVersion,
-            skipModuleSigning = allowUnsignedModules
+            skipModuleSigning = allowUnsignedModules,
         )
     }
 }

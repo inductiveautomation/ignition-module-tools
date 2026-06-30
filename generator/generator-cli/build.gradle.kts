@@ -1,4 +1,4 @@
-
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
@@ -7,13 +7,12 @@ plugins {
     // kapt annotation processor plugin, for picocli/graal annotations
     kotlin("kapt")
     // Apply the application plugin to add support for building a CLI application.
-    id("com.palantir.graal") version "0.9.0"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("org.graalvm.buildtools.native") version "0.10.4"
+    id("com.gradleup.shadow") version "9.0.0-beta12"
     id("com.diffplug.spotless")
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -22,22 +21,15 @@ java {
     withSourcesJar()
 
     toolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
-
-kotlin {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
-    }
-}
-
 
 group = "io.ia.sdk.tools.module.gen"
 
 dependencies {
     // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation(platform(kotlin("bom")))
     implementation(projects.generatorCore)
     // Use the Kotlin JDK 8 standard library.
     implementation(libs.picoCli)
@@ -49,7 +41,6 @@ dependencies {
     testImplementation(kotlin("test-junit"))
 }
 
-val JVM_TARGET = "1.8"
 val APP_MAIN_CLASS = "io.ia.sdk.tools.module.cli.ModuleGeneratorCli"
 
 application {
@@ -60,57 +51,39 @@ application {
 spotless {
     kotlin {
         // Optional user arguments can be set as such:
-        ktlint().editorConfigOverride(mapOf("indent_size" to "4", "continuation_indent_size" to "4"))
+        ktlint().editorConfigOverride(
+            mapOf(
+                "indent_size" to "4",
+                "continuation_indent_size" to "4"
+            )
+        )
     }
 }
 
-
-val reflectionConfigFile =
-        "${buildDir}/resources/main/META-INF/native-image/${project.group}/${project.name}/reflect-config.json"
-val resourceConfigFile = "src/main/resources/resource-config.json"
 
 val binaryName = "ignition-module-gen"
 
-graal {
-    javaVersion("11")
-    graalVersion("20.3.5")
-    mainClass(APP_MAIN_CLASS)
-    outputName(binaryName)
-    windowsVsVersion("2019")
-
-    /*
-     * Each option must be its own line-item, all will get added to the final options command args passed to the
-     * substrate VM compiler
-     */
-
-    // tell graal/substrate to load resources that need to resolve via `Classloader.getSystemResource` style resolution
-    // we define the patterns we want to support in the config json file found below, in accordance with
-    // https://github.com/oracle/graal/blob/master/substratevm/OPTIONS.md
-    option("-H:ResourceConfigurationFiles=$resourceConfigFile")
-
-    // don"t fallback to "jre-required" image if the full native image assembly fails
-    option("--no-fallback")
-
-    // we don"t need this because we generate these dynamically at build-time, left for future reference
-    // option("-H:ReflectionConfigurationFiles=$reflectionConfigFile")
+graalvmNative {
+    // This is broken basically: https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#configuration-toolchains
+    toolchainDetection.set(false)
+    binaries {
+        named("main") {
+            imageName.set(binaryName)
+            mainClass.set(APP_MAIN_CLASS)
+            fallback.set(false)
+            configurationFileDirectories.setFrom(layout.projectDirectory.file("src/main/resources"))
+        }
+    }
 }
 
 tasks {
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = JVM_TARGET
-            // will retain parameter names for java reflection
-            javaParameters = true
+    withType<KotlinCompile> {
+        compilerOptions {
+            javaParameters.set(true)
         }
     }
 
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = JVM_TARGET
-            javaParameters = true
-        }
-    }
-    nativeImage {
+    nativeCompile {
         dependsOn(build)
     }
     named<JavaExec>("run") {
@@ -119,10 +92,4 @@ tasks {
     named<JavaExec>("runShadow") {
         standardInput = System.`in`
     }
-}
-
-val runNative by tasks.registering(Exec::class) {
-    workingDir("$buildDir/graal")
-    commandLine(binaryName)
-    dependsOn(tasks.nativeImage)
 }

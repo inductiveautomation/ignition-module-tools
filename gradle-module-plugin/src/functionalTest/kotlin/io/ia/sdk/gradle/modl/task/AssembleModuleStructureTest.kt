@@ -46,17 +46,17 @@ open class AssembleModuleStructureTest : BaseTest() {
 
         val buildScriptContents = rootBuildScript.readText().replace(
             "// documentationFiles.from(project.file(\"src/docs/\"))",
-            "documentationFiles.from(project.file(\"docs/\"))"
+            "documentationFiles.from(project.file(\"docs/\"))",
         ).replace(
             "// documentationIndex.set(\"index.html\")",
-            "documentationIndex.set(\"index.html\")"
+            "documentationIndex.set(\"index.html\")",
         )
         rootBuildScript.writeText(buildScriptContents)
 
         runTask(project.toFile(), "assembleModlStructure")
         assertTrue(
             project.resolve("build/moduleContent/doc/index.html").toFile().exists(),
-            "doc should exist in staging dir"
+            "doc should exist in staging dir",
         )
     }
 
@@ -96,21 +96,21 @@ open class AssembleModuleStructureTest : BaseTest() {
 
         val buildScriptContents = rootBuildScript.readText().replace(
             "// documentationFiles.from(project.file(\"src/docs/\"))",
-            "documentationFiles.from(project.file(\"docs/\"))"
+            "documentationFiles.from(project.file(\"docs/\"))",
         ).replace(
             "// documentationIndex.set(\"index.html\")",
-            "documentationIndex.set(\"index.html\")"
+            "documentationIndex.set(\"index.html\")",
         )
         rootBuildScript.writeText(buildScriptContents)
 
         runTask(project.toFile(), "assembleModlStructure")
         assertTrue(
             project.resolve("build/moduleContent/doc/index.html").toFile().exists(),
-            "index doc file should exist in staging dir"
+            "index doc file should exist in staging dir",
         )
         assertTrue(
             project.resolve("build/moduleContent/doc/linked.html").toFile().exists(),
-            "linked doc file should exist in staging dir"
+            "linked doc file should exist in staging dir",
         )
     }
 }

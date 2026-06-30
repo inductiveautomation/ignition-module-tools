@@ -21,7 +21,7 @@ class ProjectScopeTest {
             "abc" to listOf(CLIENT),
             "xyz" to emptyList(),
             "GC" to listOf(GATEWAY, CLIENT),
-            "GD" to listOf(GATEWAY, DESIGNER)
+            "GD" to listOf(GATEWAY, DESIGNER),
         )
 
         cases.keys.forEach {

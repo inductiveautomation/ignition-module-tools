@@ -19,10 +19,12 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.FileNotFoundException
 import java.io.Serializable
 import javax.inject.Inject
 
+@DisableCachingByDefault
 open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: ProjectLayout) : DefaultTask() {
     companion object {
         const val ID = "checksumModl"
@@ -34,7 +36,7 @@ open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: Projec
 
     @get:OutputFile
     val checksumJson: RegularFileProperty = _objects.fileProperty().convention(
-        _layout.buildDirectory.file("checksum/checksum.json")
+        _layout.buildDirectory.file("checksum/checksum.json"),
     )
 
     /**
@@ -69,14 +71,14 @@ open class Checksum @Inject constructor(_objects: ObjectFactory, _layout: Projec
  * Simple mapping of our internal enum to the implementation, to avoid configuration-breaking changes down the road
  * should we need to break away from Guava or want to add alternatives.
  */
-private fun hashImpl(config: HashAlgorithm): HashFunction {
-    return when (config) {
-        HashAlgorithm.SHA256 -> Hashing.sha256()
-        HashAlgorithm.SHA384 -> Hashing.sha384()
-        HashAlgorithm.SHA512 -> Hashing.sha512()
-    }
+private fun hashImpl(config: HashAlgorithm): HashFunction = when (config) {
+    HashAlgorithm.SHA256 -> Hashing.sha256()
+    HashAlgorithm.SHA384 -> Hashing.sha384()
+    HashAlgorithm.SHA512 -> Hashing.sha512()
 }
 
 enum class HashAlgorithm : Serializable {
-    SHA256, SHA384, SHA512
+    SHA256,
+    SHA384,
+    SHA512,
 }

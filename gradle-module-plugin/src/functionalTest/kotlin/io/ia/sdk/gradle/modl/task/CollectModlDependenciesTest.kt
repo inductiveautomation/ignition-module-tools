@@ -155,7 +155,7 @@ class CollectModlDependenciesTest : BaseTest() {
         val milo = "modlApi('org.eclipse.milo:sdk-server:0.6.1')"
         val customizers = mapOf(
             CLIENT_DEP to jfreeLib,
-            GW_DEP to milo
+            GW_DEP to milo,
         )
 
         val config = GeneratorConfigBuilder()
@@ -231,7 +231,7 @@ class CollectModlDependenciesTest : BaseTest() {
         val milo = "modlImplementation('org.eclipse.milo:sdk-server:0.6.1')"
         val customizers = mapOf(
             CLIENT_DEP to jfreeLib,
-            GW_DEP to milo
+            GW_DEP to milo,
         )
 
         val config = GeneratorConfigBuilder()
@@ -311,7 +311,7 @@ class CollectModlDependenciesTest : BaseTest() {
         """
         val customizers = mapOf(
             CLIENT_DEP to jfreeLib,
-            GW_DEP to milo
+            GW_DEP to milo,
         )
 
         val config = GeneratorConfigBuilder()
@@ -373,7 +373,7 @@ class CollectModlDependenciesTest : BaseTest() {
         excluded.forEach {
             assertFalse(
                 gwArtifacts.resolve(it).toFile().exists(),
-                "Transitive artifact $it should not have been collected."
+                "Transitive artifact $it should not have been collected.",
             )
         }
 
@@ -419,7 +419,7 @@ class CollectModlDependenciesTest : BaseTest() {
         assertTrue(artifactsDir.toFile().listFiles().size == 2, "should have 2 files in artifact dir")
         assertTrue(
             artifactsDir.resolve("single-dir-g-proj-0.0.1-SNAPSHOT.jar").toFile().exists(),
-            "versioned jarfile should exist"
+            "versioned jarfile should exist",
         )
     }
 
@@ -433,8 +433,8 @@ class CollectModlDependenciesTest : BaseTest() {
         }
     }
 
-    @Test
     // @Tag("IGN-6325")
+    @Test
     fun `subproject programmatic source file deletion detected during rebuild`() {
         val projectDir = tempFolder.newFolder("sourceDeletion").toPath()
 
@@ -483,12 +483,12 @@ class CollectModlDependenciesTest : BaseTest() {
         assertContains(
             out3,
             Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
-            "Expected `collectModlDependencies` task to be up-to-date"
+            "Expected `collectModlDependencies` task to be up-to-date",
         )
     }
 
-    @Test
     // @Tag("IGN-6325")
+    @Test
     fun `subproject programmatic source file addition detected during rebuild`() {
         val projectDir = tempFolder.newFolder("sourceAddition").toPath()
 
@@ -535,12 +535,12 @@ class CollectModlDependenciesTest : BaseTest() {
         assertContains(
             out3,
             Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
-            "Expected `collectModlDependencies` task to be up-to-date"
+            "Expected `collectModlDependencies` task to be up-to-date",
         )
     }
 
-    @Test
     // @Tag("IGN-6325")
+    @Test
     fun `subproject programmatic source file mutation detected during rebuild`() {
         val projectDir = tempFolder.newFolder("sourceMutation").toPath()
 
@@ -590,12 +590,12 @@ class CollectModlDependenciesTest : BaseTest() {
         assertContains(
             out3,
             Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
-            "Expected `collectModlDependencies` task to be up-to-date"
+            "Expected `collectModlDependencies` task to be up-to-date",
         )
     }
 
-    @Test
     // @Tag("IGN-6325")
+    @Test
     fun `subproject resource source file addition detected during rebuild`() {
         val projectDir = tempFolder.newFolder("resourceAddition").toPath()
 
@@ -626,7 +626,9 @@ class CollectModlDependenciesTest : BaseTest() {
         // Our new resource file is archived up into the JAR.
         val resources = project.resolve("gateway/src/main/resources")
         val resourcePath = resources.resolve(resourceFile)
-        if (!Files.exists(resources)) { Files.createDirectories(resources) } // src/main/resources is gap in generator?
+        if (!Files.exists(resources)) {
+            Files.createDirectories(resources)
+        } // src/main/resources is gap in generator?
         spliceResourceFileIntoProject("certs/$resourceFile", resourcePath)
         val out2 = runTask(projRoot, "collectModlDependencies").output
         assertNotNull(
@@ -642,7 +644,7 @@ class CollectModlDependenciesTest : BaseTest() {
         assertContains(
             out3,
             Regex(""":gateway:collectModlDependencies UP-TO-DATE"""),
-            "Expected `collectModlDependencies` task to be up-to-date"
+            "Expected `collectModlDependencies` task to be up-to-date",
         )
     }
 }

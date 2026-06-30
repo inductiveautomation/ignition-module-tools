@@ -19,7 +19,7 @@ For current versions of gradle, simply add to your `build.gradle.kts`:
 ```kotlin
 // build.gradle.kts
 plugins {
-  id("io.ia.sdk.modl") version("0.5.0")
+  id("io.ia.sdk.modl") version("1.0.0")
 }
 ```
 
@@ -28,7 +28,7 @@ Or for Groovy DSL buildscripts:
 ```groovy
 // build.gradle
 plugins {
-    id 'io.ia.sdk.modl' version '0.4.0'
+    id 'io.ia.sdk.modl' version '1.0.0'
 }
 ```
 
@@ -261,9 +261,8 @@ subprojects. The following table is a brief reference:
 | writeModuleXml  | root project  | Writes the module.xml file to the staging directory  |
 | zipModule  | root project | Compresses the staged module contents into an unsigned zip archive with a .modl file extension  |
 | checksumModl  | root project  | Generates a checksum for the signed module, and writes the result to a json file  |
-| moduleAssemblyReport  | root project | Writes a json file containing meta information about the module's assembly  |
-| signModl | root project | signs the unsigned modl using credentials/certs noted above
-| deployModl | root project | deploys the built module file to an ignition gateway running in developer module upload mode &#735;|
+| modlReport  | root project | Writes a json file containing meta information about the module's assembly  |
+| signModule | root project | signs the unsigned modl using credentials/certs noted above
 
 > &#735; to enable the developer mode, add `-Dia.developer.moduleupload=true` to the 'Java Additional Parameters' in
 > the `ignition.conf` file and restart the gateway. **This should only be done on secure development gateways, as it
@@ -275,26 +274,6 @@ subprojects. The following table is a brief reference:
 
 To configure properties of a task that are not directly exposed by the plugin configuration extension, you can use
 one of the `withType()` methods, which are nicely documented [here](https://docs.gradle.org/current/userguide/task_configuration_avoidance.html#sec:old_vs_new_configuration_api_overview).
-
-For example, to set the host url for the development gateway being targeted by the "deployModl" task (which is of task class type `Deploy`):
-
-```kotlin
-
-// in the build.gradle.kts file where the module plugin is applied
-tasks {
-    withType<io.ia.sdk.gradle.modl.task.Deploy> {
-        this.hostGateway.set("https://some.gateway.com:8099")
-    }
-}
-```
-
-In groovy based buildscripts, the syntax is different, but the result is the same:
-
-```groovy
-tasks.withType(io.ia.sdk.gradle.modl.task.Deploy).configureEach {
-    hostGateway = "https://some.gateway.net:8033"
-}
-```
 
 # How the Plugin it Works
 

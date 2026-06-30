@@ -1,4 +1,3 @@
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -13,7 +12,6 @@ plugins {
 group = "io.ia.sdk.tools.module.gen"
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -22,21 +20,14 @@ java {
     withSourcesJar()
 
     toolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
-
-kotlin {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
-    }
-}
-
 
 tasks {
-    withType(KotlinCompile::class) {
-        kotlinOptions {
-            javaParameters = true
+    withType<KotlinCompile> {
+        compilerOptions {
+            javaParameters.set(true)
         }
     }
 
@@ -53,13 +44,13 @@ tasks {
 
 dependencies {
     // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation(platform(kotlin("bom")))
     // Use SLF4J api for logging, logger implementation to be provided by lib consumer
     api(libs.slf4jApi)
 
     // Use the Kotlin test library.
     // testImplementation(libs.bundles.kotlinTest)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    testImplementation(libs.coroutinesCore)
     testImplementation(kotlin("test-junit"))
 
     // support logging in tests
@@ -72,7 +63,7 @@ testing {
         val test by getting(JvmTestSuite::class)
 
         val integrationTest by registering(JvmTestSuite::class) {
-            // useKotlinTest()
+            useJUnit()
             dependencies {
                 implementation(project())
                 implementation(libs.kotlinTestJunit)
@@ -82,7 +73,8 @@ testing {
                 all {
                     testTask.configure {
                         shouldRunAfter(test)
-                        testClassesDirs = sourceSets.named("integrationTest").get().output.classesDirs
+                        testClassesDirs =
+                            sourceSets.named("integrationTest").get().output.classesDirs
                     }
                 }
             }
@@ -96,8 +88,7 @@ tasks.named("check") {
 
 spotless {
     kotlin {
-        // optionally takes a version
-        ktlint("0.44.0").editorConfigOverride(mapOf("ktlint_disabled_rules" to "filename"))
+        ktlint("1.5.0").editorConfigOverride(mapOf("ktlint_standard_filename" to "disabled"))
 
         targetExclude(
             "src/main/resources/templates/config/*.kts",
@@ -120,7 +111,8 @@ publishing {
         }
     }
 
-    val PUBLISHING_KEY = "ignitionModuleGen.maven.repo.${if ("$version".contains("-SNAPSHOT")) "snapshot" else "release"}"
+    val PUBLISHING_KEY =
+        "ignitionModuleGen.maven.repo.${if ("$version".contains("-SNAPSHOT")) "snapshot" else "release"}"
 
     repositories {
         maven {

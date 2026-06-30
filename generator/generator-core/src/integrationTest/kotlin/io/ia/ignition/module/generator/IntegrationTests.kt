@@ -18,12 +18,11 @@ class IntegrationTests {
 
     data class TestConfig(val moduleName: String, val packageName: String, val scope: String, val dir: Path)
 
-    private fun dir(folderName: String): Path {
-        return tempFolder.newFolder(folderName).toPath()
-    }
+    private fun dir(folderName: String): Path = tempFolder.newFolder(folderName).toPath()
 
     private enum class OS {
-        NIXLIKE, WIN;
+        NIXLIKE,
+        WIN,
     }
 
     private fun os(): OS {
@@ -38,17 +37,15 @@ class IntegrationTests {
         }
     }
 
-    fun command(taskConfig: String): Set<String> {
-        return when (os()) {
-            OS.WIN -> setOf("cmd.exe", "/c", "gradlew.bat $taskConfig")
-            OS.NIXLIKE -> setOf("sh", "-c", "./gradlew $taskConfig")
-        }
+    fun command(taskConfig: String): Set<String> = when (os()) {
+        OS.WIN -> setOf("cmd.exe", "/c", "gradlew.bat $taskConfig")
+        OS.NIXLIKE -> setOf("sh", "-c", "./gradlew $taskConfig")
     }
 
     private fun applyExecPermissions(file: Path) {
         val perms: MutableSet<PosixFilePermission> = Files.readAttributes(
             file,
-            PosixFileAttributes::class.java
+            PosixFileAttributes::class.java,
         ).permissions()
 
         perms.add(PosixFilePermission.OWNER_WRITE)
@@ -104,7 +101,7 @@ class IntegrationTests {
             TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4")),
             TestConfig("The Greatness", "le.pant", "CD", dir("v5")),
             TestConfig("A Goodness", "come.va", "C", dir("v6")),
-            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7"))
+            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7")),
         ).forEach {
             val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
@@ -112,12 +109,15 @@ class IntegrationTests {
                 .parentDir(it.dir)
                 .scopes(it.scope)
                 .buildscriptDsl(GradleDsl.GROOVY)
+                .debugPluginConfig(true)
+                .allowUnsignedModules(true)
                 .build()
 
             val projectRootDir: Path = ModuleGenerator.generate(config)
 
             val processOutput = "build".runCommand(projectRootDir)
-            assertTrue(processOutput.contains("BUILD SUCCESSFUL"))
+            println("OUTPUT:\n$processOutput")
+            assertTrue(processOutput.contains("BUILD SUCCESSFUL"), "Build failed for ${it.moduleName} (${it.scope}):\n$processOutput")
         }
     }
 
@@ -130,7 +130,7 @@ class IntegrationTests {
             TestConfig("oncegreatness", "buenos.dias.amigo", "GCD", dir("v4_kts")),
             TestConfig("The Greatness", "le.pant", "CD", dir("v5_kts")),
             TestConfig("A Goodness", "come.va", "C", dir("v6_kts")),
-            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7_kts"))
+            TestConfig("The number 1 Greatness", "bon.gior.nio", "D", dir("v7_kts")),
         ).forEach {
             val config = GeneratorConfigBuilder()
                 .moduleName(it.moduleName)
@@ -138,13 +138,15 @@ class IntegrationTests {
                 .parentDir(it.dir)
                 .scopes(it.scope)
                 .buildscriptDsl(GradleDsl.KOTLIN)
+                .debugPluginConfig(true)
+                .allowUnsignedModules(true)
                 .build()
 
             val projectRootDir: Path = ModuleGenerator.generate(config)
 
             val processOutput = "build".runCommand(projectRootDir)
             println("OUTPUT:\n$processOutput")
-            assertTrue(processOutput.contains("BUILD SUCCESSFUL"))
+            assertTrue(processOutput.contains("BUILD SUCCESSFUL"), "Build failed for ${it.moduleName} (${it.scope}):\n$processOutput")
         }
     }
 }

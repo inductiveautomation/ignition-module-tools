@@ -24,7 +24,7 @@ class ExtensionTests {
             "com.test.path" to "com/test/path",
             "io.ia.great" to "io/ia/great",
             "com" to "com",
-            "net.explor.in.long.package.name" to "net/explor/in/long/package/name"
+            "net.explor.in.long.package.name" to "net/explor/in/long/package/name",
         )
 
         packageRootsToPaths.keys.forEach {
@@ -152,7 +152,7 @@ class ExtensionTests {
             "Wicked Fast Network Mover",
             "In Memory Historian",
             "the greatest service",
-            "a Not so Good service"
+            "a Not so Good service",
         )
 
         val expectedResults = listOf(
@@ -160,7 +160,7 @@ class ExtensionTests {
             "WickedFastNetworkMover",
             "InMemoryHistorian",
             "TheGreatestService",
-            "ANotSoGoodService"
+            "ANotSoGoodService",
         )
 
         sampleNames.forEachIndexed { index, sample ->

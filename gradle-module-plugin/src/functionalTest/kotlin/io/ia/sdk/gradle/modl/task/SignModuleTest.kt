@@ -23,6 +23,7 @@ class SignModuleTest : BaseTest() {
     companion object {
         const val PATH_KEY = "<FILEPATH>"
         const val MODULE_NAME = "I Was Signed"
+
         // For a specific YubiKey 5; you may need to change this for another key
         val PKCS11_HSM_SIGNING_PROPERTY_ENTRIES = """
             # Hack around YK5 (signing) slot 9c's second PIN challenge on
@@ -53,7 +54,8 @@ class SignModuleTest : BaseTest() {
         val projectDir = generateModule(parentDir)
 
         runTask(
-            projectDir.toFile(), listOf("signModule", "--stacktrace")
+            projectDir.toFile(),
+            listOf("signModule", "--stacktrace"),
         )
 
         val buildDir = projectDir.resolve("build")
@@ -68,14 +70,14 @@ class SignModuleTest : BaseTest() {
         assertTrue(signed.exists(), "Expected $signed to exist")
         assertNotNull(
             sigPropsFile,
-            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl",
         )
 
         // and the cert file
         val certFile = zm[CERT_PKCS7_FILENAME]
         assertNotNull(
             certFile,
-            "Expected $CERT_PKCS7_FILENAME in signed modl"
+            "Expected $CERT_PKCS7_FILENAME in signed modl",
         )
 
         // If you want to dump file contents to stdout, uncomment this
@@ -119,14 +121,14 @@ class SignModuleTest : BaseTest() {
         assertTrue(signed.exists(), "Expected $signed to exist")
         assertNotNull(
             sigPropsFile,
-            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl",
         )
 
         // and the cert file
         val certFile = zm[CERT_PKCS7_FILENAME]
         assertNotNull(
             certFile,
-            "Expected $CERT_PKCS7_FILENAME in signed modl"
+            "Expected $CERT_PKCS7_FILENAME in signed modl",
         )
 
         // If you want to dump file contents to stdout, uncomment this
@@ -134,8 +136,8 @@ class SignModuleTest : BaseTest() {
         // logZipMapFileText(CERT_PKCS7_FILENAME, certFile)
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module signing failed due to missing signing configuration properties`() {
         val dirName = currentMethodName()
 
@@ -144,7 +146,7 @@ class SignModuleTest : BaseTest() {
         val result: BuildResult =
             runTaskAndFail(
                 projectDir.toFile(),
-                listOf("signModule", "--certAlias=something")
+                listOf("signModule", "--certAlias=something"),
             )
 
         val out = result.output
@@ -154,12 +156,12 @@ class SignModuleTest : BaseTest() {
         assertContains(out, "Specify via flag '--certFile=<value>'")
         assertContains(
             out,
-            "file as 'ignition.signing.certFile=<value>"
+            "file as 'ignition.signing.certFile=<value>",
         )
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module signed despite missing keystore pw flag`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -185,7 +187,7 @@ class SignModuleTest : BaseTest() {
         val result: BuildResult =
             runTask(
                 projectDir.toFile(),
-                taskArgs
+                taskArgs,
             )
 
         val task = result.task(":signModule")
@@ -202,14 +204,14 @@ class SignModuleTest : BaseTest() {
         assertTrue(signed.exists(), "Expected $signed to exist")
         assertNotNull(
             sigPropsFile,
-            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl",
         )
 
         // and the cert file
         val certFile = zm[CERT_PKCS7_FILENAME]
         assertNotNull(
             certFile,
-            "Expected $CERT_PKCS7_FILENAME in signed modl"
+            "Expected $CERT_PKCS7_FILENAME in signed modl",
         )
 
         // If you want to dump file contents to stdout, uncomment this
@@ -217,8 +219,8 @@ class SignModuleTest : BaseTest() {
         // logZipMapFileText(CERT_PKCS7_FILENAME, certFile)
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module failed with missing cert pw flags`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -243,19 +245,19 @@ class SignModuleTest : BaseTest() {
         val result: BuildResult =
             runTaskAndFail(
                 projectDir.toFile(),
-                taskArgs
+                taskArgs,
             )
 
         // Some keystores do not require a password to unlock a private key,
         // but PKCS#12 file-based keystores do.
         assertContains(
             result.output,
-            "java.security.UnrecoverableKeyException: Get Key failed: null"
+            "java.security.UnrecoverableKeyException: Get Key failed:",
         )
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module failed - file and pkcs11 keystore in gradle properties`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -268,17 +270,17 @@ class SignModuleTest : BaseTest() {
             workingDir.toPath().resolve("i-was-signed")
         writeResourceFiles(
             signingResourcesDestination,
-            listOf("certificate.pem", "keystore.jks", "pkcs11.cfg")
+            listOf("certificate.pem", "keystore.jks", "pkcs11.cfg"),
         )
         writeSigningCredentials(
             signingResourcesDestination,
-            "$PKCS11_PROPERTY_ENTRIES\n$KEYSTORE_PROPERTY_ENTRIES"
+            "$PKCS11_PROPERTY_ENTRIES\n$KEYSTORE_PROPERTY_ENTRIES",
         )
 
         val result: BuildResult =
             runTaskAndFail(
                 projectDir.toFile(),
-                listOf("signModule", "--stacktrace")
+                listOf("signModule", "--stacktrace"),
             )
 
         val task = result.task(":signModule")
@@ -288,13 +290,13 @@ class SignModuleTest : BaseTest() {
             "'--keystoreFile' flag/'ignition.signing.keystoreFile' property " +
                 "in gradle.properties or " +
                 "'--pkcs11CfgFile' flag/'ignition.signing.pkcs11CfgFile' property " +
-                "in gradle.properties but not both"
+                "in gradle.properties but not both",
         )
         assertContains(result.output, "InvalidUserDataException")
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module failed - file keystore in gradle properties, pkcs11 keystore on cmdline`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -308,7 +310,8 @@ class SignModuleTest : BaseTest() {
 
         // Also write PKCS#11 HSM config, which by itself is OK.
         val pkcs11CfgPath = writeResourceFiles(
-            signingResourcesDestination, listOf("pkcs11.cfg")
+            signingResourcesDestination,
+            listOf("pkcs11.cfg"),
         ).first()
 
         // But specifying that file via option suggests there is an HSM
@@ -328,13 +331,13 @@ class SignModuleTest : BaseTest() {
             "'--keystoreFile' flag/'ignition.signing.keystoreFile' property " +
                 "in gradle.properties or " +
                 "'--pkcs11CfgFile' flag/'ignition.signing.pkcs11CfgFile' property " +
-                "in gradle.properties but not both"
+                "in gradle.properties but not both",
         )
         assertContains(result.output, "InvalidUserDataException")
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module failed - file keystore on cmdline, pkcs11 keystore in gradle properties`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -348,7 +351,8 @@ class SignModuleTest : BaseTest() {
 
         // Also write file-based keystore, which by itself is OK.
         val ksPath = writeResourceFiles(
-            signingResourcesDestination, listOf("keystore.jks")
+            signingResourcesDestination,
+            listOf("keystore.jks"),
         ).first()
 
         // But specifying that file suggests there is a file keystore,
@@ -368,13 +372,13 @@ class SignModuleTest : BaseTest() {
             "'--keystoreFile' flag/'ignition.signing.keystoreFile' property " +
                 "in gradle.properties or " +
                 "'--pkcs11CfgFile' flag/'ignition.signing.pkcs11CfgFile' property " +
-                "in gradle.properties but not both"
+                "in gradle.properties but not both",
         )
         assertContains(result.output, "InvalidUserDataException")
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `skip signing - no need for signing properties`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -398,8 +402,8 @@ class SignModuleTest : BaseTest() {
         assertTrue(unsigned.exists(), "Expected $unsigned to exist")
     }
 
-    @Test
     // @Tag("IGN-7871")
+    @Test
     fun `module failed - file and pkcs11 keystore on cmdline`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -412,7 +416,7 @@ class SignModuleTest : BaseTest() {
             workingDir.toPath().resolve("i-was-signed")
         val (ksPath, pkcs11Cfg) = writeResourceFiles(
             signingResourcesDestination,
-            listOf("keystore.jks", "pkcs11.cfg", "certificate.pem")
+            listOf("keystore.jks", "pkcs11.cfg", "certificate.pem"),
         )
 
         // But specifying that file suggests there is a file keystore,
@@ -437,17 +441,17 @@ class SignModuleTest : BaseTest() {
             "'--keystoreFile' flag/'ignition.signing.keystoreFile' property " +
                 "in gradle.properties or " +
                 "'--pkcs11CfgFile' flag/'ignition.signing.pkcs11CfgFile' property " +
-                "in gradle.properties but not both"
+                "in gradle.properties but not both",
         )
         assertContains(result.output, "InvalidUserDataException")
     }
 
     // This is a test with an actual PKCS#11-compliant YubiKey 5, on Windows.
     // As such it is typically set to @Ignore.
-    @Test
-    @Ignore
     // @Tag("integration") // break out into a test suite at some point
     // @Tag("IGN-7871")
+    @Test
+    @Ignore
     fun `integration - module signed with physical pkcs11 HSM in gradle properties`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -460,7 +464,7 @@ class SignModuleTest : BaseTest() {
             workingDir.toPath().resolve("i-was-signed")
         writeResourceFiles(
             signingResourcesDestination,
-            listOf("pkcs11-yk5-win.crt", "pkcs11-yk5-win.cfg")
+            listOf("pkcs11-yk5-win.crt", "pkcs11-yk5-win.cfg"),
         )
         writeSigningCredentials(
             targetDirectory = signingResourcesDestination,
@@ -470,7 +474,7 @@ class SignModuleTest : BaseTest() {
 
         val result: BuildResult = runTask(
             projectDir.toFile(),
-            listOf("signModule", "--stacktrace")
+            listOf("signModule", "--stacktrace"),
         )
 
         val task = result.task(":signModule")
@@ -487,14 +491,14 @@ class SignModuleTest : BaseTest() {
         assertTrue(signed.exists(), "Expected $signed to exist")
         assertNotNull(
             sigPropsFile,
-            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl",
         )
 
         // and the cert file
         val certFile = zm[CERT_PKCS7_FILENAME]
         assertNotNull(
             certFile,
-            "Expected $CERT_PKCS7_FILENAME in signed modl"
+            "Expected $CERT_PKCS7_FILENAME in signed modl",
         )
 
         // If you want to dump file contents to stdout, uncomment this
@@ -504,10 +508,10 @@ class SignModuleTest : BaseTest() {
 
     // This is a test with an actual PKCS#11-compliant YubiKey 5, on Windows.
     // As such it is typically set to @Ignore.
-    @Test
-    @Ignore
     // @Tag("integration") // break out into a test suite at some point
     // @Tag("IGN-7871")
+    @Test
+    @Ignore
     fun `integration - module signed with physical pkcs11 HSM on cmdline`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -520,7 +524,7 @@ class SignModuleTest : BaseTest() {
             workingDir.toPath().resolve("i-was-signed")
         val (certPath, _) = writeResourceFiles(
             signingResourcesDestination,
-            listOf("pkcs11-yk5-win.crt", "pkcs11-yk5-win.cfg")
+            listOf("pkcs11-yk5-win.crt", "pkcs11-yk5-win.cfg"),
         )
 
         val taskArgs = listOf(
@@ -540,7 +544,7 @@ class SignModuleTest : BaseTest() {
 
         val result: BuildResult = runTask(
             projectDir.toFile(),
-            taskArgs
+            taskArgs,
         )
 
         val task = result.task(":signModule")
@@ -557,14 +561,14 @@ class SignModuleTest : BaseTest() {
         assertTrue(signed.exists(), "Expected $signed to exist")
         assertNotNull(
             sigPropsFile,
-            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl",
         )
 
         // and the cert file
         val certFile = zm[CERT_PKCS7_FILENAME]
         assertNotNull(
             certFile,
-            "Expected $CERT_PKCS7_FILENAME in signed modl"
+            "Expected $CERT_PKCS7_FILENAME in signed modl",
         )
 
         // If you want to dump file contents to stdout, uncomment this
@@ -575,9 +579,9 @@ class SignModuleTest : BaseTest() {
     // Some HSM/PKCS#11 keystores handle unlocking the keystore/private keys
     // outside of the call stack. Simulate this, somehow, if we can figure
     // out a good way to do so.
+    // @Tag("IGN-7871")
     @Test
     @Ignore
-    // @Tag("IGN-7871")
     fun `module signed with unprotected keystore and private key`() {
         val dirName = currentMethodName()
         val workingDir: File = tempFolder.newFolder(dirName)
@@ -589,7 +593,7 @@ class SignModuleTest : BaseTest() {
             workingDir.toPath().resolve("i-was-signed")
         val (certPath, _) = writeResourceFiles(
             signingResourcesDestination,
-            listOf("certificate.cer")
+            listOf("certificate.cer"),
         )
 
         val taskArgs = listOf(
@@ -602,7 +606,7 @@ class SignModuleTest : BaseTest() {
         )
         val result: BuildResult = runTask(
             projectDir.toFile(),
-            taskArgs
+            taskArgs,
         )
 
         val task = result.task(":signModule")
@@ -619,14 +623,14 @@ class SignModuleTest : BaseTest() {
         assertTrue(signed.exists(), "Expected $signed to exist")
         assertNotNull(
             sigPropsFile,
-            "Expected $SIG_PROPERTIES_FILENAME in signed modl"
+            "Expected $SIG_PROPERTIES_FILENAME in signed modl",
         )
 
         // and the cert file
         val certFile = zm[CERT_PKCS7_FILENAME]
         assertNotNull(
             certFile,
-            "Expected $CERT_PKCS7_FILENAME in signed modl"
+            "Expected $CERT_PKCS7_FILENAME in signed modl",
         )
 
         // If you want to dump file contents to stdout, uncomment this
@@ -649,7 +653,7 @@ class SignModuleTest : BaseTest() {
             .rootPluginConfig(
                 """
                     id("io.ia.sdk.modl")
-                """.trimIndent()
+                """.trimIndent(),
             )
             .build()
 

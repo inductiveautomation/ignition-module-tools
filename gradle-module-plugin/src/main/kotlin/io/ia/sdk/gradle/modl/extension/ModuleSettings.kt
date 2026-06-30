@@ -208,7 +208,7 @@ abstract class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFa
                 it.split(" ").joinToString(separator = "-", postfix = ".") { s ->
                     s.capitalize()
                 } + ZipModule.UNSIGNED_EXTENSION
-            }
+            },
         )
     }
 }

@@ -61,7 +61,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 "\":\",\n" + effectiveScopes.joinToString(
                     separator = ",\n    ",
                     prefix = "    ",
-                    postfix = ""
+                    postfix = "",
                 ) { "\":${it.folderName}\"" }
             }
         replacements[HOOK_CLASS_CONFIG.key] = buildHookEntry()
@@ -79,15 +79,13 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         }
     }
 
-    private fun buildDependencyEntries(scopes: List<ProjectScope>): Map<String, String> {
-        return mutableMapOf<String, String>().apply {
-            scopes.forEach { scope ->
-                TemplateMarker.dependencyKeyForScope(scope)?.let { tm ->
-                    this[tm.key] = DefaultDependencies.ARTIFACTS[scope]?.toDependencyFormat(config.buildDsl) ?: ""
-                    // if not a common scope and there is a common project, add it as a dependency to other scopes
-                    if (scope != COMMON && scopes.size > 1) {
-                        this[tm.key] = "${this[tm.key]}\n    compileOnly(project(\":common\"))"
-                    }
+    private fun buildDependencyEntries(scopes: List<ProjectScope>): Map<String, String> = mutableMapOf<String, String>().apply {
+        scopes.forEach { scope ->
+            TemplateMarker.dependencyKeyForScope(scope)?.let { tm ->
+                this[tm.key] = DefaultDependencies.ARTIFACTS[scope]?.toDependencyFormat(config.buildDsl) ?: ""
+                // if not a common scope and there is a common project, add it as a dependency to other scopes
+                if (scope != COMMON && scopes.size > 1) {
+                    this[tm.key] = "${this[tm.key]}\n    compileOnly(project(\":common\"))"
                 }
             }
         }
@@ -110,17 +108,21 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
             var block = if (config.settingsDsl == GROOVY) {
                 pluginBlock.replace(
                     """url = uri("https://nexus.inductiveautomation.com/repository/public")""",
-                    """url = "https://nexus.inductiveautomation.com/repository/public" """
+                    """url = "https://nexus.inductiveautomation.com/repository/public" """,
                 )
-            } else pluginBlock
+            } else {
+                pluginBlock
+            }
 
             block.let {
                 if (config.debugPluginConfig) {
                     it.replace(
                         "gradlePluginPortal()",
-                        "mavenLocal()\n        gradlePluginPortal()\n"
+                        "mavenLocal()\n        gradlePluginPortal()\n",
                     )
-                } else it
+                } else {
+                    it
+                }
             }
         }
     }
@@ -135,7 +137,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         replacements[ROOT_PLUGIN_CONFIGURATION.key] = config.rootPluginConfig.ifEmpty {
             DefaultDependencies.MODL_PLUGIN.replace(
                 TemplateMarker.MODL_PLUGIN_VERSION.key,
-                config.modulePluginVersion
+                config.modulePluginVersion,
             )
         } + when {
             isSingleDirProject() -> {
@@ -143,8 +145,10 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
                 when (config.projectLanguage) {
                     JAVA -> "\n    id(\"java-library\")"
                     KOTLIN -> if (config.buildDsl == GradleDsl.KOTLIN) {
-                        "`java-library`\n    kotlin(\"jvm\") version(\"1.6.21\")"
-                    } else "id(\"java-library\")\n    id(\"org.jetbrains.kotlin.jvm\") version \"1.6.21\""
+                        "`java-library`\n    kotlin(\"jvm\") version(\"2.3.10\")"
+                    } else {
+                        "id(\"java-library\")\n    id(\"org.jetbrains.kotlin.jvm\") version \"2.3.10\""
+                    }
                     else -> ""
                 }
             }
@@ -172,15 +176,12 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         return hookEntry
     }
 
-    private fun associator(): String {
-        return config.buildDsl.mapAssociator()
-    }
+    private fun associator(): String = config.buildDsl.mapAssociator()
 
     /**
      * Emits a String that is a valid project scope configuration, consistent with the buildscript dsl type.
      */
     private fun buildProjectScopeConfiguration(): String {
-
         // single dir project will only have a single scope, so just return the initial
         if (isSingleDirProject()) {
             val scopeName = scopes[0].name
@@ -209,9 +210,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
         }.sorted().joinToString(separator = ",\n        ", prefix = "    ", postfix = "")
     }
 
-    override fun getTemplateReplacements(): Map<String, String> {
-        return replacements.toMap()
-    }
+    override fun getTemplateReplacements(): Map<String, String> = replacements.toMap()
 
     private val rootDirectory: Path = Paths.get(config.parentDir.toString(), rootFolderName).toAbsolutePath()
 
@@ -220,36 +219,24 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private val settingsFileName: String =
         if (config.settingsDsl == GROOVY) "settings.gradle" else "settings.gradle.kts"
 
-    override fun getRootDirectory(): Path {
-        return rootDirectory
-    }
+    override fun getRootDirectory(): Path = rootDirectory
 
     // if the root project dir is also the only project dir and should allow sourcecode files
-    fun isSingleDirProject(): Boolean {
-        return scopes.size == 1 && config.useRootProjectWhenSingleScope
+    fun isSingleDirProject(): Boolean = scopes.size == 1 && config.useRootProjectWhenSingleScope
+
+    override fun getHookClassName(scope: ProjectScope): String = when (scope) {
+        DESIGNER -> "${getClassPrefix()}DesignerHook"
+        GATEWAY -> "${getClassPrefix()}GatewayHook"
+        CLIENT -> "${getClassPrefix()}ClientHook"
+        COMMON -> "${getClassPrefix()}Module"
+        else -> throw Exception("Generator encounted unknown Project Scope '$scope'!")
     }
 
-    override fun getHookClassName(scope: ProjectScope): String {
-        return when (scope) {
-            DESIGNER -> "${getClassPrefix()}DesignerHook"
-            GATEWAY -> "${getClassPrefix()}GatewayHook"
-            CLIENT -> "${getClassPrefix()}ClientHook"
-            COMMON -> "${getClassPrefix()}Module"
-            else -> throw Exception("Generator encounted unknown Project Scope '$scope'!")
-        }
-    }
+    override fun getClassPrefix(): String = classPrefix
 
-    override fun getClassPrefix(): String {
-        return classPrefix
-    }
+    override fun getBuildScriptFilename(): String = buildScriptFilename
 
-    override fun getBuildScriptFilename(): String {
-        return buildScriptFilename
-    }
-
-    override fun getSettingFileName(): String {
-        return settingsFileName
-    }
+    override fun getSettingFileName(): String = settingsFileName
 
     /**
      * Returns the resource path for the boilerplate stub implementation of an Ignition hook class, or in the case of
@@ -270,11 +257,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     /**
      * Returns the resource path for the appropriate gradle settings file template
      */
-    fun settingsFilename(): String {
-        return config.settingsDsl.settingsFilename()
-    }
+    fun settingsFilename(): String = config.settingsDsl.settingsFilename()
 
-    override fun getModuleId(): String {
-        return "${config.packageName}.${getClassPrefix().lowercase()}"
-    }
+    override fun getModuleId(): String = "${config.packageName}.${getClassPrefix().lowercase()}"
 }

@@ -17,7 +17,7 @@ This project uses Gradle for build tooling and includes the gradle wrapper.  To 
 
 ### Requirements
 
-   - *JDK 11* should resolve automatically via the [Gradle Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) api.  To explicitly specify JDK available to gradle, you have a few options: rely on the `JAVA_HOME` environmental variable, set `org.gradle.java.home=/path/to/jdk/home` as a commandline flag (`-Dorg.gradle.java.home=/path`), or specify the `org.gradle.java.home` in a [gradle.properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) file.
+   - *GraalVM JDK 25* should resolve automatically via the [Gradle Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) api.  To explicitly specify JDK available to gradle, you have a few options: rely on the `JAVA_HOME` environmental variable, set `org.gradle.java.home=/path/to/jdk/home` as a commandline flag (`-Dorg.gradle.java.home=/path`), or specify the `org.gradle.java.home` in a [gradle.properties](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) file.
 
 
 ### How To
@@ -28,31 +28,14 @@ To see a list of all tasks available, run `./gradlew tasks` or if on Windows, `g
 
 # Native Images
 
-The CLI project uses [Palantir's Gradle Graal plugin](https://github.com/palantir/gradle-graal) to generate a native
-  binary executable for the platform running the build.   Mac and Linux users can simply run `./gradlew :nativeImage
-   ` in the cli project's directory, and a native binary will be created in the `module-generator/cli/build/graal
-   `  directory.  While module authors will require a JDK to build modules, this binary will execute and generate
-    module projects without any installed JVM/JRE.
+The CLI project uses the [GraalVM Native Build Tools](https://graalvm.github.io/native-build-tools/) Gradle plugin to
+generate a native binary executable for the platform running the build. Mac and Linux users can simply run
+`./gradlew nativeCompile` in the cli project's directory, and a native binary will be created in the
+`build/native/nativeCompile` directory. While module authors will require a JDK to build modules, this binary will
+execute and generate module projects without any installed JVM/JRE.
 
-Windows requires some setup for building graal native images.  [Chocolatey](https://chocolatey.org/install) package
- manager enables some easy configuration. Follow these steps to configure your Windows environment for building graal
-  native images (tested on Windows 10 Pro):
-
-```
-   choco install visualstudio2019-workload-vctools windows-sdk-7.1 kb2519277
-```
-
-If an appropriate JDK is not installed, you may install a compatible JDK using chocolatey as well (note this may change
- your system PATH if you have a different JDK already installed):
-
-```
-    choco install adoptopenjdk11
-```
-
-If you encounter errors relating 'missing Windows 7.1 SDK', you can try specifying the visual studio version (2019 if following the install instructions just above), or provide the path to the appropriate `vsvars64.bat` by using the graal plugin configuration as [documented at the plugin repo](https://github.com/palantir/gradle-graal).
-
-See the official [Graal Native-Image docs](https://www.graalvm.org/docs/reference-manual/native-image/) for details on
-environmental prerequisites.
+See the official [GraalVM Native Image docs](https://www.graalvm.org/latest/reference-manual/native-image/) for details
+on environmental prerequisites and platform-specific setup.
 
 
 ## Questions?  Feedback?  Want to Contribute?

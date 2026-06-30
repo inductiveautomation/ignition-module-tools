@@ -97,25 +97,20 @@ enum class TemplateMarker(val key: String) {
 
     MODL_PLUGIN_VERSION("<MODL_PLUGIN_VERSION>"),
 
-    SDK_VERSION_PLACEHOLDER("<SDK_VERSION>");
+    SDK_VERSION_PLACEHOLDER("<SDK_VERSION>"),
+    ;
 
-    fun keys(): List<String> {
-        return values().map { it.key }
-    }
+    fun keys(): List<String> = values().map { it.key }
 
-    override fun toString(): String {
-        return key
-    }
+    override fun toString(): String = key
 
     companion object {
-        fun dependencyKeyForScope(scope: ProjectScope): TemplateMarker? {
-            return when (scope) {
-                CLIENT -> TemplateMarker.CLIENT_DEPENDENCIES
-                DESIGNER -> TemplateMarker.DESIGNER_DEPENDENCIES
-                GATEWAY -> TemplateMarker.GATEWAY_DEPENDENCIES
-                COMMON -> TemplateMarker.COMMON_DEPENDENCIES
-                else -> null
-            }
+        fun dependencyKeyForScope(scope: ProjectScope): TemplateMarker? = when (scope) {
+            CLIENT -> TemplateMarker.CLIENT_DEPENDENCIES
+            DESIGNER -> TemplateMarker.DESIGNER_DEPENDENCIES
+            GATEWAY -> TemplateMarker.GATEWAY_DEPENDENCIES
+            COMMON -> TemplateMarker.COMMON_DEPENDENCIES
+            else -> null
         }
     }
 }

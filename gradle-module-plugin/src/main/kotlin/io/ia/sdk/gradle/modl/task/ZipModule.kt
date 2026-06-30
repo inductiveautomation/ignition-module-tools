@@ -6,6 +6,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
@@ -19,6 +20,7 @@ import javax.inject.Inject
 /**
  * Creates the unsigned .modl file by compressing the contents of the staging folder into a zip file.
  */
+@CacheableTask
 open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         const val ID = "zipModule"
@@ -52,7 +54,7 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
         project.logger.info("Zipping '${contentDir.absolutePath}' into ' ${unsignedFile.asFile.absolutePath}'")
         project.ant.invokeMethod(
             "zip",
-            mapOf("basedir" to contentDir, "destfile" to unsignedFile)
+            mapOf("basedir" to contentDir, "destfile" to unsignedFile),
         )
     }
 
@@ -74,7 +76,7 @@ open class ZipModule @Inject constructor(objects: ObjectFactory) : DefaultTask()
 
                 if (fileSet.contains(name)) {
                     throw IllegalArgumentException(
-                        "Library '$name' exists in multiple versions in ${contentDir.absolutePath}"
+                        "Library '$name' exists in multiple versions in ${contentDir.absolutePath}",
                     )
                 } else {
                     fileSet.add(name)

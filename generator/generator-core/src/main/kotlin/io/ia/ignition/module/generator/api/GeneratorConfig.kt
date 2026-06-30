@@ -116,13 +116,13 @@ data class GeneratorConfig constructor(
      * generated, as it is assumed the plugin will be established via 'includeBuild' in settings.gradle
      * pluginManagement.
      */
-    val modulePluginVersion: String = "0.5.0",
+    val modulePluginVersion: String = "1.0.0",
 
     /**
      * If signing the module should be required, set to false.  Set to true by default to allow building the
      * generated module without needing to establish signing certificate configuration.  Should be set to 'false'
      * in the generated project when building modules intended for production use.
      */
-    val skipModuleSigning: Boolean = true
+    val skipModuleSigning: Boolean = true,
 
 )

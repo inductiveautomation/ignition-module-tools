@@ -18,7 +18,6 @@ class GeneratorConfigTest {
 
     @Test
     fun `builder generates valid config object`() {
-
         val parentDir = tempFolder.newFolder()
 
         val config1 = GeneratorConfigBuilder()
