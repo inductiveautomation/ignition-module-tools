@@ -4,8 +4,6 @@ The Ignition platform is an open/pluggable JVM based system that uses Ignition M
 
 The Ignition Module Plugin for Gradle lets module developers use the [Gradle](https://www.gradle.org) build tool to create and sign functional modules (_.modl_ ) through a convenient DSL-based configuration model.
 
-
-
 ## Usage
 
 The easiest way to get started with this plugin is to create a new module project using the Ignition Module Generator in this repository.
@@ -19,7 +17,7 @@ For current versions of gradle, simply add to your `build.gradle.kts`:
 ```kotlin
 // build.gradle.kts
 plugins {
-  id("io.ia.sdk.modl") version("1.0.0")
+  id("io.ia.sdk.modl") version("1.1.0")
 }
 ```
 
@@ -28,43 +26,40 @@ Or for Groovy DSL buildscripts:
 ```groovy
 // build.gradle
 plugins {
-    id 'io.ia.sdk.modl' version '1.0.0'
+    id 'io.ia.sdk.modl' version '1.1.0'
 }
 ```
 
 2. Configure your module through the `ignitionModule` configuration DSL. See DSL properties section below for details.
-
 3. Configure your signing settings, either in a gradle.properties file, or as commandline flags. The required properties are defined in `Constants.kt`, and used in the `SignModule` task. You may mix and match flags and properties (and flags will override properties), as long as all required values are configured. The only requirement is that option flags _must_ follow the Gradle task to which they apply, which is `signModule`. The `keystoreFile` and `pkcs11CfgFile` settings are mutually exclusive, the former indicating a file-based keystore and the latter indicating the config file for a PKCS#11 HSM (such as a YubiKey) keystore. Use one or the other but not both. All flags/properties are as follows, with usage examples:
 
-   | Flag  | Usage                                                  | gradle.properties entry                            |
-   |-------|--------------------------------------------------------|----------------------------------------------------|
-   | certAlias  | gradlew signModule --certAlias=someAlias               | ignition.signing.certAlias=someAlias               |
-   | certFile  | gradlew signModule --certFile=/path/to/cert            | ignition.signing.certFile=/path/to/cert            |
-   | certPassword  | gradlew signModule --certPassword=certPwdOrPIN         | ignition.signing.certPassword=certPwdOrPIN         |
-   | keystoreFile  | gradlew signModule --keystoreFile=/path/to/keystore    | ignition.signing.keystoreFile=/path/to/keystore    |
-   | pkcs11CfgFile  | gradlew signModule --pkcs11CfgFile=/path/to/pkcs11.cfg | ignition.signing.pkcs11CfgFile=/path/to/pkcs11.cfg |
-   | keystorePassword  | gradlew signModule --keystorePassword=ksPwdOrPIN       | ignition.signing.keystorePassword=ksPwdOrPIN       | 
 
+   | Flag             | Usage                                                  | gradle.properties entry                            |
+   | ---------------- | ------------------------------------------------------ | -------------------------------------------------- |
+   | certAlias        | gradlew signModule --certAlias=someAlias               | ignition.signing.certAlias=someAlias               |
+   | certFile         | gradlew signModule --certFile=/path/to/cert            | ignition.signing.certFile=/path/to/cert            |
+   | certPassword     | gradlew signModule --certPassword=certPwdOrPIN         | ignition.signing.certPassword=certPwdOrPIN         |
+   | keystoreFile     | gradlew signModule --keystoreFile=/path/to/keystore    | ignition.signing.keystoreFile=/path/to/keystore    |
+   | pkcs11CfgFile    | gradlew signModule --pkcs11CfgFile=/path/to/pkcs11.cfg | ignition.signing.pkcs11CfgFile=/path/to/pkcs11.cfg |
+   | keystorePassword | gradlew signModule --keystorePassword=ksPwdOrPIN       | ignition.signing.keystorePassword=ksPwdOrPIN       |
 4. When depending on artifacts (dependencies) from the Ignition SDK, they should be specified as `compileOnly` or `compileOnlyApi`  dependencies as they will be provided by the Ignition platform at runtime. Dependencies that are applied with either the `modlApi` or `modlImplementation` _Configuration_ in any subproject of your module will be collected and included in the final modl file, including transitive dependencies. In general, behaviors of the _modl_ configuration follow those documented by the Gradle java-library plugin (e.g. - publishing, artifact uploading, transitive dependency handling, etc). Test-only dependencies should NOT be marked with any `modl` configuration. Test and Compile-time dependencies should be specified in accordance with the best practices described in Gradle's `java-library` [plugin documentation](https://docs.gradle.org/current/userguide/java_library_plugin.html).
-
 
 Choosing which [Configuration](https://docs.gradle.org/current/userguide/declaring_dependencies.html) to apply may have important but subtle impacts on your module, as well as your development/build environment. In general, the following rule of thumb is a good starting point:
 
-| Configuration  | Usage Suggestion | Included in Module? | Includes Transitive Dependencies In Module? | Exposes Transitive Dependencies to Artifact Consumers&#735;? |
-|-------|--------|-------------------------|----------|---------|
-| compileOnly   | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'. | No | No | No |
-| compileOnlyApi   | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'. | No | No | No |
-| api    | Project dependencies that do not explicitly get registered in the module DSL project scopes&#10013;  | No | No | Yes |
-| implementation   | Project dependencies that do not explicitly get registered in the module DSL project scopes&#10013; | No | No | No |
-| modlImplementation   | Dependencies that are used in a module project's implementation, but are not part of a public API  | Yes | Yes | No |
-| modlApi | Dependencies that are used in a module project and are exposed to dependents&#10013;&#10013;  | Yes | Yes | Yes |
+
+| Configuration      | Usage Suggestion                                                                                            | Included in Module? | Includes Transitive Dependencies In Module? | Exposes Transitive Dependencies to Artifact Consumers&#735;? |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------- | ------------------------------------------- | ------------------------------------------------------------ |
+| compileOnly        | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'. | No                  | No                                          | No                                                           |
+| compileOnlyApi     | Use for 'compile time only' dependencies, including ignition sdk dependencies. Similar to maven 'provided'. | No                  | No                                          | No                                                           |
+| api                | Project dependencies that do not explicitly get registered in the module DSL project scopes&#10013;         | No                  | No                                          | Yes                                                          |
+| implementation     | Project dependencies that do not explicitly get registered in the module DSL project scopes&#10013;         | No                  | No                                          | No                                                           |
+| modlImplementation | Dependencies that are used in a module project's implementation, but are not part of a public API           | Yes                 | Yes                                         | No                                                           |
+| modlApi            | Dependencies that are used in a module project and are exposed to dependents&#10013;&#10013;                | Yes                 | Yes                                         | Yes                                                          |
 
 > &#10013; - api and implementation configurations and generally best reserved for internal/intra-project dependencies. Meaning, if you have a module with projects A,B,C, and D, where A is only a supporting library for D (aka - it is not registered as a 'projectScope', but is merely a dependency of D), then `api` or `implementation` would be appropriate. Choose `api` if D exposes A as part of it's Application Binary Interface (ABI). Otherwise, choose `implementation` if A is only used internally for the implementation of D.<br>
 > &#10013;&#10013; - modlApi is a very uncommon use case, generally reserved only for modules which themselves expose an API that is to be extended by other modules. Examples of Inductive Automation modules that use this include Opc-Ua, which exposes an API for driver module implementations, or Perspective, which exposes an API for Component Authors through the SDK. If you do not support an SDK for your module, then you should probably use `modlImplementation`, as it will encourage better separation of concerns in your project.<br>
 > &#735; 'Artifact Consumers' refers to projects that may depend on ('consume') the library (aka - gradle subproject) you are writing, or if published to an artifact repo, consumers of the maven artifact. Dependencies that are not part of a project's ABI should avoid being specified with `modlApi` to avoid leaking implementation details into the compile-time classpath of the consuming project.<br><br>
 > **Maven Users**: If you're familiar with Maven's dependency scopes, you might initially find Gradle's handling of dependencies to be unnecessarily convoluted. This is a product of Gradle's powerful (but more complex) dependency management. We suggest reading the gradle docs on [Working With Dependencies](https://docs.gradle.org/current/userguide/core_dependency_management.html), followed by reading the [Java Library Plugin](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) documentation.
-
-
 
 ### `ignitionModule` DSL Properties
 
@@ -243,10 +238,9 @@ ignitionModule {
 }
 ```
 
- # Tasks
+# Tasks
 
- > To see all tasks provided by the plugin, run the `tasks` gradle command, or `tasks --all` to see all possible tasks.
-
+> To see all tasks provided by the plugin, run the `tasks` gradle command, or `tasks --all` to see all possible tasks.
 
 The module plugin exposes a number of tasks that may be run on their own, and some which are bound to lifecycle tasks
 provided by Gradle's [Base Plugin](https://docs.gradle.org/current/userguide/base_plugin.html). Some tasks apply
@@ -254,21 +248,20 @@ only to the root project (the project which is applying the plugin), while other
 subprojects. The following table is a brief reference:
 
 
-| Task  | Scope  | Description |
-|-------|--------|-------------------------|
-| collectModlDependencies  | root and child projects  | Resolves and collects dependencies from projects with the `java-library` plugin that marked with 'modlApi/modlImplementation' configuration |
-| assembleModlStructure | aggregates assets, dependencies and assembled project jars created by the 'collectModlDependencies' task into the module staging directory |
-| writeModuleXml  | root project  | Writes the module.xml file to the staging directory  |
-| zipModule  | root project | Compresses the staged module contents into an unsigned zip archive with a .modl file extension  |
-| checksumModl  | root project  | Generates a checksum for the signed module, and writes the result to a json file  |
-| modlReport  | root project | Writes a json file containing meta information about the module's assembly  |
-| signModule | root project | signs the unsigned modl using credentials/certs noted above
+| Task                    | Scope                                                                                                                                      | Description                                                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| collectModlDependencies | root and child projects                                                                                                                    | Resolves and collects dependencies from projects with the`java-library` plugin that marked with 'modlApi/modlImplementation' configuration |
+| assembleModlStructure   | aggregates assets, dependencies and assembled project jars created by the 'collectModlDependencies' task into the module staging directory |                                                                                                                                            |
+| writeModuleXml          | root project                                                                                                                               | Writes the module.xml file to the staging directory                                                                                        |
+| zipModule               | root project                                                                                                                               | Compresses the staged module contents into an unsigned zip archive with a .modl file extension                                             |
+| checksumModl            | root project                                                                                                                               | Generates a checksum for the signed module, and writes the result to a json file                                                           |
+| modlReport              | root project                                                                                                                               | Writes a json file containing meta information about the module's assembly                                                                 |
+| signModule              | root project                                                                                                                               | signs the unsigned modl using credentials/certs noted above                                                                                |
 
 > &#735; to enable the developer mode, add `-Dia.developer.moduleupload=true` to the 'Java Additional Parameters' in
 > the `ignition.conf` file and restart the gateway. **This should only be done on secure development gateways, as it
 > opens a significant security risk on production gateways, in addition to instabilities that may result from your
 > in-development module.**
-
 
 ## Task Configuration
 
@@ -284,7 +277,6 @@ in the project's dependency settings. In addition, it will create the asset coll
 assemble_ lifecycle tasks, and ultimately establish task dependencies for the 'root-specific' tasks that create the
 module xml, copy files into the appropriate structure, zip the folder into an unsigned modl file, sign it, and report
 the result.
-
 
 # IDE Development with Dev Module Descriptors
 
@@ -336,6 +328,7 @@ Then restart the gateway.
 6. Test in the browser — changes are live
 
 Repeat steps 4-6 without restarting. Only restart the gateway when:
+
 - Module dependencies change (added/removed/version bumped)
 - Module metadata changes (hooks, module dependencies)
 - Structural class changes that HotSwap can't handle (new methods, new fields)
@@ -349,12 +342,12 @@ Repeat steps 4-6 without restarting. Only restart the gateway when:
 ## Descriptor Format
 
 The descriptor is a JSON file containing:
+
 - Module metadata (id, name, version, hooks, dependencies)
 - Per-scope class output directories (includes `build/classes/java/main`, `build/classes/kotlin/main`, `build/resources/main`, and `out/production/classes` if IDEA output exists)
 - Per-scope third-party dependency JARs (from `build/artifacts/`, populated by `collectModlDependencies`)
 
 The gateway creates a `ModuleClassLoader` per module from these paths, achieving the same classloader isolation as production `.modl` loading.
-
 
 # Pre-Release API Changes
 
