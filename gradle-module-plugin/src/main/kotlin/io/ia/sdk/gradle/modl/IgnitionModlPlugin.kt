@@ -172,7 +172,7 @@ class IgnitionModlPlugin : Plugin<Project> {
         // task that generates a dev module descriptor for IDE classloader isolation
         root.tasks.register(
             WriteDevDescriptor.ID,
-            WriteDevDescriptor::class.java
+            WriteDevDescriptor::class.java,
         ) { devTask: WriteDevDescriptor ->
             devTask.moduleId.set(settings.id)
             devTask.moduleName.set(settings.name)

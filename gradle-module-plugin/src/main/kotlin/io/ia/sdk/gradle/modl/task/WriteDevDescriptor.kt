@@ -9,6 +9,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -31,6 +32,7 @@ import javax.inject.Inject
  *
  * All scope data is collected at execution time to avoid configuration-time ordering issues.
  */
+@CacheableTask
 open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     companion object {
@@ -65,9 +67,7 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
         objects.mapProperty(String::class.java, String::class.java)
 
     @OutputFile
-    fun getOutputFile(): File {
-        return project.layout.buildDirectory.file("dev/${moduleId.get()}.json").get().asFile
-    }
+    fun getOutputFile(): File = project.layout.buildDirectory.file("dev/${moduleId.get()}.json").get().asFile
 
     @TaskAction
     fun execute() {
@@ -88,7 +88,7 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
             hooks = hookClasses.get().entries.associate { (className, scope) -> scope to className },
             moduleDependencies = collectDependencySpecs(settings),
             scopes = collectScopeData(ideaBuilds),
-            exports = emptyMap()
+            exports = emptyMap(),
         )
 
         val outFile = getOutputFile()
@@ -113,15 +113,13 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
         }
     }
 
-    private fun collectDependencySpecs(settings: ModuleSettings?): List<DevModuleDependency> {
-        return settings?.moduleDependencySpecs?.map { spec ->
-            DevModuleDependency(
-                id = spec.name,
-                scope = spec.scope,
-                required = spec.required
-            )
-        } ?: emptyList()
-    }
+    private fun collectDependencySpecs(settings: ModuleSettings?): List<DevModuleDependency> = settings?.moduleDependencySpecs?.map { spec ->
+        DevModuleDependency(
+            id = spec.name,
+            scope = spec.scope,
+            required = spec.required,
+        )
+    } ?: emptyList()
 
     /**
      * Collects class directories and dependency JARs for each scope.

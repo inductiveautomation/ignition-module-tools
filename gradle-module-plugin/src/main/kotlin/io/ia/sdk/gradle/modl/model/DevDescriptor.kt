@@ -15,20 +15,20 @@ data class DevModuleDescriptor(
     val hooks: Map<String, String> = emptyMap(),
     val moduleDependencies: List<DevModuleDependency> = emptyList(),
     val scopes: Map<String, DevScopeEntry> = emptyMap(),
-    val exports: Map<String, List<String>> = emptyMap()
+    val exports: Map<String, List<String>> = emptyMap(),
 )
 
 @JsonClass(generateAdapter = false)
 data class DevModuleDependency(
     val id: String,
     val scope: String,
-    val required: Boolean = false
+    val required: Boolean = false,
 )
 
 @JsonClass(generateAdapter = false)
 data class DevScopeEntry(
     val classDirs: Set<String> = emptySet(),
-    val jars: Set<String> = emptySet()
+    val jars: Set<String> = emptySet(),
 )
 
 fun DevModuleDescriptor.toJson(): String {
