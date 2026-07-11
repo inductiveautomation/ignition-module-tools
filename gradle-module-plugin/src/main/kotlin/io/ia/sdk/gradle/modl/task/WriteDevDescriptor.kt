@@ -1,19 +1,26 @@
 package io.ia.sdk.gradle.modl.task
 
-import io.ia.sdk.gradle.modl.extension.ModuleSettings
+import io.ia.sdk.gradle.modl.extension.ModuleDependencySpec
 import io.ia.sdk.gradle.modl.model.DevModuleDependency
 import io.ia.sdk.gradle.modl.model.DevModuleDescriptor
 import io.ia.sdk.gradle.modl.model.DevScopeEntry
 import io.ia.sdk.gradle.modl.model.toJson
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -22,18 +29,39 @@ import javax.inject.Inject
  * The descriptor contains module metadata (id, name, version, hooks, dependencies) along with
  * per-scope class directories and dependency JARs collected from each subproject's build output.
  *
- * Class output directories are selected based on the IDE build delegation setting:
- * - If IDEA manages the build (`delegatedBuild=false` in `.idea/gradle.xml`), the descriptor
- *   uses `out/production/classes` paths.
- * - If Gradle manages the build (delegated, or detection fails), the descriptor uses
- *   `build/classes/{java,kotlin}/main` paths.
- * - Fallback: if the detected mode's dirs don't exist but the other mode's do, the existing
- *   dirs are used.
+ * All project-graph data (per-scope class output roots and dependency jars) is captured into task
+ * inputs at configuration time via [scopeInputs] and [moduleDependencySpecs], so the task action
+ * never touches the `Project` object at execution time. This keeps the task compatible with
+ * Gradle's configuration cache.
  *
- * All scope data is collected at execution time to avoid configuration-time ordering issues.
+ * Both the Gradle build output roots (`build/classes/{java,kotlin}/main`, `build/resources/main`)
+ * and the IDEA-managed roots (`out/production/{classes,resources}`) are captured up front; at
+ * execution time only the directories that actually exist on disk are written into the descriptor,
+ * so no `.idea/gradle.xml` IDE-mode detection is needed.
  */
 @CacheableTask
 open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+
+    /**
+     * A single project's contribution to one Ignition scope. Multiple entries may share the same
+     * [scope] when more than one subproject targets it; they are merged at execution time.
+     */
+    data class ScopeInput(
+        @get:Input
+        val scope: String,
+
+        @get:Input
+        val projectName: String,
+
+        // lazy Gradle types are CC-serializable; classes dirs feed both @InputFiles and the descriptor
+        @get:InputFiles
+        @get:PathSensitive(PathSensitivity.RELATIVE)
+        val classesDirs: FileCollection,
+
+        @get:InputFiles
+        @get:PathSensitive(PathSensitivity.RELATIVE)
+        val artifactJars: FileCollection,
+    )
 
     companion object {
         const val ID = "writeDevModuleDescriptor"
@@ -66,124 +94,71 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
     val projectScopes: MapProperty<String, String> =
         objects.mapProperty(String::class.java, String::class.java)
 
-    @OutputFile
-    fun getOutputFile(): File = project.layout.buildDirectory.file("dev/${moduleId.get()}.json").get().asFile
+    /** Module dependency specs captured from the extension at configuration time. */
+    @get:Input
+    val moduleDependencySpecs: SetProperty<ModuleDependencySpec> =
+        objects.setProperty(ModuleDependencySpec::class.java)
+
+    /** Per-project, per-scope class dirs and dependency jars, captured at configuration time. */
+    @get:Nested
+    val scopeInputs: ListProperty<ScopeInput> = objects.listProperty(ScopeInput::class.java)
+
+    @get:OutputFile
+    val outPutFile: RegularFileProperty = objects.fileProperty().convention(
+        project.layout.buildDirectory.file(moduleId.map { "dev/$it.json" }),
+    )
 
     @TaskAction
     fun execute() {
-        val settings = project.extensions.findByType(ModuleSettings::class.java)
-        val ideaBuilds = detectIdeaBuildMode()
-
-        if (ideaBuilds) {
-            logger.info("Detected IDEA-managed builds (delegatedBuild=false). Using out/production/ class dirs.")
-        } else {
-            logger.info("Using Gradle build output class dirs.")
-        }
-
         val descriptor = DevModuleDescriptor(
             id = moduleId.get(),
             name = moduleName.get(),
             version = moduleVersion.get(),
             freeModule = freeModule.get(),
             hooks = hookClasses.get().entries.associate { (className, scope) -> scope to className },
-            moduleDependencies = collectDependencySpecs(settings),
-            scopes = collectScopeData(ideaBuilds),
+            moduleDependencies = collectDependencySpecs(),
+            scopes = collectScopeData(),
             exports = emptyMap(),
         )
 
-        val outFile = getOutputFile()
+        val outFile = outPutFile.get().asFile
         outFile.parentFile.mkdirs()
         outFile.writeText(descriptor.toJson())
         logger.lifecycle("Wrote dev module descriptor: ${outFile.absolutePath}")
     }
 
-    /**
-     * Detects whether IDEA is managing the build by reading `.idea/gradle.xml`.
-     * Returns `true` if `delegatedBuild` is explicitly set to `false`.
-     */
-    private fun detectIdeaBuildMode(): Boolean {
-        val gradleXml = project.rootProject.file(".idea/gradle.xml")
-        if (!gradleXml.exists()) return false
-        return try {
-            val content = gradleXml.readText()
-            content.contains("""delegatedBuild" value="false""")
-        } catch (e: Exception) {
-            logger.debug("Could not read .idea/gradle.xml: ${e.message}")
-            false
-        }
-    }
-
-    private fun collectDependencySpecs(settings: ModuleSettings?): List<DevModuleDependency> = settings?.moduleDependencySpecs?.map { spec ->
+    private fun collectDependencySpecs(): List<DevModuleDependency> = moduleDependencySpecs.get().map { spec ->
         DevModuleDependency(
             id = spec.name,
             scope = spec.scope,
             required = spec.required,
         )
-    } ?: emptyList()
+    }
 
     /**
-     * Collects class directories and dependency JARs for each scope.
-     *
-     * @param ideaBuilds true if IDEA manages the build (use out/production/), false for Gradle (use build/classes/)
+     * Merges the captured [scopeInputs] into a per-scope map of class dirs and dependency jars.
+     * Only class directories that exist on disk are included, which transparently covers both
+     * IDEA-managed (out/production) and Gradle-managed (build/classes) build outputs.
      */
-    private fun collectScopeData(ideaBuilds: Boolean): Map<String, DevScopeEntry> {
+    private fun collectScopeData(): Map<String, DevScopeEntry> {
         val scopeMap = mutableMapOf<String, Pair<MutableSet<String>, MutableSet<String>>>()
 
-        projectScopes.get().forEach { (projectPath, scope) ->
-            val subproj = project.rootProject.findProject(projectPath) ?: return@forEach
-            val (classDirs, jars) = scopeMap.getOrPut(scope) {
+        scopeInputs.get().forEach { input ->
+            val (classDirs, jars) = scopeMap.getOrPut(input.scope) {
                 mutableSetOf<String>() to mutableSetOf()
             }
 
-            if (ideaBuilds) {
-                // IDEA-managed build: use out/production/classes
-                val ideaOutDir = subproj.file("out/production/classes")
-                classDirs.add(ideaOutDir.absolutePath)
+            input.classesDirs.files
+                .filter { it.exists() }
+                .forEach { classDirs.add(it.absolutePath) }
 
-                // Fallback: if out/ doesn't exist but build/classes does, include build/ too
-                if (!ideaOutDir.isDirectory) {
-                    addGradleClassDirs(subproj, classDirs)
-                }
-            } else {
-                // Gradle-delegated build: use build/classes/*/main
-                addGradleClassDirs(subproj, classDirs)
-
-                // Fallback: if build/classes doesn't exist but out/ does, include out/
-                val buildClassesDir = subproj.file("build/classes")
-                if (!buildClassesDir.isDirectory) {
-                    val ideaOutDir = subproj.file("out/production/classes")
-                    if (ideaOutDir.isDirectory) {
-                        classDirs.add(ideaOutDir.absolutePath)
-                    }
-                }
-            }
-
-            // Resources — always from Gradle's build dir (IDEA uses the same path)
-            val resourcesDir = subproj.file("build/resources/main")
-            classDirs.add(resourcesDir.absolutePath)
-
-            // Resolved dependency JARs from collectModlDependencies output
-            val artifactsDir = subproj.file("build/artifacts")
-            val subprojName = subproj.name
-            if (artifactsDir.isDirectory) {
-                artifactsDir.listFiles()
-                    ?.filter { it.name.endsWith(".jar") && !it.name.startsWith(subprojName) }
-                    ?.forEach { jar -> jars.add(jar.absolutePath) }
-            }
+            input.artifactJars.files
+                .filter { it.name.endsWith(".jar") && !it.name.startsWith(input.projectName) }
+                .forEach { jars.add(it.absolutePath) }
         }
 
         return scopeMap.mapValues { (_, pair) ->
             DevScopeEntry(classDirs = pair.first, jars = pair.second)
-        }
-    }
-
-    /** Adds Gradle class output directories (build/classes/java/main, build/classes/kotlin/main, etc.) */
-    private fun addGradleClassDirs(subproj: org.gradle.api.Project, classDirs: MutableSet<String>) {
-        val javaExt = subproj.extensions.findByType(org.gradle.api.plugins.JavaPluginExtension::class.java)
-        javaExt?.sourceSets?.findByName("main")?.let { mainSourceSet ->
-            mainSourceSet.output.classesDirs.files.forEach { dir ->
-                classDirs.add(dir.absolutePath)
-            }
         }
     }
 }

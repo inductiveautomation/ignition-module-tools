@@ -23,7 +23,11 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.TaskProvider
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.forEach
 
 /**
  * Group used by all tasks so they show up in the appropriate category when 'gradle tasks' is executed
@@ -180,6 +184,28 @@ class IgnitionModlPlugin : Plugin<Project> {
             devTask.freeModule.set(settings.freeModule)
             devTask.hookClasses.set(settings.hooks)
             devTask.projectScopes.set(settings.projectScopes)
+            devTask.moduleDependencySpecs.set(settings.moduleDependencySpecs.toSet())
+
+            // Capture each scope's class output roots and dependency jars into task inputs at
+            // configuration time. The stored values are Gradle lazy types (FileCollection) and
+            // plain strings — no Project reference is retained — so the task action can build the
+            // descriptor without touching the project graph (configuration-cache safe).
+            val scopeInputs = settings.projectScopes.get().mapNotNull { (projectPath, scope) ->
+                val sp = root.findProject(projectPath) ?: return@mapNotNull null
+
+                val classesDirs = root.objects.fileCollection()
+                sp.extensions.findByType(JavaPluginExtension::class.java)
+                    ?.sourceSets?.findByName("main")
+                    ?.let { classesDirs.from(it.output) }
+                // IDEA-managed build output roots; only the ones present on disk are used at execution
+                classesDirs.from(sp.layout.projectDirectory.dir("out/production/classes"))
+                classesDirs.from(sp.layout.projectDirectory.dir("out/production/resources"))
+
+                val artifactJars = sp.fileTree("build/artifacts") { it.include("*.jar") }
+
+                WriteDevDescriptor.ScopeInput(scope, sp.name, classesDirs, artifactJars)
+            }
+            devTask.scopeInputs.set(scopeInputs)
         }
 
         // task that zips up the folder of module content
