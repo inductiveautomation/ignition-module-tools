@@ -50,8 +50,9 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
         @get:Input
         val scope: String,
 
+        /** Archive file name of the subproject's own module jar, excluded from dependency jars. */
         @get:Input
-        val projectName: String,
+        val ownArtifactName: String,
 
         // lazy Gradle types are CC-serializable; classes dirs feed both @InputFiles and the descriptor
         @get:InputFiles
@@ -104,7 +105,7 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
     val scopeInputs: ListProperty<ScopeInput> = objects.listProperty(ScopeInput::class.java)
 
     @get:OutputFile
-    val outPutFile: RegularFileProperty = objects.fileProperty().convention(
+    val outputFile: RegularFileProperty = objects.fileProperty().convention(
         project.layout.buildDirectory.file(moduleId.map { "dev/$it.json" }),
     )
 
@@ -121,7 +122,7 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
             exports = emptyMap(),
         )
 
-        val outFile = outPutFile.get().asFile
+        val outFile = outputFile.get().asFile
         outFile.parentFile.mkdirs()
         outFile.writeText(descriptor.toJson())
         logger.lifecycle("Wrote dev module descriptor: ${outFile.absolutePath}")
@@ -153,7 +154,7 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
                 .forEach { classDirs.add(it.absolutePath) }
 
             input.artifactJars.files
-                .filter { it.name.endsWith(".jar") && !it.name.startsWith(input.projectName) }
+                .filter { it.name.endsWith(".jar") && it.name != input.ownArtifactName }
                 .forEach { jars.add(it.absolutePath) }
         }
 

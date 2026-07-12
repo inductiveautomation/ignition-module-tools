@@ -25,6 +25,7 @@ import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Jar
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.forEach
@@ -192,7 +193,6 @@ class IgnitionModlPlugin : Plugin<Project> {
             // descriptor without touching the project graph (configuration-cache safe).
             val scopeInputs = settings.projectScopes.get().mapNotNull { (projectPath, scope) ->
                 val sp = root.findProject(projectPath) ?: return@mapNotNull null
-
                 val classesDirs = root.objects.fileCollection()
                 sp.extensions.findByType(JavaPluginExtension::class.java)
                     ?.sourceSets?.findByName("main")
@@ -201,11 +201,17 @@ class IgnitionModlPlugin : Plugin<Project> {
                 classesDirs.from(sp.layout.projectDirectory.dir("out/production/classes"))
                 classesDirs.from(sp.layout.projectDirectory.dir("out/production/resources"))
 
+                // the subproject's own module jar, matched by exact archive name so a dependency
+                // that merely shares the project's name prefix isn't dropped (review finding #6)
+                val ownArtifactName = sp.tasks.withType(Jar::class.java)
+                    .findByName(JavaPlugin.JAR_TASK_NAME)
+                    ?.archiveFileName?.get().orEmpty()
                 val artifactJars = sp.fileTree("build/artifacts") { it.include("*.jar") }
 
-                WriteDevDescriptor.ScopeInput(scope, sp.name, classesDirs, artifactJars)
+                WriteDevDescriptor.ScopeInput(scope, ownArtifactName, classesDirs, artifactJars)
             }
             devTask.scopeInputs.set(scopeInputs)
+            devTask.dependsOn(assembleModuleStructure)
         }
 
         // task that zips up the folder of module content
