@@ -116,16 +116,16 @@ abstract class ModuleSettings @javax.inject.Inject constructor(objects: ObjectFa
         objects.domainObjectContainer(ModuleDependencySpec::class.java)
 
     /**
-     * Map of Ignition Scope to fully qualified hook class to, where scope is one of "C", "D", "G" for "vision Client",
+     * Map of fully qualified hook class to Ignition Scope, where scope is one of "C", "D", "G" for "vision Client",
      * "Designer", and "Gateway" respectively.
      *
      * ### Examples:
      *
      * _Groovy_
-     *`  hooks = ["G": "com.example.gateway.GatewayModuleHook"]`
+     *`  hooks = ["com.example.gateway.GatewayModuleHook": "G"]`
      *
      * _Kotlin_
-     *`  hooks = mapOf("D" to "com.example.designer.MyDesignerHook")`
+     *`  hooks = mapOf("com.example.designer.MyDesignerHook" to "D")`
      */
     val hooks: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
 

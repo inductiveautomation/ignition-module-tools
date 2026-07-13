@@ -116,16 +116,32 @@ open class WriteDevDescriptor @Inject constructor(objects: ObjectFactory) : Defa
             name = moduleName.get(),
             version = moduleVersion.get(),
             freeModule = freeModule.get(),
-            hooks = hookClasses.get().entries.associate { (className, scope) -> scope to className },
+            hooks = invertHooksByScope(hookClasses.get()),
             moduleDependencies = collectDependencySpecs(),
             scopes = collectScopeData(),
-            exports = emptyMap(),
         )
 
         val outFile = outputFile.get().asFile
         outFile.parentFile.mkdirs()
         outFile.writeText(descriptor.toJson())
         logger.lifecycle("Wrote dev module descriptor: ${outFile.absolutePath}")
+    }
+
+    /**
+     * Inverts the configured `className -> scope` hook map into the descriptor's `scope -> className`
+     * form. Fails with a friendly error if two hook classes are declared for the same scope, since a
+     * silent inversion would otherwise drop one of them.
+     */
+    private fun invertHooksByScope(hooks: Map<String, String>): Map<String, String> {
+        val byScope = mutableMapOf<String, String>()
+        hooks.forEach { (className, scope) ->
+            val existing = byScope.putIfAbsent(scope, className)
+            require(existing == null) {
+                "Multiple hook classes declared for scope '$scope': '$existing' and '$className'. " +
+                    "Each Ignition scope may declare at most one hook class."
+            }
+        }
+        return byScope
     }
 
     private fun collectDependencySpecs(): List<DevModuleDependency> = moduleDependencySpecs.get().map { spec ->

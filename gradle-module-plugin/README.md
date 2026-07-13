@@ -1,3 +1,4 @@
+
 # Ignition Module Plugin for Gradle
 
 The Ignition platform is an open/pluggable JVM based system that uses Ignition Modules to add functionality. As documented in the [Ignition SDK Programmer's Guide](https://docs.inductiveautomation.com/display/SE/Ignition+SDK+Programmers+Guide), an Ignition Module consists of an xml manifest, jar files, and additional resources and meta-information.
@@ -286,6 +287,12 @@ The `writeDevModuleDescriptor` task generates a JSON descriptor that allows a de
 - **HotSwap support** for method-body changes via JDWP
 - **No .modl build required** — no compile+zip+sign cycle for code changes
 
+> **Multi-module semantics:** the task is registered once on the module-root project and emits a
+> single, aggregate descriptor for the whole module — not one descriptor per subproject. A layout
+> such as `parent + api + gateway + designer + client + common` still produces one
+> `build/dev/{moduleId}.json`, with each subproject's class dirs and jars grouped under the scope(s)
+> declared for it in `projectScopes`.
+
 ## Gateway Configuration
 
 Your dev gateway needs these JVM flags in `ignition.conf` (or wrapper config):
@@ -317,6 +324,14 @@ cp build/dev/*.json /path/to/ignition/user-lib/modules/dev/
 ```
 
 Then restart the gateway.
+
+> **Absolute paths are baked in:** the descriptor's `classDirs` and `jars` are absolute filesystem
+> paths from the machine that generated it. It is not portable — don't commit it or share it between
+> machines; regenerate it on each dev machine.
+
+> **Ignition monorepo devs:** the manual copy above is for third-party module authors. Within the
+> `ignition` repo itself the descriptors are collected automatically by the `collectDevDescriptors`
+> `Sync` task wired into the gateway run configuration, so you don't copy them by hand.
 
 ## Development Workflow
 
