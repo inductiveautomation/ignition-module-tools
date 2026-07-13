@@ -229,7 +229,7 @@ open class WriteModuleXml @Inject constructor(_objects: ObjectFactory) : Default
         if (!requiredIgnitionVersion.isPresent) return false
 
         val version = requiredIgnitionVersion.get().split(".").map { it.toInt() }
-        if (version[0] >= 9) {
+        if (version[0] >= 2027) {
             return true
         }
         if (version[0] == 8 && version[1] >= 3) {
