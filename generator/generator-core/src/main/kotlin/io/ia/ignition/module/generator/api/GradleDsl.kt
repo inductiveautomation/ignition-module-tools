@@ -12,7 +12,7 @@ enum class GradleDsl {
 
     fun settingsFilename(): String = when (this) {
         GROOVY -> "settings.gradle"
-        KOTLIN -> "templates/settings.gradle.kts"
+        KOTLIN -> "settings.gradle.kts"
     }
 
     fun mapAssociator(): String = when (this) {

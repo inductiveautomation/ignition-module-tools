@@ -21,7 +21,9 @@ class GeneratorConfigBuilder {
     private var customReplacements: Map<String, String> = emptyMap()
     private var buildDsl: GradleDsl = GROOVY
     private var projectLanguage: SourceFileType = JAVA
-    private var settingsDsl: GradleDsl = GROOVY
+
+    // When null, [build] aligns settings DSL with [buildDsl] (kotlin buildscripts get settings.gradle.kts).
+    private var settingsDsl: GradleDsl? = null
     private var gradleWrapperVersion: String = GRADLE_VERSION
     private var debugPluginConfig: Boolean = false
     private var rootPluginConfig: String = ""
@@ -64,7 +66,8 @@ class GeneratorConfigBuilder {
             packageName = packageName,
             scopes = scopes,
             parentDir = parentDir,
-            settingsDsl = settingsDsl,
+            // Match settings language to buildscripts unless the caller overrode settingsDsl.
+            settingsDsl = settingsDsl ?: buildDsl,
             buildDsl = buildDsl,
             projectLanguage = projectLanguage,
             gradleWrapperVersion = gradleWrapperVersion,

@@ -124,6 +124,7 @@ class ModuleGeneratorTest {
         assertNull(t)
         assertNotNull(projDir)
 
+        // Default builder uses Groovy buildscripts, which aligns settings DSL to Groovy as well.
         val settingsFile = projDir.resolve("settings.gradle")
         val settingsText = settingsFile.toFile().readText(Charsets.UTF_8)
         assertTrue(Files.exists(settingsFile))
@@ -132,6 +133,32 @@ class ModuleGeneratorTest {
         val projDirName = projDir.fileName
 
         assertTrue(settingsText.contains(projDirName.toString()))
+    }
+
+    @Test
+    fun `kotlin buildscript project gets settings_gradle_kts and version catalog`() {
+        val parentDir = tempFolder.newFolder().toPath()
+        val config = GeneratorConfigBuilder()
+            .moduleName("Catalog Check")
+            .packageName("bot.skynet.terminator")
+            .parentDir(parentDir)
+            .scopes("G")
+            .buildscriptDsl(GradleDsl.KOTLIN)
+            .build()
+
+        val projDir = ModuleGenerator.generate(config)
+        assertTrue(Files.exists(projDir.resolve("settings.gradle.kts")))
+        assertFalse(Files.exists(projDir.resolve("settings.gradle")))
+
+        val catalog = projDir.resolve("gradle/libs.versions.toml")
+        assertTrue(Files.exists(catalog), "version catalog should be written")
+        val catalogText = catalog.toFile().readText(Charsets.UTF_8)
+        assertTrue(catalogText.contains("ignition = \"8.3.0\""))
+        assertTrue(catalogText.contains("ignition-gateway-api"))
+
+        val rootBuild = projDir.resolve("build.gradle.kts").toFile().readText(Charsets.UTF_8)
+        assertTrue(rootBuild.contains("sdk_version by extra(\"8.3.0\")"))
+        assertTrue(rootBuild.contains("val deepClean by tasks.registering"))
     }
 
     @Test
@@ -208,10 +235,14 @@ class ModuleGeneratorTest {
         assertTrue(content.contains(expected))
         assertTrue(content.contains("dependencies {"))
         val gwDeps = """
-            |    compileOnly("com.inductiveautomation.ignitionsdk:ignition-common:${'$'}sdk_version")
-            |    compileOnly("com.inductiveautomation.ignitionsdk:gateway-api:${'$'}sdk_version")
+            |    compileOnly(libs.ignition.common)
+            |    compileOnly(libs.ignition.gateway.api)
         """.trimMargin()
         assertTrue(content.contains(gwDeps), "buildscript should include '$gwDeps'")
+        assertTrue(
+            Files.exists(projDir.resolve("gradle/libs.versions.toml")),
+            "version catalog should be written for single-dir projects",
+        )
     }
 
     @Test
@@ -254,8 +285,8 @@ class ModuleGeneratorTest {
         assertTrue(content.contains(expected))
         assertTrue(content.contains("dependencies {"))
         val gwDeps = """
-            |    compileOnly("com.inductiveautomation.ignitionsdk:ignition-common:${'$'}{rootProject.extra["sdk_version"]}")
-            |    compileOnly("com.inductiveautomation.ignitionsdk:gateway-api:${'$'}{rootProject.extra["sdk_version"]}")
+            |    compileOnly(libs.ignition.common)
+            |    compileOnly(libs.ignition.gateway.api)
         """.trimMargin()
         assertTrue(content.contains(gwDeps), "buildscript should include '$gwDeps'")
     }
