@@ -10,10 +10,15 @@ import com.inductiveautomation.ignition.designer.model.DesignerContext;
  */
 public class <MODULE_CLASSNAME>DesignerHook extends AbstractDesignerModuleHook {
 
-    // override additonal methods as requried
+    // override additional methods as required
 
     @Override
     public void startup(DesignerContext context, LicenseState activationState) throws Exception {
-        // implelement functionality as required
+        // implement functionality as required
+    }
+
+    @Override
+    public void shutdown() {
+        // cleanup as required
     }
 }

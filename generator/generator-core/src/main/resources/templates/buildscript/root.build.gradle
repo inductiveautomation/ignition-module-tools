@@ -12,7 +12,8 @@ plugins {
 }
 
 ext {
-    sdk_version = "8.1.20"
+    // Keep in sync with [versions].ignition in gradle/libs.versions.toml
+    sdk_version = "8.3.0"
 }
 
 allprojects {

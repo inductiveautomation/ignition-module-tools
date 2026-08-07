@@ -11,7 +11,8 @@ plugins {
     <ROOT_PLUGIN_CONFIGURATION>
 }
 
-val sdk_version by extra("8.1.20")
+// Keep in sync with [versions].ignition in gradle/libs.versions.toml
+val sdk_version by extra("8.3.0")
 
 allprojects {
     version = "0.0.1-SNAPSHOT"

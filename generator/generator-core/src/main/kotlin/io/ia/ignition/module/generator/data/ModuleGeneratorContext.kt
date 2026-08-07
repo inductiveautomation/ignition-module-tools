@@ -82,7 +82,7 @@ class ModuleGeneratorContext(override val config: GeneratorConfig) : GeneratorCo
     private fun buildDependencyEntries(scopes: List<ProjectScope>): Map<String, String> = mutableMapOf<String, String>().apply {
         scopes.forEach { scope ->
             TemplateMarker.dependencyKeyForScope(scope)?.let { tm ->
-                this[tm.key] = DefaultDependencies.ARTIFACTS[scope]?.toDependencyFormat(config.buildDsl) ?: ""
+                this[tm.key] = DefaultDependencies.CATALOG_LIBS[scope]?.toDependencyFormat(config.buildDsl) ?: ""
                 // if not a common scope and there is a common project, add it as a dependency to other scopes
                 if (scope != COMMON && scopes.size > 1) {
                     this[tm.key] = "${this[tm.key]}\n    compileOnly(project(\":common\"))"

@@ -94,3 +94,15 @@ ignitionModule {
      */
     //<SKIP_MODULE_SIGNING>
 }
+
+/*
+ * Convenience task that runs clean on all projects and removes the root .gradle cache directory.
+ * Mirrors the cleanup helper used in ignition-sdk-examples.
+ */
+tasks.register("deepClean") {
+    dependsOn(allprojects.collect { it.path + ":clean" })
+    description = "Executes clean tasks and removes the root .gradle directory."
+    doLast {
+        delete(file(".gradle"))
+    }
+}

@@ -96,8 +96,21 @@ object ModuleGenerator {
         writeSettingsFile(context)
         writeRootBuildScript(context)
         writeGradleWrapperResources(context)
+        writeVersionCatalog(context)
 
         return context.getRootDirectory()
+    }
+
+    /**
+     * Writes the gradle version catalog (`gradle/libs.versions.toml`) used by subproject buildscripts,
+     * matching the layout used by ignition-sdk-examples.
+     */
+    private fun writeVersionCatalog(context: ModuleGeneratorContext) {
+        val catalogFile = context.getRootDirectory().resolve("gradle/libs.versions.toml")
+        catalogFile.createAndFillFromResource(
+            "templates/version-catalog/libs.versions.toml",
+            context.getTemplateReplacements(),
+        )
     }
 
     /**
@@ -164,10 +177,11 @@ object ModuleGenerator {
             }
 
             val dependencies =
-                DefaultDependencies.ARTIFACTS[projectScope]?.toDependencyFormat(context.config.buildDsl) ?: ""
+                DefaultDependencies.CATALOG_LIBS[projectScope]?.toDependencyFormat(context.config.buildDsl) ?: ""
 
             rootBuildScript.toFile().appendText(
                 """
+                |
                 |dependencies {
                 |    $dependencies
                 |}
