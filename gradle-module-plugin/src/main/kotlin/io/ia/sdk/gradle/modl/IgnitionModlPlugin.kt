@@ -11,6 +11,7 @@ import io.ia.sdk.gradle.modl.task.Checksum
 import io.ia.sdk.gradle.modl.task.CollectModlDependencies
 import io.ia.sdk.gradle.modl.task.ModuleBuildReport
 import io.ia.sdk.gradle.modl.task.SignModule
+import io.ia.sdk.gradle.modl.task.WriteDevDescriptor
 import io.ia.sdk.gradle.modl.task.WriteModuleXml
 import io.ia.sdk.gradle.modl.task.ZipModule
 import io.ia.sdk.gradle.modl.task.ZipModule.Companion.UNSIGNED_EXTENSION
@@ -22,7 +23,12 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Jar
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.forEach
 
 /**
  * Group used by all tasks so they show up in the appropriate category when 'gradle tasks' is executed
@@ -166,6 +172,46 @@ class IgnitionModlPlugin : Plugin<Project> {
 
             // xml task depends on having module structure
             xmlTask.dependsOn(assembleModuleStructure)
+        }
+
+        // task that generates a dev module descriptor for IDE classloader isolation
+        root.tasks.register(
+            WriteDevDescriptor.ID,
+            WriteDevDescriptor::class.java,
+        ) { devTask: WriteDevDescriptor ->
+            devTask.moduleId.set(settings.id)
+            devTask.moduleName.set(settings.name)
+            devTask.moduleVersion.set(settings.moduleVersion)
+            devTask.freeModule.set(settings.freeModule)
+            devTask.hookClasses.set(settings.hooks)
+            devTask.projectScopes.set(settings.projectScopes)
+            devTask.moduleDependencySpecs.set(settings.moduleDependencySpecs.toSet())
+
+            // Capture each scope's class output roots and dependency jars into task inputs at
+            // configuration time. The stored values are Gradle lazy types (FileCollection) and
+            // plain strings — no Project reference is retained — so the task action can build the
+            // descriptor without touching the project graph (configuration-cache safe).
+            val scopeInputs = settings.projectScopes.get().mapNotNull { (projectPath, scope) ->
+                val sp = root.findProject(projectPath) ?: return@mapNotNull null
+                val classesDirs = root.objects.fileCollection()
+                sp.extensions.findByType(JavaPluginExtension::class.java)
+                    ?.sourceSets?.findByName("main")
+                    ?.let { classesDirs.from(it.output) }
+                // IDEA-managed build output roots; only the ones present on disk are used at execution
+                classesDirs.from(sp.layout.projectDirectory.dir("out/production/classes"))
+                classesDirs.from(sp.layout.projectDirectory.dir("out/production/resources"))
+
+                // the subproject's own module jar, matched by exact archive name so a dependency
+                // that merely shares the project's name prefix isn't dropped (review finding #6)
+                val ownArtifactName = sp.tasks.withType(Jar::class.java)
+                    .findByName(JavaPlugin.JAR_TASK_NAME)
+                    ?.archiveFileName?.get().orEmpty()
+                val artifactJars = sp.fileTree("build/artifacts") { it.include("*.jar") }
+
+                WriteDevDescriptor.ScopeInput(scope, ownArtifactName, classesDirs, artifactJars)
+            }
+            devTask.scopeInputs.set(scopeInputs)
+            devTask.dependsOn(assembleModuleStructure)
         }
 
         // task that zips up the folder of module content
